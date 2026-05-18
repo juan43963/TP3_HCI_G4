@@ -2,4 +2,8 @@
     <string name="app_name">SmartHome</string>
     <string name="hello">Hola</string>
     <string name="welcome">Bienvenido a SmartHome</string>
+    <string name="nav_home">Inicio</string>
+    <string name="nav_rooms">Habitaciones</string>
+    <string name="nav_routines">Rutinas</string>
+    <string name="nav_profile">Perfil</string>
 </resources>
