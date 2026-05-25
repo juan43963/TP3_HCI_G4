@@ -6,4 +6,46 @@
     <string name="nav_rooms">Habitaciones</string>
     <string name="nav_routines">Rutinas</string>
     <string name="nav_profile">Perfil</string>
+
+    <!-- Welcome -->
+    <string name="welcome_brand_smart">Smart</string>
+    <string name="welcome_brand_home">Home</string>
+    <string name="welcome_title">Tu casa,\nsiempre a un toque\nde distancia</string>
+    <string name="welcome_subtitle">Controlá luces, clima, persianas y rutinas desde un solo lugar.</string>
+    <string name="welcome_cta_register">Registrarme</string>
+    <string name="welcome_cta_login">Ya tengo cuenta</string>
+    <string name="welcome_hero_content_description">Persona usando SmartHome en su cocina</string>
+
+    <!-- Auth placeholders (temporales hasta tener las pantallas reales) -->
+    <string name="auth_login_placeholder">Login — próximamente</string>
+    <string name="auth_register_placeholder">Registro — próximamente</string>
+
+    <!-- Login -->
+    <string name="login_title">Iniciá sesión</string>
+    <string name="login_no_account_question">¿No tenés cuenta?</string>
+    <string name="login_register_link">Registrate</string>
+    <string name="login_field_email_label">Email</string>
+    <string name="login_field_email_placeholder">tu@email.com</string>
+    <string name="login_field_password_label">Contraseña</string>
+    <string name="login_forgot_password">¿Olvidaste tu contraseña?</string>
+    <string name="login_cta_submit">Ingresar</string>
+
+    <!-- Register -->
+    <string name="register_step_personal">Datos personales</string>
+    <string name="register_step_password">Contraseña</string>
+    <string name="register_title">Creá tu cuenta</string>
+    <string name="register_subtitle_step1">Ingresá tus datos para empezar</string>
+    <string name="register_subtitle_step2">Elegí una contraseña segura</string>
+    <string name="register_field_full_name">Nombre completo</string>
+    <string name="register_field_email">Email</string>
+    <string name="register_field_password">Contraseña</string>
+    <string name="register_field_confirm_password">Confirmar contraseña</string>
+    <string name="register_cta_continue">Continuar</string>
+    <string name="register_cta_back">Volver</string>
+    <string name="register_cta_create">Crear cuenta</string>
+    <string name="register_footer_question">¿Ya tenés cuenta?</string>
+    <string name="register_footer_login">Iniciá sesión</string>
+    <string name="register_tagline">Controlá luces, clima, persianas y rutinas</string>
+    <string name="register_show_password">Mostrar contraseña</string>
+    <string name="register_hide_password">Ocultar contraseña</string>
 </resources>
