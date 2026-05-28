@@ -14,6 +14,10 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -28,6 +32,7 @@ import androidx.navigation.get
 import com.grupo4.smarthome.ui.auth.login.LoginScreen
 import com.grupo4.smarthome.ui.auth.register.RegisterScreen
 import com.grupo4.smarthome.ui.auth.welcome.WelcomeScreen
+import com.grupo4.smarthome.ui.auth.welcome.WelcomeScreenTablet
 import com.grupo4.smarthome.ui.navigation.AuthScreen
 import com.grupo4.smarthome.ui.navigation.Screen
 import com.grupo4.smarthome.ui.screens.home.HomeScreen
@@ -37,19 +42,22 @@ import com.grupo4.smarthome.ui.screens.routines.RoutinesScreen
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             SmartHomeTheme {
-                SmartHomeApp()
+                val windowSize = calculateWindowSizeClass(this)
+                SmartHomeApp(windowSize = windowSize)
             }
         }
     }
 }
 
 @Composable
-fun SmartHomeApp() {
+fun SmartHomeApp(windowSize: WindowSizeClass) {
+    val isTablet = windowSize.widthSizeClass != WindowWidthSizeClass.Compact
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -88,10 +96,19 @@ fun SmartHomeApp() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(AuthScreen.Welcome.route) {
-                WelcomeScreen(
-                    onNavigateToRegister = { navController.navigate(AuthScreen.Register.route) },
-                    onNavigateToLogin = { navController.navigate(AuthScreen.Login.route) },
-                )
+                val onRegister = { navController.navigate(AuthScreen.Register.route) }
+                val onLogin = { navController.navigate(AuthScreen.Login.route) }
+                if (isTablet) {
+                    WelcomeScreenTablet(
+                        onNavigateToRegister = onRegister,
+                        onNavigateToLogin = onLogin,
+                    )
+                } else {
+                    WelcomeScreen(
+                        onNavigateToRegister = onRegister,
+                        onNavigateToLogin = onLogin,
+                    )
+                }
             }
             composable(AuthScreen.Login.route) {
                 LoginScreen(

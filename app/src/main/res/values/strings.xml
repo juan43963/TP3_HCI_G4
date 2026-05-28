@@ -11,6 +11,7 @@
     <string name="welcome_brand_smart">Smart</string>
     <string name="welcome_brand_home">Home</string>
     <string name="welcome_title">Tu casa,\nsiempre a un toque\nde distancia</string>
+    <string name="welcome_title_tablet">Tu casa,\nsiempre a un toque de distancia</string>
     <string name="welcome_subtitle">Controlá luces, clima, persianas y rutinas desde un solo lugar.</string>
     <string name="welcome_cta_register">Registrarme</string>
     <string name="welcome_cta_login">Ya tengo cuenta</string>
