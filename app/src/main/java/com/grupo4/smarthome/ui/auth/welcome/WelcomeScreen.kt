@@ -1,5 +1,6 @@
 package com.grupo4.smarthome.ui.auth.welcome
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -130,9 +131,10 @@ fun WelcomeContent(
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(14.dp),
+                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surface,
-                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    contentColor = MaterialTheme.colorScheme.primary,
                 ),
             ) {
                 Text(

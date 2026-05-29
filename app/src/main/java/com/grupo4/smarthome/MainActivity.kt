@@ -31,6 +31,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.get
 import com.grupo4.smarthome.ui.auth.login.LoginScreen
 import com.grupo4.smarthome.ui.auth.register.RegisterScreen
+import com.grupo4.smarthome.ui.auth.register.RegisterScreenTablet
+import com.grupo4.smarthome.ui.auth.verify.VerifyAccountScreen
 import com.grupo4.smarthome.ui.auth.welcome.WelcomeScreen
 import com.grupo4.smarthome.ui.auth.welcome.WelcomeScreenTablet
 import com.grupo4.smarthome.ui.navigation.AuthScreen
@@ -128,15 +130,40 @@ fun SmartHomeApp(windowSize: WindowSizeClass) {
                 )
             }
             composable(AuthScreen.Register.route) {
-                RegisterScreen(
-                    onNavigateToLogin = {
-                        navController.navigate(AuthScreen.Login.route) {
-                            popUpTo(AuthScreen.Register.route) { inclusive = true }
-                        }
-                    },
-                    onRegisterSuccess = {
+                val onNavigateToLogin = {
+                    navController.navigate(AuthScreen.Login.route) {
+                        popUpTo(AuthScreen.Register.route) { inclusive = true }
+                    }
+                    Unit
+                }
+                val onRegisterSuccess = {
+                    navController.navigate(AuthScreen.VerifyAccount.route)
+                    Unit
+                }
+                if (isTablet) {
+                    RegisterScreenTablet(
+                        onNavigateToLogin = onNavigateToLogin,
+                        onRegisterSuccess = onRegisterSuccess,
+                    )
+                } else {
+                    RegisterScreen(
+                        onNavigateToLogin = onNavigateToLogin,
+                        onRegisterSuccess = onRegisterSuccess,
+                    )
+                }
+            }
+            composable(AuthScreen.VerifyAccount.route) {
+                VerifyAccountScreen(
+                    email = "juanperez@gmail.com",
+                    onVerifySuccess = {
                         navController.navigate(Screen.Home.route) {
                             popUpTo(AuthScreen.Welcome.route) { inclusive = true }
+                        }
+                    },
+                    onChangeEmail = { navController.popBackStack() },
+                    onBackToLogin = {
+                        navController.navigate(AuthScreen.Login.route) {
+                            popUpTo(AuthScreen.Welcome.route)
                         }
                     },
                 )

@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -60,6 +60,7 @@ fun RegisterScreen(
     RegisterContent(
         onNavigateToLogin = onNavigateToLogin,
         onRegisterSuccess = onRegisterSuccess,
+        modifier = Modifier.fillMaxWidth(),
     )
 }
 
@@ -82,7 +83,7 @@ fun RegisterContent(
 
     Column(
         modifier = modifier
-            .fillMaxSize()
+            .fillMaxHeight()
             .background(MaterialTheme.colorScheme.background)
             .safeDrawingPadding()
             .padding(horizontal = 24.dp, vertical = 16.dp),
@@ -361,7 +362,7 @@ private fun StepTwoForm(
 }
 
 @Composable
-private fun RoundedField(
+internal fun RoundedField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
@@ -388,7 +389,7 @@ private fun RoundedField(
 }
 
 @Composable
-private fun PasswordField(
+internal fun PasswordField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
@@ -482,7 +483,7 @@ private fun LoginFooter(onLoginClick: () -> Unit) {
 @Composable
 private fun RegisterStep1Preview() {
     SmartHomeTheme(darkTheme = false) {
-        RegisterContent(onNavigateToLogin = {}, onRegisterSuccess = {})
+        RegisterContent(onNavigateToLogin = {}, onRegisterSuccess = {}, modifier = Modifier.fillMaxWidth())
     }
 }
 
@@ -490,6 +491,6 @@ private fun RegisterStep1Preview() {
 @Composable
 private fun RegisterStep1DarkPreview() {
     SmartHomeTheme(darkTheme = true) {
-        RegisterContent(onNavigateToLogin = {}, onRegisterSuccess = {})
+        RegisterContent(onNavigateToLogin = {}, onRegisterSuccess = {}, modifier = Modifier.fillMaxWidth())
     }
 }
