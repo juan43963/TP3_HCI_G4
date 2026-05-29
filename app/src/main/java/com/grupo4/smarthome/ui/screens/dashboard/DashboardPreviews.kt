@@ -3,6 +3,8 @@ package com.grupo4.smarthome.ui.screens.dashboard
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.grupo4.smarthome.ui.screens.dashboard.layout.TabletDashboardLayout
+import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneDashboardLayout
+import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneHomeDrawerContent
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 
 @Preview(
@@ -93,10 +95,77 @@ private fun DashboardPhonePlaceholderPreview() {
     }
 }
 
+@Preview(
+    name = "Dashboard Phone - Poblado",
+    showBackground = true,
+    device = "spec:width=393dp,height=852dp,dpi=440",
+)
+@Composable
+private fun DashboardPhonePopulatedPreview() {
+    DashboardPhonePreview(state = DashboardPreviewData.populated)
+}
+
+@Preview(
+    name = "Dashboard Phone - Casa vacía",
+    showBackground = true,
+    device = "spec:width=393dp,height=852dp,dpi=440",
+)
+@Composable
+private fun DashboardPhoneEmptyHomePreview() {
+    DashboardPhonePreview(state = DashboardPreviewData.emptyHome)
+}
+
+@Preview(
+    name = "Dashboard Phone - Sin favoritas",
+    showBackground = true,
+    device = "spec:width=393dp,height=852dp,dpi=440",
+)
+@Composable
+private fun DashboardPhoneNoFavoritesPreview() {
+    DashboardPhonePreview(state = DashboardPreviewData.roomsWithoutFavoritesAndNoRoutines)
+}
+
+@Preview(
+    name = "Dashboard Phone - Rutinas sin favoritas",
+    showBackground = true,
+    device = "spec:width=393dp,height=852dp,dpi=440",
+)
+@Composable
+private fun DashboardPhoneNoRoutineFavoritesPreview() {
+    DashboardPhonePreview(state = DashboardPreviewData.roomsWithFavoritesNoRoutineFavorites)
+}
+
+@Preview(
+    name = "Dashboard Phone - Drawer",
+    showBackground = true,
+    device = "spec:width=393dp,height=852dp,dpi=440",
+)
+@Composable
+private fun DashboardPhoneDrawerPreview() {
+    SmartHomeTheme(darkTheme = false) {
+        PhoneHomeDrawerContent(
+            state = DashboardPreviewData.populated,
+            callbacks = DashboardCallbacks(),
+            onClose = {},
+        )
+    }
+}
+
 @Composable
 private fun DashboardTabletPreview(state: DashboardUiState) {
     SmartHomeTheme(darkTheme = false) {
         TabletDashboardLayout(
+            state = state,
+            presentation = state.toPresentationState(),
+            callbacks = DashboardCallbacks(),
+        )
+    }
+}
+
+@Composable
+private fun DashboardPhonePreview(state: DashboardUiState) {
+    SmartHomeTheme(darkTheme = false) {
+        PhoneDashboardLayout(
             state = state,
             presentation = state.toPresentationState(),
             callbacks = DashboardCallbacks(),

@@ -4,13 +4,13 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.theme.BrandIndigoLight
+import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
 @Composable
 fun WelcomeSummaryCard(
@@ -101,20 +102,26 @@ private fun MetricsRow(
     modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min),
         horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         MetricCard(
             value = activeDevicesCount.toString(),
             label = stringResource(R.string.dashboard_metric_devices_on),
-            icon = Icons.Default.CheckCircle,
-            modifier = Modifier.weight(1f),
+            icon = SmartHomeIcons.Devices,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
         )
         MetricCard(
             value = roomsCount.toString(),
             label = stringResource(R.string.dashboard_metric_rooms),
-            icon = Icons.Default.Home,
-            modifier = Modifier.weight(1f),
+            icon = SmartHomeIcons.Rooms,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
         )
     }
 }

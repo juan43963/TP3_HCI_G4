@@ -11,9 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -27,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.screens.dashboard.DashboardRoutinePreview
 import com.grupo4.smarthome.ui.theme.BrandIndigoLight
+import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 import com.grupo4.smarthome.ui.theme.StarActive
 
 @Composable
@@ -53,7 +51,7 @@ fun FavoriteRoutinePlaceholderCard(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    imageVector = Icons.Default.PlayArrow,
+                    imageVector = SmartHomeIcons.Play,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onPrimary,
                 )
@@ -82,7 +80,7 @@ fun FavoriteRoutinePlaceholderCard(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    imageVector = Icons.Outlined.Star,
+                    imageVector = SmartHomeIcons.Favorite,
                     contentDescription = null,
                     tint = StarActive,
                     modifier = Modifier.size(17.dp),

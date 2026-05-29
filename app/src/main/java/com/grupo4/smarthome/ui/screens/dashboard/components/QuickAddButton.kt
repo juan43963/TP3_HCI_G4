@@ -5,8 +5,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -19,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.theme.BrandIndigoDark
+import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
 @Composable
 fun QuickAddButton(
@@ -35,7 +34,7 @@ fun QuickAddButton(
             contentColor = MaterialTheme.colorScheme.onPrimary,
         ),
     ) {
-        Icon(imageVector = Icons.Default.Add, contentDescription = null)
+        Icon(imageVector = SmartHomeIcons.Add, contentDescription = null)
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = stringResource(R.string.dashboard_add),

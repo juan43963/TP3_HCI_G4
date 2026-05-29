@@ -64,8 +64,8 @@ fun SmartHomeApp(windowSize: WindowSizeClass) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val currentRoute = currentDestination?.route
-    val isTabletDashboard = isTablet && currentRoute == Screen.Home.route
-    val showBottomBar = currentRoute != null && currentRoute !in AuthScreen.routes && !isTabletDashboard
+    val isDashboardRoute = currentRoute == Screen.Home.route
+    val showBottomBar = currentRoute != null && currentRoute !in AuthScreen.routes && !isDashboardRoute
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),

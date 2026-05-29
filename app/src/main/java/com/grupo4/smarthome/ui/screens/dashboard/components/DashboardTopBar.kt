@@ -14,9 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -31,6 +28,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.theme.BrandIndigoLight
+import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
 @Composable
 fun DashboardTopBar(
@@ -55,9 +53,9 @@ fun DashboardTopBar(
                         onClick = onHomeSelectorClick,
                         modifier = Modifier.weight(1f),
                     )
-                    ProfileAvatar(onClick = onProfileClick)
+                    DashboardAvatarButton(onClick = onProfileClick)
                 }
-                SearchBar(
+                DashboardSearchBar(
                     onClick = onSearchClick,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -72,18 +70,18 @@ fun DashboardTopBar(
                     homeName = selectedHomeName,
                     onClick = onHomeSelectorClick,
                 )
-                SearchBar(
+                DashboardSearchBar(
                     onClick = onSearchClick,
                     modifier = Modifier.weight(1f),
                 )
-                ProfileAvatar(onClick = onProfileClick)
+                DashboardAvatarButton(onClick = onProfileClick)
             }
         }
     }
 }
 
 @Composable
-private fun SearchBar(
+fun DashboardSearchBar(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -102,7 +100,7 @@ private fun SearchBar(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Icon(
-                imageVector = Icons.Outlined.Search,
+                imageVector = SmartHomeIcons.Search,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -118,10 +116,13 @@ private fun SearchBar(
 }
 
 @Composable
-private fun ProfileAvatar(onClick: () -> Unit) {
+fun DashboardAvatarButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     IconButton(
         onClick = onClick,
-        modifier = Modifier
+        modifier = modifier
             .size(48.dp)
             .clip(CircleShape)
             .background(BrandIndigoLight),
@@ -134,7 +135,7 @@ private fun ProfileAvatar(onClick: () -> Unit) {
             contentAlignment = Alignment.Center,
         ) {
             Icon(
-                imageVector = Icons.Outlined.Person,
+                imageVector = SmartHomeIcons.Profile,
                 contentDescription = stringResource(R.string.dashboard_profile_content_description),
                 tint = MaterialTheme.colorScheme.primary,
             )

@@ -95,4 +95,16 @@
     <string name="dashboard_routine_placeholder_label">Rutina favorita</string>
     <string name="dashboard_placeholder_status">Lista para completar</string>
     <string name="dashboard_phone_placeholder">Inicio</string>
+    <string name="dashboard_menu_content_description">Abrir hogares</string>
+    <string name="dashboard_search_content_description">Abrir búsqueda</string>
+    <string name="dashboard_search_close_content_description">Cerrar búsqueda</string>
+    <string name="dashboard_fab_content_description">Agregar</string>
+    <string name="dashboard_my_homes">Mis hogares</string>
+    <string name="dashboard_home_main">Casa Principal</string>
+    <string name="dashboard_home_apartment">Departamento</string>
+    <string name="dashboard_home_office">Oficina</string>
+    <string name="dashboard_quick_access">Accesos rápidos</string>
+    <string name="dashboard_add_home">Agregar nuevo hogar</string>
+    <string name="dashboard_settings">Ajustes</string>
+    <string name="dashboard_logout">Cerrar sesión</string>
 </resources>

@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.screens.dashboard.layout.TabletDashboardLayout
+import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneDashboardLayout
 import com.grupo4.smarthome.ui.theme.SurfaceAlt
 
 @Composable
@@ -26,7 +27,12 @@ fun DashboardContent(
     val presentation = remember(state) { state.toPresentationState() }
 
     if (windowSize.widthSizeClass == WindowWidthSizeClass.Compact) {
-        PhoneDashboardPlaceholder(modifier = modifier)
+        PhoneDashboardLayout(
+            state = state,
+            presentation = presentation,
+            callbacks = callbacks,
+            modifier = modifier,
+        )
     } else {
         TabletDashboardLayout(
             state = state,

@@ -13,9 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -29,6 +26,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.ui.theme.BrandIndigoLight
+import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
 enum class DashboardEmptyVisual {
     Home,
@@ -172,8 +170,8 @@ private fun EmptyStateIllustration(
     modifier: Modifier = Modifier,
 ) {
     val icon: ImageVector = when (visual) {
-        DashboardEmptyVisual.Home -> Icons.Default.Home
-        DashboardEmptyVisual.Routine -> Icons.Default.PlayArrow
+        DashboardEmptyVisual.Home -> SmartHomeIcons.Rooms
+        DashboardEmptyVisual.Routine -> SmartHomeIcons.Routines
     }
 
     Box(

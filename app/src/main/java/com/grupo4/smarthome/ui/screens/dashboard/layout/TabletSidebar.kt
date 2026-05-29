@@ -13,10 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.PlayArrow
-import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -33,6 +29,7 @@ import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.screens.dashboard.DashboardCallbacks
 import com.grupo4.smarthome.ui.screens.dashboard.components.QuickAddButton
 import com.grupo4.smarthome.ui.theme.BrandIndigoLight
+import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
 @Composable
 fun TabletSidebar(
@@ -62,21 +59,21 @@ fun TabletSidebar(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 SidebarNavItem(
                     label = stringResource(R.string.nav_home),
-                    icon = Icons.Outlined.Home,
+                    icon = SmartHomeIcons.Home,
                     selected = true,
                     compact = compact,
                     onClick = callbacks.onNavigateHome,
                 )
                 SidebarNavItem(
                     label = stringResource(R.string.nav_routines),
-                    icon = Icons.Outlined.PlayArrow,
+                    icon = SmartHomeIcons.Routines,
                     selected = false,
                     compact = compact,
                     onClick = callbacks.onNavigateRoutines,
                 )
                 SidebarNavItem(
                     label = stringResource(R.string.nav_rooms),
-                    icon = Icons.Outlined.Star,
+                    icon = SmartHomeIcons.Rooms,
                     selected = false,
                     compact = compact,
                     onClick = callbacks.onNavigateRooms,
