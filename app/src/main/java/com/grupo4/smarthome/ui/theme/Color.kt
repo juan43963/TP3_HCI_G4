@@ -19,6 +19,10 @@ val SurfaceHover = Color(0xFFF1F5F9)
 val BorderDefault = Color(0xFFE2E8F0)
 val StepInactive = Color(0xFFCBD5E1)
 
+// --- Dashboard ---
+val StarActive = Color(0xFFF59E0B)
+val SuccessGreen = Color(0xFF16A34A)
+
 // --- Error ---
 val ErrorRed = Color(0xFFEF4444)
 val ErrorBg = Color(0xFFFEF2F2)

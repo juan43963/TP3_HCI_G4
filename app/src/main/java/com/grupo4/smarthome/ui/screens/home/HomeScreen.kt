@@ -1,24 +1,26 @@
 package com.grupo4.smarthome.ui.screens.home
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import com.grupo4.smarthome.R
+import com.grupo4.smarthome.ui.screens.dashboard.DashboardCallbacks
+import com.grupo4.smarthome.ui.screens.dashboard.DashboardScreen
 
 @Composable
-fun HomeScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = stringResource(R.string.nav_home),
-            style = MaterialTheme.typography.headlineMedium
-        )
-    }
+fun HomeScreen(
+    windowSize: WindowSizeClass,
+    modifier: Modifier = Modifier,
+    onNavigateRooms: () -> Unit = {},
+    onNavigateRoutines: () -> Unit = {},
+    onNavigateProfile: () -> Unit = {},
+) {
+    DashboardScreen(
+        windowSize = windowSize,
+        modifier = modifier,
+        callbacks = DashboardCallbacks(
+            onNavigateRooms = onNavigateRooms,
+            onNavigateRoutines = onNavigateRoutines,
+            onProfileClick = onNavigateProfile,
+        ),
+    )
 }

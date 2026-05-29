@@ -64,7 +64,8 @@ fun SmartHomeApp(windowSize: WindowSizeClass) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val currentRoute = currentDestination?.route
-    val showBottomBar = currentRoute != null && currentRoute !in AuthScreen.routes
+    val isTabletDashboard = isTablet && currentRoute == Screen.Home.route
+    val showBottomBar = currentRoute != null && currentRoute !in AuthScreen.routes && !isTabletDashboard
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -178,7 +179,29 @@ fun SmartHomeApp(windowSize: WindowSizeClass) {
                 AuthPlaceholder(stringResource(R.string.auth_change_password_placeholder))
             }
 
-            composable(Screen.Home.route) { HomeScreen() }
+            composable(Screen.Home.route) {
+                HomeScreen(
+                    windowSize = windowSize,
+                    onNavigateRooms = {
+                        navController.navigate(Screen.Rooms.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onNavigateRoutines = {
+                        navController.navigate(Screen.Routines.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onNavigateProfile = {
+                        navController.navigate(Screen.Profile.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                )
+            }
             composable(Screen.Rooms.route) { RoomsScreen() }
             composable(Screen.Routines.route) { RoutinesScreen() }
             composable(Screen.Profile.route) { ProfileScreen() }

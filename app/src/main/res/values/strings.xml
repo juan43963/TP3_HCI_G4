@@ -64,4 +64,35 @@
     <string name="verify_resend_link">Reenviar</string>
     <string name="verify_back_to_login">Volver a iniciar sesión</string>
     <string name="verify_icon_content_description">Sobre con código de verificación</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_title">Inicio</string>
+    <string name="dashboard_subtitle">Todo tu hogar, en un solo lugar.</string>
+    <string name="dashboard_search_placeholder">Buscar dispositivos, habitaciones, rutinas…</string>
+    <string name="dashboard_home_selector_content_description">Seleccionar hogar</string>
+    <string name="dashboard_profile_content_description">Abrir perfil</string>
+    <string name="dashboard_add">Agregar</string>
+    <string name="dashboard_create_room">Crear habitación</string>
+    <string name="dashboard_create_routine">Crear rutina</string>
+    <string name="dashboard_welcome_title">¡Hola, %1$s!</string>
+    <string name="dashboard_welcome_subtitle">Bienvenido a tu casa inteligente.</string>
+    <string name="dashboard_metric_devices_on">dispositivos encendidos</string>
+    <string name="dashboard_metric_rooms">habitaciones</string>
+    <string name="dashboard_favorite_rooms_title">Habitaciones favoritas</string>
+    <string name="dashboard_favorite_rooms_subtitle">Accedé y controlá tus espacios más utilizados.</string>
+    <string name="dashboard_favorite_routines_title">Rutinas favoritas</string>
+    <string name="dashboard_favorite_routines_subtitle">Automatizá las acciones que más usás.</string>
+    <string name="dashboard_empty_home_title">Empezá organizando tu hogar</string>
+    <string name="dashboard_empty_home_description">Creá tu primera habitación para agrupar tus dispositivos por espacios y empezar a controlar tu casa de forma más ordenada.</string>
+    <string name="dashboard_empty_home_note">Más adelante vas a poder crear rutinas para automatizar acciones frecuentes.</string>
+    <string name="dashboard_empty_favorite_rooms">Marcá tus habitaciones más usadas con la estrella desde Habitaciones para tenerlas siempre a mano.</string>
+    <string name="dashboard_empty_routines_title">Todavía no creaste ninguna rutina</string>
+    <string name="dashboard_empty_routines_description">Automatizá acciones frecuentes para ahorrar tiempo y hacer tu hogar más cómodo.</string>
+    <string name="dashboard_empty_routines_example">Ejemplo: encender luces al atardecer</string>
+    <string name="dashboard_empty_routines_help">Usá el botón “Crear rutina” para empezar.</string>
+    <string name="dashboard_empty_favorite_routines">Marcá tus rutinas favoritas con la estrella desde Rutinas para tenerlas a un click.</string>
+    <string name="dashboard_room_placeholder_label">Habitación favorita</string>
+    <string name="dashboard_routine_placeholder_label">Rutina favorita</string>
+    <string name="dashboard_placeholder_status">Lista para completar</string>
+    <string name="dashboard_phone_placeholder">Inicio</string>
 </resources>
