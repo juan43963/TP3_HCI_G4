@@ -1,9 +1,0 @@
-<resources>
-    <string name="app_name">SmartHome</string>
-    <string name="hello">Hello</string>
-    <string name="welcome">Welcome to SmartHome</string>
-    <string name="nav_home">Home</string>
-    <string name="nav_rooms">Rooms</string>
-    <string name="nav_routines">Routines</string>
-    <string name="nav_profile">Profile</string>
-</resources>

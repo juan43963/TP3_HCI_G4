@@ -141,6 +141,15 @@ fun SmartHomeApp(windowSize: WindowSizeClass) {
                     },
                 )
             }
+            composable(AuthScreen.RecoverPassword.route) {
+                AuthPlaceholder(stringResource(R.string.auth_recover_password_placeholder))
+            }
+            composable(AuthScreen.VerifyAccount.route) {
+                AuthPlaceholder(stringResource(R.string.auth_verify_account_placeholder))
+            }
+            composable(AuthScreen.ChangePassword.route) {
+                AuthPlaceholder(stringResource(R.string.auth_change_password_placeholder))
+            }
 
             composable(Screen.Home.route) { HomeScreen() }
             composable(Screen.Rooms.route) { RoomsScreen() }

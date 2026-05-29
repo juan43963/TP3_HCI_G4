@@ -20,6 +20,9 @@
     <!-- Auth placeholders (temporales hasta tener las pantallas reales) -->
     <string name="auth_login_placeholder">Login — próximamente</string>
     <string name="auth_register_placeholder">Registro — próximamente</string>
+    <string name="auth_recover_password_placeholder">Recuperar contraseña — próximamente</string>
+    <string name="auth_verify_account_placeholder">Verificar cuenta — próximamente</string>
+    <string name="auth_change_password_placeholder">Cambiar contraseña — próximamente</string>
 
     <!-- Login -->
     <string name="login_title">Iniciá sesión</string>
