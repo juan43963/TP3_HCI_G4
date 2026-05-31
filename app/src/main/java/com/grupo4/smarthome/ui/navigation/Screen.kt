@@ -15,6 +15,7 @@ sealed class Screen(
     object Profile : Screen("profile", R.string.nav_profile, SmartHomeIcons.Profile)
 
     companion object {
-        val items = listOf(Home, Rooms, Routines, Profile)
+        val items: List<Screen> by lazy { listOf(Home, Routines, Rooms) }
+        const val SELECT_HOME_ROUTE = "select_home"
     }
 }

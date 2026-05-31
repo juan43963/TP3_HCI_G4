@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.screens.dashboard.DashboardCallbacks
 import com.grupo4.smarthome.ui.screens.dashboard.components.QuickAddButton
-import com.grupo4.smarthome.ui.theme.BrandIndigoLight
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
 @Composable
@@ -121,7 +120,7 @@ private fun SidebarNavItem(
     onClick: () -> Unit,
     height: Dp = 48.dp,
 ) {
-    val background = if (selected) BrandIndigoLight else MaterialTheme.colorScheme.surface
+    val background = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
     val contentColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
 
     Row(

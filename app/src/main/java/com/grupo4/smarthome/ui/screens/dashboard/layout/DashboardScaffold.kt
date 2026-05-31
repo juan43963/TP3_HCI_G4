@@ -6,9 +6,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.grupo4.smarthome.ui.theme.SurfaceAlt
 
 @Composable
 fun DashboardScaffold(
@@ -17,16 +17,17 @@ fun DashboardScaffold(
     content: @Composable () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val background = MaterialTheme.colorScheme.background
     Row(
         modifier = modifier
             .fillMaxSize()
-            .background(SurfaceAlt),
+            .background(background),
     ) {
         sidebar()
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(SurfaceAlt),
+                .background(background),
         ) {
             Box(modifier = Modifier.fillMaxWidth()) {
                 topBar()

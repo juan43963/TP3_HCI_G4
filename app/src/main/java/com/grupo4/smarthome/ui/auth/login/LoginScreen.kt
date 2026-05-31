@@ -22,8 +22,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -45,6 +43,9 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
+import com.grupo4.smarthome.ui.auth.components.AuthBrandLogo
+import com.grupo4.smarthome.ui.auth.components.AuthFieldLabel
+import com.grupo4.smarthome.ui.auth.components.AuthRoundedField
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 
 @Composable
@@ -80,7 +81,7 @@ fun LoginContent(
             .safeDrawingPadding()
             .padding(horizontal = 24.dp, vertical = 16.dp),
     ) {
-        BrandLogo()
+        AuthBrandLogo()
 
         Spacer(modifier = Modifier.weight(1f))
 
@@ -103,9 +104,9 @@ fun LoginContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            FieldLabel(text = stringResource(R.string.login_field_email_label))
+            AuthFieldLabel(text = stringResource(R.string.login_field_email_label))
             Spacer(modifier = Modifier.height(6.dp))
-            RoundedField(
+            AuthRoundedField(
                 value = email,
                 onValueChange = { email = it },
                 placeholder = stringResource(R.string.login_field_email_placeholder),
@@ -134,7 +135,7 @@ fun LoginContent(
                 )
             }
             Spacer(modifier = Modifier.height(6.dp))
-            RoundedField(
+            AuthRoundedField(
                 value = password,
                 onValueChange = { password = it },
                 placeholder = "",
@@ -191,27 +192,6 @@ fun LoginContent(
 }
 
 @Composable
-private fun BrandLogo(modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = stringResource(R.string.welcome_brand_smart),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.onBackground,
-        )
-        Text(
-            text = stringResource(R.string.welcome_brand_home),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.primary,
-        )
-    }
-}
-
-@Composable
 private fun RegisterLink(onClick: () -> Unit) {
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
     val primary = MaterialTheme.colorScheme.primary
@@ -229,45 +209,6 @@ private fun RegisterLink(onClick: () -> Unit) {
             style = MaterialTheme.typography.bodyMedium,
         )
     }
-}
-
-@Composable
-private fun FieldLabel(text: String) {
-    Row(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onBackground,
-            fontWeight = FontWeight.SemiBold,
-        )
-    }
-}
-
-@Composable
-private fun RoundedField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    modifier: Modifier = Modifier,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    visualTransformation: VisualTransformation = VisualTransformation.None,
-    trailingIcon: @Composable (() -> Unit)? = null,
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = modifier.fillMaxWidth(),
-        placeholder = { if (placeholder.isNotEmpty()) Text(placeholder) },
-        singleLine = true,
-        shape = RoundedCornerShape(12.dp),
-        keyboardOptions = keyboardOptions,
-        visualTransformation = visualTransformation,
-        trailingIcon = trailingIcon,
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-        ),
-    )
 }
 
 @Preview(showBackground = true, showSystemUi = true)

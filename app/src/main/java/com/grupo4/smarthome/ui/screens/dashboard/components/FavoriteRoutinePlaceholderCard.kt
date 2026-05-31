@@ -23,7 +23,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.screens.dashboard.DashboardRoutinePreview
-import com.grupo4.smarthome.ui.theme.BrandIndigoLight
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 import com.grupo4.smarthome.ui.theme.StarActive
 
@@ -76,7 +75,7 @@ fun FavoriteRoutinePlaceholderCard(
             Box(
                 modifier = Modifier
                     .size(34.dp)
-                    .background(BrandIndigoLight, CircleShape),
+                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(

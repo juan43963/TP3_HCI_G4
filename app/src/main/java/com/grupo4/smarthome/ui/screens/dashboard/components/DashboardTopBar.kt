@@ -27,7 +27,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
-import com.grupo4.smarthome.ui.theme.BrandIndigoLight
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
 @Composable
@@ -125,7 +124,7 @@ fun DashboardAvatarButton(
         modifier = modifier
             .size(48.dp)
             .clip(CircleShape)
-            .background(BrandIndigoLight),
+            .background(MaterialTheme.colorScheme.primaryContainer),
     ) {
         Box(
             modifier = Modifier

@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,8 +20,9 @@ import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -29,75 +31,120 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.get
+import com.grupo4.smarthome.ui.auth.change.ChangePasswordScreen
+import com.grupo4.smarthome.ui.auth.change.ChangePasswordScreenTablet
 import com.grupo4.smarthome.ui.auth.login.LoginScreen
+import com.grupo4.smarthome.ui.auth.login.LoginScreenTablet
+import com.grupo4.smarthome.ui.auth.recover.RecoverPasswordScreen
+import com.grupo4.smarthome.ui.auth.recover.RecoverPasswordScreenTablet
 import com.grupo4.smarthome.ui.auth.register.RegisterScreen
 import com.grupo4.smarthome.ui.auth.register.RegisterScreenTablet
 import com.grupo4.smarthome.ui.auth.verify.VerifyAccountScreen
 import com.grupo4.smarthome.ui.auth.welcome.WelcomeScreen
 import com.grupo4.smarthome.ui.auth.welcome.WelcomeScreenTablet
+import com.grupo4.smarthome.ui.components.AppDrawerOverlay
+import com.grupo4.smarthome.ui.components.LocalOpenDrawer
 import com.grupo4.smarthome.ui.navigation.AuthScreen
 import com.grupo4.smarthome.ui.navigation.Screen
+import com.grupo4.smarthome.ui.screens.dashboard.DashboardCallbacks
+import com.grupo4.smarthome.ui.screens.dashboard.DashboardPreviewData
+import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneHomeDrawer
 import com.grupo4.smarthome.ui.screens.home.HomeScreen
+import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeScreen
+import com.grupo4.smarthome.ui.screens.selecthome.SelectableHome
 import com.grupo4.smarthome.ui.screens.profile.ProfileScreen
 import com.grupo4.smarthome.ui.screens.rooms.RoomsScreen
 import com.grupo4.smarthome.ui.screens.routines.RoutinesScreen
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
+import com.grupo4.smarthome.ui.theme.ThemePreference
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            SmartHomeTheme {
+            var themePreference by rememberSaveable { mutableStateOf(ThemePreference.SYSTEM) }
+            SmartHomeTheme(themePreference = themePreference) {
                 val windowSize = calculateWindowSizeClass(this)
-                SmartHomeApp(windowSize = windowSize)
+                SmartHomeApp(
+                    windowSize = windowSize,
+                    themePreference = themePreference,
+                    onThemePreferenceChange = { themePreference = it },
+                )
             }
         }
     }
 }
 
 @Composable
-fun SmartHomeApp(windowSize: WindowSizeClass) {
+fun SmartHomeApp(
+    windowSize: WindowSizeClass,
+    themePreference: ThemePreference = ThemePreference.SYSTEM,
+    onThemePreferenceChange: (ThemePreference) -> Unit = {},
+) {
     val isTablet = windowSize.widthSizeClass != WindowWidthSizeClass.Compact
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val currentRoute = currentDestination?.route
-    val isDashboardRoute = currentRoute == Screen.Home.route
-    val showBottomBar = currentRoute != null && currentRoute !in AuthScreen.routes && !isDashboardRoute
+    val currentBaseRoute = currentRoute?.substringBefore('?')
+    val isSelectHomeRoute = currentBaseRoute == Screen.SELECT_HOME_ROUTE
+    val isMainRoute = currentBaseRoute != null && currentBaseRoute !in AuthScreen.routes
 
-    Scaffold(
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        bottomBar = {
-            if (showBottomBar) {
-                NavigationBar {
-                    Screen.items.forEach { screen ->
-                        val selected = currentDestination.hierarchy.any { it.route == screen.route }
-                        NavigationBarItem(
-                            selected = selected,
-                            onClick = {
-                                navController.navigate(screen.route) {
-                                    popUpTo(navController.graph[Screen.Home.route].id) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                            icon = { Icon(screen.icon, contentDescription = null) },
-                            label = { Text(stringResource(screen.titleRes)) }
-                        )
+    var isDrawerVisible by remember(currentBaseRoute) { mutableStateOf(false) }
+    val openDrawer: () -> Unit = {
+        if (isMainRoute) {
+            isDrawerVisible = true
+        }
+    }
+    val closeDrawer: () -> Unit = { isDrawerVisible = false }
+
+    val showBottomBar = currentBaseRoute != null &&
+        currentBaseRoute !in AuthScreen.routes &&
+        !isSelectHomeRoute &&
+        !isDrawerVisible
+
+    CompositionLocalProvider(LocalOpenDrawer provides openDrawer) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Scaffold(
+                contentWindowInsets = WindowInsets(0, 0, 0, 0),
+                bottomBar = {
+                    if (showBottomBar) {
+                        NavigationBar(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            contentColor = MaterialTheme.colorScheme.primary,
+                        ) {
+                            Screen.items.forEach { screen ->
+                                val selected = currentDestination.hierarchy.any { it.route == screen.route }
+                                NavigationBarItem(
+                                    selected = selected,
+                                    onClick = {
+                                        navController.navigate(screen.route) {
+                                            popUpTo(navController.graph[Screen.Home.route].id) {
+                                                saveState = true
+                                            }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
+                                    },
+                                    icon = { Icon(screen.icon, contentDescription = null) },
+                                    label = { Text(stringResource(screen.titleRes)) }
+                                )
+                            }
+                        }
                     }
                 }
-            }
-        }
-    ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = AuthScreen.Welcome.route,
-            modifier = Modifier.padding(innerPadding)
-        ) {
+            ) { innerPadding ->
+                NavHost(
+                    navController = navController,
+                    startDestination = AuthScreen.Welcome.route,
+                    modifier = Modifier.padding(innerPadding)
+                ) {
             composable(AuthScreen.Welcome.route) {
                 val onRegister = { navController.navigate(AuthScreen.Register.route) }
                 val onLogin = { navController.navigate(AuthScreen.Login.route) }
@@ -114,21 +161,35 @@ fun SmartHomeApp(windowSize: WindowSizeClass) {
                 }
             }
             composable(AuthScreen.Login.route) {
-                LoginScreen(
-                    onNavigateToRegister = {
-                        navController.navigate(AuthScreen.Register.route) {
-                            popUpTo(AuthScreen.Login.route) { inclusive = true }
-                        }
-                    },
-                    onNavigateToForgotPassword = {
-                        navController.navigate(AuthScreen.RecoverPassword.route)
-                    },
-                    onLoginSuccess = {
-                        navController.navigate(Screen.Home.route) {
-                            popUpTo(AuthScreen.Welcome.route) { inclusive = true }
-                        }
-                    },
-                )
+                val onNavigateToRegister = {
+                    navController.navigate(AuthScreen.Register.route) {
+                        popUpTo(AuthScreen.Login.route) { inclusive = true }
+                    }
+                    Unit
+                }
+                val onNavigateToForgotPassword = {
+                    navController.navigate(AuthScreen.RecoverPassword.route)
+                    Unit
+                }
+                val onLoginSuccess = {
+                    navController.navigate(Screen.SELECT_HOME_ROUTE) {
+                        popUpTo(AuthScreen.Welcome.route) { inclusive = true }
+                    }
+                    Unit
+                }
+                if (isTablet) {
+                    LoginScreenTablet(
+                        onNavigateToRegister = onNavigateToRegister,
+                        onNavigateToForgotPassword = onNavigateToForgotPassword,
+                        onLoginSuccess = onLoginSuccess,
+                    )
+                } else {
+                    LoginScreen(
+                        onNavigateToRegister = onNavigateToRegister,
+                        onNavigateToForgotPassword = onNavigateToForgotPassword,
+                        onLoginSuccess = onLoginSuccess,
+                    )
+                }
             }
             composable(AuthScreen.Register.route) {
                 val onNavigateToLogin = {
@@ -157,7 +218,7 @@ fun SmartHomeApp(windowSize: WindowSizeClass) {
                 VerifyAccountScreen(
                     email = "juanperez@gmail.com",
                     onVerifySuccess = {
-                        navController.navigate(Screen.Home.route) {
+                        navController.navigate(Screen.SELECT_HOME_ROUTE) {
                             popUpTo(AuthScreen.Welcome.route) { inclusive = true }
                         }
                     },
@@ -170,13 +231,74 @@ fun SmartHomeApp(windowSize: WindowSizeClass) {
                 )
             }
             composable(AuthScreen.RecoverPassword.route) {
-                AuthPlaceholder(stringResource(R.string.auth_recover_password_placeholder))
+                val onLinkSent: (String) -> Unit = { email ->
+                    navController.navigate(
+                        "${AuthScreen.ChangePassword.route}?email=$email"
+                    )
+                }
+                val onBackToLogin: () -> Unit = {
+                    navController.navigate(AuthScreen.Login.route) {
+                        popUpTo(AuthScreen.Welcome.route)
+                    }
+                }
+                if (isTablet) {
+                    RecoverPasswordScreenTablet(
+                        onLinkSent = onLinkSent,
+                        onBackToLogin = onBackToLogin,
+                    )
+                } else {
+                    RecoverPasswordScreen(
+                        onLinkSent = onLinkSent,
+                        onBackToLogin = onBackToLogin,
+                    )
+                }
             }
-            composable(AuthScreen.VerifyAccount.route) {
-                AuthPlaceholder(stringResource(R.string.auth_verify_account_placeholder))
+            composable("${AuthScreen.ChangePassword.route}?email={email}") { backStackEntry ->
+                val email = backStackEntry.arguments?.getString("email").orEmpty()
+                val onPasswordChanged: () -> Unit = {
+                    navController.navigate(AuthScreen.Login.route) {
+                        popUpTo(AuthScreen.Welcome.route)
+                    }
+                }
+                val onBackToLogin: () -> Unit = {
+                    navController.navigate(AuthScreen.Login.route) {
+                        popUpTo(AuthScreen.Welcome.route)
+                    }
+                }
+                if (isTablet) {
+                    ChangePasswordScreenTablet(
+                        email = email,
+                        onPasswordChanged = onPasswordChanged,
+                        onBackToLogin = onBackToLogin,
+                    )
+                } else {
+                    ChangePasswordScreen(
+                        email = email,
+                        onPasswordChanged = onPasswordChanged,
+                        onBackToLogin = onBackToLogin,
+                    )
+                }
             }
-            composable(AuthScreen.ChangePassword.route) {
-                AuthPlaceholder(stringResource(R.string.auth_change_password_placeholder))
+
+            composable(Screen.SELECT_HOME_ROUTE) {
+                SelectHomeScreen(
+                    userName = "Juan",
+                    homes = listOf(
+                        SelectableHome("apartment", "Departamento", roomsCount = 8, devicesCount = 22),
+                        SelectableHome("office", "Oficina", roomsCount = 0, devicesCount = 0),
+                    ),
+                    onHomeSelected = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.SELECT_HOME_ROUTE) { inclusive = true }
+                        }
+                    },
+                    onAddHome = { /* TODO: add-home flow */ },
+                    onProfileClick = {
+                        navController.navigate(Screen.Profile.route) {
+                            launchSingleTop = true
+                        }
+                    },
+                )
             }
 
             composable(Screen.Home.route) {
@@ -197,21 +319,49 @@ fun SmartHomeApp(windowSize: WindowSizeClass) {
                     onNavigateProfile = {
                         navController.navigate(Screen.Profile.route) {
                             launchSingleTop = true
-                            restoreState = true
                         }
                     },
                 )
             }
-            composable(Screen.Rooms.route) { RoomsScreen() }
-            composable(Screen.Routines.route) { RoutinesScreen() }
-            composable(Screen.Profile.route) { ProfileScreen() }
+            composable(Screen.Rooms.route) {
+                RoomsScreen(
+                    onProfileClick = {
+                        navController.navigate(Screen.Profile.route) {
+                            launchSingleTop = true
+                        }
+                    },
+                )
+            }
+            composable(Screen.Routines.route) {
+                RoutinesScreen(
+                    onProfileClick = {
+                        navController.navigate(Screen.Profile.route) {
+                            launchSingleTop = true
+                        }
+                    },
+                )
+            }
+            composable(Screen.Profile.route) {
+                ProfileScreen(
+                    themePreference = themePreference,
+                    onThemePreferenceChange = onThemePreferenceChange,
+                )
+            }
         }
     }
-}
 
-@Composable
-private fun AuthPlaceholder(text: String) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = text, style = MaterialTheme.typography.titleMedium)
+            if (isMainRoute) {
+                AppDrawerOverlay(
+                    visible = isDrawerVisible,
+                    onClose = closeDrawer,
+                ) {
+                    PhoneHomeDrawer(
+                        state = DashboardPreviewData.populated,
+                        callbacks = DashboardCallbacks(),
+                        onClose = closeDrawer,
+                    )
+                }
+            }
+        }
     }
 }

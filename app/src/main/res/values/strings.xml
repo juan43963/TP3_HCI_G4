@@ -65,6 +65,61 @@
     <string name="verify_back_to_login">Volver a iniciar sesión</string>
     <string name="verify_icon_content_description">Sobre con código de verificación</string>
 
+    <!-- Settings -->
+    <string name="settings_title">Configuración</string>
+    <string name="settings_subtitle">Administrá tu perfil y preferencias de la aplicación.</string>
+    <string name="settings_section_profile">Perfil</string>
+    <string name="settings_field_name">Nombre</string>
+    <string name="settings_field_email">Email</string>
+    <string name="settings_section_security">Seguridad</string>
+    <string name="settings_change_password">Cambiar contraseña</string>
+    <string name="settings_change_password_description">Actualizá tu contraseña periódicamente para mantener tu cuenta segura.</string>
+    <string name="settings_section_accessibility">Accesibilidad</string>
+    <string name="settings_section_accessibility_description">Personalizá cómo se ve la aplicación.</string>
+    <string name="settings_theme_label">Tema</string>
+    <string name="settings_theme_light">Claro</string>
+    <string name="settings_theme_dark">Oscuro</string>
+    <string name="settings_theme_system">Sistema</string>
+
+    <!-- Recover password (RF3) -->
+    <string name="recover_title">¿Olvidaste tu contraseña?</string>
+    <string name="recover_subtitle">Ingresá el email asociado a tu cuenta y te enviaremos un enlace para crear una nueva contraseña.</string>
+    <string name="recover_field_email_label">Email</string>
+    <string name="recover_field_email_placeholder">tu@email.com</string>
+    <string name="recover_cta_send_link">Enviar enlace de recuperación</string>
+    <string name="recover_back_to_login">Volver a iniciar sesión</string>
+    <string name="recover_sent_title">Revisá tu email</string>
+    <string name="recover_sent_body_prefix">Te enviamos un enlace de recuperación a</string>
+    <string name="recover_sent_body_suffix">Revisá tu bandeja de entrada y la carpeta de spam.</string>
+    <string name="recover_cta_enter_code">Ingresar código</string>
+    <string name="recover_resend_question">¿No recibiste el email?</string>
+    <string name="recover_resend_link">Reenviar</string>
+
+    <!-- Change password (RF4) -->
+    <string name="change_pwd_title">Crear nueva contraseña</string>
+    <string name="change_pwd_subtitle_prefix">Pegá el código que recibiste por email y elegí tu nueva contraseña para</string>
+    <string name="change_pwd_subtitle_suffix"></string>
+    <string name="change_pwd_field_code_label">Código de recuperación</string>
+    <string name="change_pwd_field_code_placeholder">Pegá aquí el código recibido</string>
+    <string name="change_pwd_field_new_label">Nueva contraseña</string>
+    <string name="change_pwd_field_new_placeholder">Mínimo 8 caracteres</string>
+    <string name="change_pwd_field_confirm_label">Confirmar contraseña</string>
+    <string name="change_pwd_field_confirm_placeholder">Repetí la contraseña</string>
+    <string name="change_pwd_mismatch">Las contraseñas no coinciden</string>
+    <string name="change_pwd_cta_submit">Crear nueva contraseña</string>
+    <string name="change_pwd_back_to_login">Volver a iniciar sesión</string>
+
+    <!-- Select Home -->
+    <string name="select_home_search_placeholder">Buscar hogar</string>
+    <string name="select_home_welcome_title">¡Bienvenido,\n%1$s!</string>
+    <string name="select_home_subtitle">Seleccioná el entorno que querés gestionar hoy.</string>
+    <string name="select_home_rooms_count">%1$d habitaciones</string>
+    <string name="select_home_devices_count">%1$d dispositivos</string>
+    <string name="select_home_photo_placeholder">Foto · %1$s</string>
+    <string name="select_home_browse_files">or browse files</string>
+    <string name="select_home_card_menu_content_description">Más opciones</string>
+    <string name="select_home_add_home_content_description">Agregar hogar</string>
+
     <!-- Dashboard -->
     <string name="dashboard_title">Inicio</string>
     <string name="dashboard_subtitle">Todo tu hogar, en un solo lugar.</string>

@@ -44,6 +44,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
+import com.grupo4.smarthome.ui.auth.components.AuthBrandLogo
+import com.grupo4.smarthome.ui.auth.components.AuthRoundedField
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 
 private val TabletFormMaxWidth = 620.dp
@@ -71,10 +73,11 @@ fun RegisterScreenTablet(
             .background(MaterialTheme.colorScheme.background)
             .safeDrawingPadding(),
     ) {
-        BrandLogoTablet(
+        AuthBrandLogo(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(start = 40.dp, top = 28.dp),
+            tablet = true,
         )
 
         Column(
@@ -113,13 +116,13 @@ fun RegisterScreenTablet(
             Spacer(modifier = Modifier.height(36.dp))
 
             if (step == 1) {
-                RoundedField(
+                AuthRoundedField(
                     value = fullName,
                     onValueChange = { fullName = it },
                     placeholder = stringResource(R.string.register_field_full_name),
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                RoundedField(
+                AuthRoundedField(
                     value = email,
                     onValueChange = { email = it },
                     placeholder = stringResource(R.string.register_field_email),
@@ -184,27 +187,6 @@ fun RegisterScreenTablet(
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 24.dp),
             textAlign = TextAlign.Center,
-        )
-    }
-}
-
-@Composable
-private fun BrandLogoTablet(modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = stringResource(R.string.welcome_brand_smart),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.onBackground,
-        )
-        Text(
-            text = stringResource(R.string.welcome_brand_home),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.primary,
         )
     }
 }

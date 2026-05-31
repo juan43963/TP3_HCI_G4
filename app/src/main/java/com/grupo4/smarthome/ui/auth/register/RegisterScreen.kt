@@ -27,8 +27,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -50,6 +48,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
+import com.grupo4.smarthome.ui.auth.components.AuthBrandLogo
+import com.grupo4.smarthome.ui.auth.components.AuthRoundedField
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 
 @Composable
@@ -88,7 +88,7 @@ fun RegisterContent(
             .safeDrawingPadding()
             .padding(horizontal = 24.dp, vertical = 16.dp),
     ) {
-        BrandLogo()
+        AuthBrandLogo()
 
         Column(
             modifier = Modifier
@@ -187,27 +187,6 @@ fun RegisterContent(
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
             textAlign = TextAlign.Center,
-        )
-    }
-}
-
-@Composable
-private fun BrandLogo(modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = stringResource(R.string.welcome_brand_smart),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.onBackground,
-        )
-        Text(
-            text = stringResource(R.string.welcome_brand_home),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.primary,
         )
     }
 }
@@ -319,13 +298,13 @@ private fun StepOneForm(
     email: String,
     onEmailChange: (String) -> Unit,
 ) {
-    RoundedField(
+    AuthRoundedField(
         value = fullName,
         onValueChange = onFullNameChange,
         placeholder = stringResource(R.string.register_field_full_name),
     )
     Spacer(modifier = Modifier.height(12.dp))
-    RoundedField(
+    AuthRoundedField(
         value = email,
         onValueChange = onEmailChange,
         placeholder = stringResource(R.string.register_field_email),
@@ -362,33 +341,6 @@ private fun StepTwoForm(
 }
 
 @Composable
-internal fun RoundedField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    modifier: Modifier = Modifier,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    visualTransformation: VisualTransformation = VisualTransformation.None,
-    trailingIcon: @Composable (() -> Unit)? = null,
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = modifier.fillMaxWidth(),
-        placeholder = { Text(placeholder) },
-        singleLine = true,
-        shape = RoundedCornerShape(12.dp),
-        keyboardOptions = keyboardOptions,
-        visualTransformation = visualTransformation,
-        trailingIcon = trailingIcon,
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-        ),
-    )
-}
-
-@Composable
 internal fun PasswordField(
     value: String,
     onValueChange: (String) -> Unit,
@@ -396,7 +348,7 @@ internal fun PasswordField(
     visible: Boolean,
     onToggleVisible: () -> Unit,
 ) {
-    RoundedField(
+    AuthRoundedField(
         value = value,
         onValueChange = onValueChange,
         placeholder = placeholder,
