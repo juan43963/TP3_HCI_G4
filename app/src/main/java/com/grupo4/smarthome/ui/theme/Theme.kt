@@ -62,3 +62,16 @@ fun SmartHomeTheme(
         content = content
     )
 }
+
+@Composable
+fun SmartHomeTheme(
+    themePreference: ThemePreference,
+    content: @Composable () -> Unit
+) {
+    val darkTheme = when (themePreference) {
+        ThemePreference.LIGHT -> false
+        ThemePreference.DARK -> true
+        ThemePreference.SYSTEM -> isSystemInDarkTheme()
+    }
+    SmartHomeTheme(darkTheme = darkTheme, content = content)
+}

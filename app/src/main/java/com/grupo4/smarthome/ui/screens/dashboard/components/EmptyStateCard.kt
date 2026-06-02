@@ -25,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.grupo4.smarthome.ui.theme.BrandIndigoLight
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
 enum class DashboardEmptyVisual {
@@ -179,7 +178,7 @@ private fun EmptyStateIllustration(
             .fillMaxWidth()
             .defaultMinSize(minHeight = 190.dp)
             .background(
-                color = BrandIndigoLight.copy(alpha = 0.56f),
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.56f),
                 shape = RoundedCornerShape(18.dp),
             )
             .padding(22.dp),

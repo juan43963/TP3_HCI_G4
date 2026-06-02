@@ -21,7 +21,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
-import com.grupo4.smarthome.ui.theme.BrandIndigoLight
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
 @Composable
@@ -37,7 +36,7 @@ fun WelcomeSummaryCard(
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(18.dp),
-            color = BrandIndigoLight.copy(alpha = 0.72f),
+            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.72f),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.65f)),
         ) {
             if (stacked) {

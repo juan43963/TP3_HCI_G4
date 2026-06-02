@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
+import com.grupo4.smarthome.ui.auth.components.AuthBrandLogo
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 
 @Composable
@@ -83,7 +84,7 @@ fun WelcomeContentTablet(
                 .safeDrawingPadding()
                 .padding(horizontal = 40.dp, vertical = 24.dp),
         ) {
-            BrandLogoTablet()
+            AuthBrandLogo(tablet = true)
 
             Spacer(modifier = Modifier.weight(1f))
 
@@ -148,27 +149,6 @@ fun WelcomeContentTablet(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun BrandLogoTablet(modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = stringResource(R.string.welcome_brand_smart),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.onBackground,
-        )
-        Text(
-            text = stringResource(R.string.welcome_brand_home),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.primary,
-        )
     }
 }
 

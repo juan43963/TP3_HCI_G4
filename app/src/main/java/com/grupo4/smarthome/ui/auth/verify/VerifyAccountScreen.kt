@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,8 +20,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -41,6 +38,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
+import com.grupo4.smarthome.ui.auth.components.AuthBrandLogo
+import com.grupo4.smarthome.ui.auth.components.AuthRoundedField
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 
 private const val VERIFY_CODE_LENGTH = 16
@@ -78,7 +77,7 @@ fun VerifyAccountContent(
             .safeDrawingPadding()
             .padding(horizontal = 24.dp, vertical = 16.dp),
     ) {
-        BrandLogo()
+        AuthBrandLogo()
 
         Column(
             modifier = Modifier
@@ -130,18 +129,11 @@ fun VerifyAccountContent(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            OutlinedTextField(
+            AuthRoundedField(
                 value = code,
                 onValueChange = { if (it.length <= VERIFY_CODE_LENGTH) code = it.trim() },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text(stringResource(R.string.verify_field_placeholder)) },
-                singleLine = true,
-                shape = RoundedCornerShape(12.dp),
+                placeholder = stringResource(R.string.verify_field_placeholder),
                 keyboardOptions = KeyboardOptions.Default,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                ),
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -188,27 +180,6 @@ fun VerifyAccountContent(
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun BrandLogo(modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = stringResource(R.string.welcome_brand_smart),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.onBackground,
-        )
-        Text(
-            text = stringResource(R.string.welcome_brand_home),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.primary,
-        )
     }
 }
 

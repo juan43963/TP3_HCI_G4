@@ -8,6 +8,10 @@ val BrandIndigoDark = Color(0xFF4F46E5)
 val BrandIndigoLight = Color(0xFFEEF2FF)
 val AccentSoft = Color(0xFFA5B4FC)
 
+// --- Routines accents ---
+val RoutinePlay = Color(0xFF6D28D9) // violet-700, acción principal (play) — distinto del FAB indigo
+val RoutineDay = Color(0xFFA78BFA)  // violet-400, días activos
+
 // --- Texto ---
 val TextMain = Color(0xFF0F172A)
 val TextMuted = Color(0xFF64748B)

@@ -31,10 +31,8 @@ import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.screens.dashboard.DashboardCallbacks
 import com.grupo4.smarthome.ui.screens.dashboard.DashboardUiState
-import com.grupo4.smarthome.ui.theme.BrandIndigoLight
 import com.grupo4.smarthome.ui.theme.ErrorRed
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
-import com.grupo4.smarthome.ui.theme.SurfaceHover
 
 @Composable
 fun PhoneHomeDrawer(
@@ -142,7 +140,7 @@ fun PhoneHomeDrawerContent(
                 onClose()
             },
             contentColor = ErrorRed,
-            backgroundColor = SurfaceHover,
+            backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
         )
     }
 }
@@ -158,7 +156,7 @@ private fun DrawerUserHeader(userName: String) {
             modifier = Modifier
                 .size(52.dp)
                 .clip(CircleShape)
-                .background(BrandIndigoLight),
+                .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -202,7 +200,7 @@ private fun DrawerActionRow(
         MaterialTheme.colorScheme.onSurface
     },
     backgroundColor: androidx.compose.ui.graphics.Color = if (selected) {
-        BrandIndigoLight
+        MaterialTheme.colorScheme.primaryContainer
     } else {
         MaterialTheme.colorScheme.surface
     },

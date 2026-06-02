@@ -15,7 +15,6 @@ import androidx.compose.ui.res.stringResource
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.screens.dashboard.layout.TabletDashboardLayout
 import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneDashboardLayout
-import com.grupo4.smarthome.ui.theme.SurfaceAlt
 
 @Composable
 fun DashboardContent(
@@ -48,7 +47,7 @@ fun PhoneDashboardPlaceholder(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(SurfaceAlt),
+            .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center,
     ) {
         Text(

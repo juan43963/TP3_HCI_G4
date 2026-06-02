@@ -1,7 +1,8 @@
-package com.grupo4.smarthome.ui.screens.dashboard.layout.phone
+package com.grupo4.smarthome.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Icon
@@ -19,7 +20,8 @@ import com.grupo4.smarthome.ui.screens.dashboard.components.DashboardAvatarButto
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
 @Composable
-fun PhoneTopBar(
+fun SmartHomeTopBar(
+    title: String?,
     onMenuClick: () -> Unit,
     onSearchClick: () -> Unit,
     onProfileClick: () -> Unit,
@@ -39,13 +41,17 @@ fun PhoneTopBar(
                 tint = MaterialTheme.colorScheme.onSurface,
             )
         }
-        Text(
-            text = stringResource(R.string.dashboard_title),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.weight(1f),
-        )
+        if (title != null) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f),
+            )
+        } else {
+            Spacer(modifier = Modifier.weight(1f))
+        }
         IconButton(onClick = onSearchClick) {
             Icon(
                 imageVector = SmartHomeIcons.Search,
