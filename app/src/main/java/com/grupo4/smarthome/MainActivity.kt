@@ -54,6 +54,7 @@ import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeScreen
 import com.grupo4.smarthome.ui.screens.selecthome.SelectableHome
 import com.grupo4.smarthome.ui.screens.profile.ProfileScreen
 import com.grupo4.smarthome.ui.screens.rooms.RoomsScreen
+import com.grupo4.smarthome.ui.screens.routines.RoutineDetailScreen
 import com.grupo4.smarthome.ui.screens.routines.RoutinesScreen
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 import com.grupo4.smarthome.ui.theme.ThemePreference
@@ -94,6 +95,7 @@ fun SmartHomeApp(
     val currentRoute = currentDestination?.route
     val currentBaseRoute = currentRoute?.substringBefore('?')
     val isSelectHomeRoute = currentBaseRoute == Screen.SELECT_HOME_ROUTE
+    val isRoutineDetailRoute = currentBaseRoute?.startsWith(Screen.ROUTINE_DETAIL_ROUTE) == true
     val isMainRoute = currentBaseRoute != null && currentBaseRoute !in AuthScreen.routes
 
     var isDrawerVisible by remember(currentBaseRoute) { mutableStateOf(false) }
@@ -107,6 +109,7 @@ fun SmartHomeApp(
     val showBottomBar = currentBaseRoute != null &&
         currentBaseRoute !in AuthScreen.routes &&
         !isSelectHomeRoute &&
+        !isRoutineDetailRoute &&
         !isDrawerVisible &&
         !isTablet
 
@@ -341,6 +344,15 @@ fun SmartHomeApp(
                             launchSingleTop = true
                         }
                     },
+                    onRoutineClick = { routineId ->
+                        navController.navigate("${Screen.ROUTINE_DETAIL_ROUTE}/$routineId")
+                    },
+                )
+            }
+            composable("${Screen.ROUTINE_DETAIL_ROUTE}/{routineId}") {
+                RoutineDetailScreen(
+                    onBack = { navController.popBackStack() },
+                    onDelete = { navController.popBackStack() },
                 )
             }
             composable(Screen.Profile.route) {

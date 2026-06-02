@@ -82,6 +82,7 @@ data class RoutineUi(
 fun RoutinesScreen(
     onProfileClick: () -> Unit = {},
     onAddRoutine: () -> Unit = {},
+    onRoutineClick: (String) -> Unit = {},
     routines: List<RoutineUi> = sampleRoutines,
 ) {
     var selectedCategory by remember { mutableStateOf<RoutineCategory?>(null) }
@@ -139,7 +140,10 @@ fun RoutinesScreen(
                 )
             }
             items(items = visibleRoutines, key = { it.id }) { routine ->
-                RoutineCard(routine = routine)
+                RoutineCard(
+                    routine = routine,
+                    onClick = { onRoutineClick(routine.id) },
+                )
             }
         }
     }
@@ -237,9 +241,12 @@ private fun FilterChip(
 }
 
 @Composable
-private fun RoutineCard(routine: RoutineUi) {
+private fun RoutineCard(routine: RoutineUi, onClick: () -> Unit = {}) {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 1.dp,

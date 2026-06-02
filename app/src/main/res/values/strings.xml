@@ -185,6 +185,52 @@
     <string name="routines_favorite_content_description">Marcar como favorita</string>
     <string name="routines_play_content_description">Ejecutar rutina</string>
     <string name="routines_add_content_description">Crear rutina</string>
+    <!-- Routine detail -->
+    <string name="routine_detail_title">Detalle de rutina</string>
+    <string name="routine_detail_back">Volver</string>
+    <string name="routine_detail_more_options">Más opciones</string>
+    <string name="routine_detail_rename">Renombrar rutina</string>
+    <string name="routine_detail_delete">Eliminar rutina</string>
+    <string name="routine_detail_automated">Rutina automatizada</string>
+    <string name="routine_detail_enabled">Activar rutina</string>
+    <string name="routine_detail_summary_actions">%1$d acciones</string>
+    <string name="routine_detail_schedule_title">Horario</string>
+    <string name="routine_detail_days_title">Días</string>
+    <string name="routine_detail_actions_title">Acciones</string>
+    <string name="routine_detail_add_action">Añadir acción</string>
+    <string name="routine_detail_save">Guardar cambios</string>
+    <string name="routine_detail_reorder">Reordenar acción</string>
+    <string name="action_cancel">Cancelar</string>
+    <!-- Rename dialog -->
+    <string name="routine_rename_title">Renombrar rutina</string>
+    <string name="routine_rename_label">Nombre de la rutina</string>
+    <string name="routine_rename_placeholder">Ej: Buenos días</string>
+    <string name="routine_rename_confirm">Guardar</string>
+    <!-- Delete dialog -->
+    <string name="routine_delete_title">Eliminar rutina</string>
+    <string name="routine_delete_message">¿Seguro que querés eliminar “%1$s”? Esta acción no se puede deshacer.</string>
+    <string name="routine_delete_confirm">Eliminar</string>
+    <!-- Schedule dialog -->
+    <string name="routine_schedule_title">Editar horario</string>
+    <string name="routine_schedule_subtitle">Elegí la hora en la que se ejecuta la rutina.</string>
+    <string name="routine_schedule_confirm">Guardar</string>
+    <!-- Days dialog -->
+    <string name="routine_days_title">Editar días</string>
+    <string name="routine_days_subtitle">Seleccioná los días en los que se repite la rutina.</string>
+    <string name="routine_days_confirm">Guardar</string>
+    <string name="routine_days_empty">Sin días</string>
+    <string name="routine_days_everyday">Todos los días</string>
+    <string name="routine_days_weekdays">Lun a Vie</string>
+    <string name="routine_days_weekend">Fin de semana</string>
+    <string-array name="routines_day_names">
+        <item>Lunes</item>
+        <item>Martes</item>
+        <item>Miércoles</item>
+        <item>Jueves</item>
+        <item>Viernes</item>
+        <item>Sábado</item>
+        <item>Domingo</item>
+    </string-array>
     <string-array name="routines_day_initials">
         <item>L</item>
         <item>M</item>
