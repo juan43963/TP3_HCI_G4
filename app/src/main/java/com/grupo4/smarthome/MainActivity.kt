@@ -107,7 +107,8 @@ fun SmartHomeApp(
     val showBottomBar = currentBaseRoute != null &&
         currentBaseRoute !in AuthScreen.routes &&
         !isSelectHomeRoute &&
-        !isDrawerVisible
+        !isDrawerVisible &&
+        !isTablet
 
     CompositionLocalProvider(LocalOpenDrawer provides openDrawer) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -282,6 +283,7 @@ fun SmartHomeApp(
 
             composable(Screen.SELECT_HOME_ROUTE) {
                 SelectHomeScreen(
+                    windowSize = windowSize,
                     userName = "Juan",
                     homes = listOf(
                         SelectableHome("apartment", "Departamento", roomsCount = 8, devicesCount = 22),
@@ -342,9 +344,32 @@ fun SmartHomeApp(
                 )
             }
             composable(Screen.Profile.route) {
+                val origin = navController.previousBackStackEntry
+                    ?.destination?.route?.substringBefore('?')
+                val enteredFromHome = origin != null && origin != Screen.SELECT_HOME_ROUTE
                 ProfileScreen(
+                    windowSize = windowSize,
                     themePreference = themePreference,
                     onThemePreferenceChange = onThemePreferenceChange,
+                    enteredFromHome = enteredFromHome,
+                    onNavigateHome = {
+                        navController.navigate(Screen.Home.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onNavigateRooms = {
+                        navController.navigate(Screen.Rooms.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onNavigateRoutines = {
+                        navController.navigate(Screen.Routines.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                 )
             }
         }

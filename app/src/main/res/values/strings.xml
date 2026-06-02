@@ -80,6 +80,14 @@
     <string name="settings_theme_light">Claro</string>
     <string name="settings_theme_dark">Oscuro</string>
     <string name="settings_theme_system">Sistema</string>
+    <string name="settings_list_header">AJUSTES</string>
+    <string name="settings_profile_subtitle">Nombre, email y cuenta</string>
+    <string name="settings_security_subtitle">Contraseña y acceso</string>
+    <string name="settings_accessibility_subtitle">Tema y apariencia</string>
+    <string name="settings_theme_card_description">Elegí la apariencia de la interfaz.</string>
+    <string name="settings_theme_light_description">Fondo blanco, alto contraste de día.</string>
+    <string name="settings_theme_dark_description">Tonos profundos para ambientes con poca luz.</string>
+    <string name="settings_theme_system_description">Sigue la apariencia del dispositivo.</string>
 
     <!-- Recover password (RF3) -->
     <string name="recover_title">¿Olvidaste tu contraseña?</string>
@@ -112,6 +120,7 @@
     <!-- Select Home -->
     <string name="select_home_search_placeholder">Buscar hogar</string>
     <string name="select_home_welcome_title">¡Bienvenido,\n%1$s!</string>
+    <string name="select_home_welcome_title_inline">¡Bienvenido, %1$s!</string>
     <string name="select_home_subtitle">Seleccioná el entorno que querés gestionar hoy.</string>
     <string name="select_home_rooms_count">%1$d habitaciones</string>
     <string name="select_home_devices_count">%1$d dispositivos</string>
@@ -162,4 +171,27 @@
     <string name="dashboard_add_home">Agregar nuevo hogar</string>
     <string name="dashboard_settings">Ajustes</string>
     <string name="dashboard_logout">Cerrar sesión</string>
+
+    <!-- Routines -->
+    <string name="routines_header_title">Rutinas Automatizadas</string>
+    <string name="routines_header_subtitle">Creá y gestioná rutinas para automatizar tu hogar.</string>
+    <string name="routines_filter_label">Filtrar por categoría</string>
+    <string name="routines_filter_all">Todas</string>
+    <string name="routines_category_morning">Mañana</string>
+    <string name="routines_category_night">Noche</string>
+    <string name="routines_category_comfort">Confort</string>
+    <string name="routines_category_security">Seguridad</string>
+    <string name="routines_more_actions">+%1$d acciones más</string>
+    <string name="routines_favorite_content_description">Marcar como favorita</string>
+    <string name="routines_play_content_description">Ejecutar rutina</string>
+    <string name="routines_add_content_description">Crear rutina</string>
+    <string-array name="routines_day_initials">
+        <item>L</item>
+        <item>M</item>
+        <item>M</item>
+        <item>J</item>
+        <item>V</item>
+        <item>S</item>
+        <item>D</item>
+    </string-array>
 </resources>

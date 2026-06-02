@@ -25,6 +25,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,10 +38,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.components.MainShellScaffold
-import com.grupo4.smarthome.ui.screens.dashboard.DashboardCallbacks
-import com.grupo4.smarthome.ui.screens.dashboard.DashboardPreviewData
-import com.grupo4.smarthome.ui.screens.dashboard.DashboardUiState
 import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneQuickAddFab
+import com.grupo4.smarthome.ui.screens.selecthome.layout.TabletSelectHomeLayout
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 
@@ -52,6 +52,37 @@ data class SelectableHome(
 
 @Composable
 fun SelectHomeScreen(
+    windowSize: WindowSizeClass,
+    userName: String,
+    homes: List<SelectableHome>,
+    onHomeSelected: (SelectableHome) -> Unit,
+    onAddHome: () -> Unit,
+    onProfileClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (windowSize.widthSizeClass == WindowWidthSizeClass.Compact) {
+        PhoneSelectHomeLayout(
+            userName = userName,
+            homes = homes,
+            onHomeSelected = onHomeSelected,
+            onAddHome = onAddHome,
+            onProfileClick = onProfileClick,
+            modifier = modifier,
+        )
+    } else {
+        TabletSelectHomeLayout(
+            userName = userName,
+            homes = homes,
+            onHomeSelected = onHomeSelected,
+            onAddHome = onAddHome,
+            onProfileClick = onProfileClick,
+            modifier = modifier,
+        )
+    }
+}
+
+@Composable
+private fun PhoneSelectHomeLayout(
     userName: String,
     homes: List<SelectableHome>,
     onHomeSelected: (SelectableHome) -> Unit,
@@ -112,7 +143,7 @@ fun SelectHomeScreen(
 }
 
 @Composable
-private fun HomeCard(
+internal fun HomeCard(
     home: SelectableHome,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -230,9 +261,9 @@ private fun MetricRow(
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-private fun SelectHomeScreenPreview() {
+private fun SelectHomeScreenPhonePreview() {
     SmartHomeTheme(darkTheme = false) {
-        SelectHomeScreen(
+        PhoneSelectHomeLayout(
             userName = "Juan",
             homes = listOf(
                 SelectableHome("1", "Departamento", roomsCount = 8, devicesCount = 22),

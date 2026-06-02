@@ -31,6 +31,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,12 +51,56 @@ import com.grupo4.smarthome.ui.theme.ThemePreference
 
 @Composable
 fun ProfileScreen(
+    windowSize: WindowSizeClass,
     userName: String = "Juan Perez",
     userEmail: String = "juanperez@itba.edu.ar",
     themePreference: ThemePreference = ThemePreference.SYSTEM,
     onThemePreferenceChange: (ThemePreference) -> Unit = {},
     onChangePassword: () -> Unit = {},
     onProfileAvatarClick: () -> Unit = {},
+    enteredFromHome: Boolean = false,
+    onNavigateHome: () -> Unit = {},
+    onNavigateRooms: () -> Unit = {},
+    onNavigateRoutines: () -> Unit = {},
+    onAddHome: () -> Unit = {},
+    modifier: Modifier = Modifier,
+) {
+    if (windowSize.widthSizeClass != WindowWidthSizeClass.Compact) {
+        TabletSettingsLayout(
+            userName = userName,
+            userEmail = userEmail,
+            themePreference = themePreference,
+            onThemePreferenceChange = onThemePreferenceChange,
+            onChangePassword = onChangePassword,
+            onProfileAvatarClick = onProfileAvatarClick,
+            enteredFromHome = enteredFromHome,
+            onNavigateHome = onNavigateHome,
+            onNavigateRooms = onNavigateRooms,
+            onNavigateRoutines = onNavigateRoutines,
+            onAddHome = onAddHome,
+            modifier = modifier,
+        )
+        return
+    }
+    PhoneProfileLayout(
+        userName = userName,
+        userEmail = userEmail,
+        themePreference = themePreference,
+        onThemePreferenceChange = onThemePreferenceChange,
+        onChangePassword = onChangePassword,
+        onProfileAvatarClick = onProfileAvatarClick,
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun PhoneProfileLayout(
+    userName: String,
+    userEmail: String,
+    themePreference: ThemePreference,
+    onThemePreferenceChange: (ThemePreference) -> Unit,
+    onChangePassword: () -> Unit,
+    onProfileAvatarClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     MainShellScaffold(
@@ -96,8 +142,8 @@ private fun Header() {
 }
 
 @Composable
-private fun SectionCard(
-    title: String,
+internal fun SectionCard(
+    title: String? = null,
     description: String? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
@@ -108,12 +154,14 @@ private fun SectionCard(
         shadowElevation = 1.dp,
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
+            if (title != null) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
             if (description != null) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
@@ -122,7 +170,9 @@ private fun SectionCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            if (title != null || description != null) {
+                Spacer(modifier = Modifier.height(16.dp))
+            }
             content()
         }
     }
@@ -171,7 +221,7 @@ private fun ProfileSection(userName: String, userEmail: String) {
 }
 
 @Composable
-private fun FieldLabel(text: String) {
+internal fun FieldLabel(text: String) {
     Text(
         text = text,
         style = MaterialTheme.typography.labelSmall,
@@ -193,7 +243,7 @@ private fun SecuritySection(onChangePassword: () -> Unit) {
 }
 
 @Composable
-private fun SettingRow(
+internal fun SettingRow(
     icon: ImageVector,
     title: String,
     description: String,
@@ -342,7 +392,14 @@ private fun ThemeOption(
 @Composable
 private fun ProfileScreenLightPreview() {
     SmartHomeTheme(darkTheme = false) {
-        ProfileScreen(themePreference = ThemePreference.LIGHT)
+        PhoneProfileLayout(
+            userName = "Juan Perez",
+            userEmail = "juanperez@itba.edu.ar",
+            themePreference = ThemePreference.LIGHT,
+            onThemePreferenceChange = {},
+            onChangePassword = {},
+            onProfileAvatarClick = {},
+        )
     }
 }
 
@@ -350,6 +407,13 @@ private fun ProfileScreenLightPreview() {
 @Composable
 private fun ProfileScreenDarkPreview() {
     SmartHomeTheme(darkTheme = true) {
-        ProfileScreen(themePreference = ThemePreference.DARK)
+        PhoneProfileLayout(
+            userName = "Juan Perez",
+            userEmail = "juanperez@itba.edu.ar",
+            themePreference = ThemePreference.DARK,
+            onThemePreferenceChange = {},
+            onChangePassword = {},
+            onProfileAvatarClick = {},
+        )
     }
 }
