@@ -50,6 +50,7 @@ import com.grupo4.smarthome.ui.screens.dashboard.DashboardCallbacks
 import com.grupo4.smarthome.ui.screens.dashboard.DashboardPreviewData
 import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneHomeDrawer
 import com.grupo4.smarthome.ui.screens.home.HomeScreen
+import com.grupo4.smarthome.ui.screens.selecthome.AddHomeOverlay
 import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeScreen
 import com.grupo4.smarthome.ui.screens.selecthome.SelectableHome
 import com.grupo4.smarthome.ui.screens.profile.ProfileScreen
@@ -99,6 +100,7 @@ fun SmartHomeApp(
     val isMainRoute = currentBaseRoute != null && currentBaseRoute !in AuthScreen.routes
 
     var isDrawerVisible by remember(currentBaseRoute) { mutableStateOf(false) }
+    var showAddHome by rememberSaveable { mutableStateOf(false) }
     val openDrawer: () -> Unit = {
         if (isMainRoute) {
             isDrawerVisible = true
@@ -297,7 +299,7 @@ fun SmartHomeApp(
                             popUpTo(Screen.SELECT_HOME_ROUTE) { inclusive = true }
                         }
                     },
-                    onAddHome = { /* TODO: add-home flow */ },
+                    onAddHome = { showAddHome = true },
                     onProfileClick = {
                         navController.navigate(Screen.Profile.route) {
                             launchSingleTop = true
@@ -394,11 +396,22 @@ fun SmartHomeApp(
                 ) {
                     PhoneHomeDrawer(
                         state = DashboardPreviewData.populated,
-                        callbacks = DashboardCallbacks(),
+                        callbacks = DashboardCallbacks(
+                            onAddHomeClick = {
+                                closeDrawer()
+                                showAddHome = true
+                            },
+                        ),
                         onClose = closeDrawer,
                     )
                 }
             }
+
+            AddHomeOverlay(
+                visible = showAddHome,
+                isTablet = isTablet,
+                onDismiss = { showAddHome = false },
+            )
         }
     }
 }

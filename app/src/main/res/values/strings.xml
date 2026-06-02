@@ -172,6 +172,30 @@
     <string name="dashboard_settings">Ajustes</string>
     <string name="dashboard_logout">Cerrar sesión</string>
 
+    <!-- Add Home -->
+    <string name="add_home_title">Agregar nuevo hogar</string>
+    <string name="add_home_step">Paso 1 de 1</string>
+    <string name="add_home_subtitle">Definí los datos básicos. Podrás editarlos cuando quieras.</string>
+    <string name="add_home_photo_section">Elegí una foto</string>
+    <string name="add_home_upload_photo">Subir foto</string>
+    <string name="add_home_upload_drag">Subir foto o arrastrar</string>
+    <string name="add_home_upload_hint">JPG o PNG, máx. 5MB</string>
+    <string name="add_home_name_label">Nombre *</string>
+    <string name="add_home_name_placeholder">Ej: Casa de la sierra</string>
+    <string name="add_home_name_error">El nombre es obligatorio.</string>
+    <string name="add_home_type_section">Tipo</string>
+    <string name="add_home_type_casa">Casa</string>
+    <string name="add_home_type_departamento">Departamento</string>
+    <string name="add_home_type_oficina">Oficina</string>
+    <string name="add_home_type_otro">Otro</string>
+    <string name="add_home_share_section">Compartir (opcional)</string>
+    <string name="add_home_share_placeholder">ejemplo@mail.com</string>
+    <string name="add_home_share_add_button">Agregar</string>
+    <string name="add_home_cta">Crear hogar</string>
+    <string name="add_home_back_description">Volver</string>
+    <string name="add_home_close_description">Cerrar</string>
+    <string name="add_home_photo_content_description">Foto de hogar %1$d</string>
+
     <!-- Routines -->
     <string name="routines_header_title">Rutinas Automatizadas</string>
     <string name="routines_header_subtitle">Creá y gestioná rutinas para automatizar tu hogar.</string>
