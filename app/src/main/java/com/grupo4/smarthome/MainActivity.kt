@@ -44,6 +44,7 @@ import com.grupo4.smarthome.ui.auth.welcome.WelcomeScreen
 import com.grupo4.smarthome.ui.auth.welcome.WelcomeScreenTablet
 import com.grupo4.smarthome.ui.components.AppDrawerOverlay
 import com.grupo4.smarthome.ui.components.LocalOpenDrawer
+import com.grupo4.smarthome.ui.components.QuickActionsOverlay
 import com.grupo4.smarthome.ui.navigation.AuthScreen
 import com.grupo4.smarthome.ui.navigation.Screen
 import com.grupo4.smarthome.ui.screens.dashboard.DashboardCallbacks
@@ -101,6 +102,8 @@ fun SmartHomeApp(
 
     var isDrawerVisible by remember(currentBaseRoute) { mutableStateOf(false) }
     var showAddHome by rememberSaveable { mutableStateOf(false) }
+    var showQuickActions by rememberSaveable { mutableStateOf(false) }
+    val openQuickActions: () -> Unit = { showQuickActions = true }
     val openDrawer: () -> Unit = {
         if (isMainRoute) {
             isDrawerVisible = true
@@ -328,6 +331,8 @@ fun SmartHomeApp(
                             launchSingleTop = true
                         }
                     },
+                    onQuickActionsOpen = openQuickActions,
+                    showQuickAddFab = !showQuickActions,
                 )
             }
             composable(Screen.Rooms.route) {
@@ -337,6 +342,8 @@ fun SmartHomeApp(
                             launchSingleTop = true
                         }
                     },
+                    onAddRoom = openQuickActions,
+                    showQuickAddFab = !showQuickActions,
                 )
             }
             composable(Screen.Routines.route) {
@@ -346,6 +353,8 @@ fun SmartHomeApp(
                             launchSingleTop = true
                         }
                     },
+                    onAddRoutine = openQuickActions,
+                    showQuickAddFab = !showQuickActions,
                     onRoutineClick = { routineId ->
                         navController.navigate("${Screen.ROUTINE_DETAIL_ROUTE}/$routineId")
                     },
@@ -411,6 +420,11 @@ fun SmartHomeApp(
                 visible = showAddHome,
                 isTablet = isTablet,
                 onDismiss = { showAddHome = false },
+            )
+
+            QuickActionsOverlay(
+                visible = showQuickActions,
+                onDismiss = { showQuickActions = false },
             )
         }
     }

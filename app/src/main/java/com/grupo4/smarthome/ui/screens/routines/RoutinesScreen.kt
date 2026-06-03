@@ -83,6 +83,7 @@ fun RoutinesScreen(
     onProfileClick: () -> Unit = {},
     onAddRoutine: () -> Unit = {},
     onRoutineClick: (String) -> Unit = {},
+    showQuickAddFab: Boolean = true,
     routines: List<RoutineUi> = sampleRoutines,
 ) {
     var selectedCategory by remember { mutableStateOf<RoutineCategory?>(null) }
@@ -96,10 +97,13 @@ fun RoutinesScreen(
         onSearchClick = {},
         onProfileClick = onProfileClick,
         floatingActionButton = {
-            PhoneQuickAddFab(
-                onClick = onAddRoutine,
-                modifier = Modifier.navigationBarsPadding(),
-            )
+            if (showQuickAddFab) {
+                PhoneQuickAddFab(
+                    onClick = onAddRoutine,
+                    modifier = Modifier.navigationBarsPadding(),
+                    contentDescriptionRes = R.string.quick_add_fab_open,
+                )
+            }
         },
     ) { innerPadding ->
         LazyColumn(

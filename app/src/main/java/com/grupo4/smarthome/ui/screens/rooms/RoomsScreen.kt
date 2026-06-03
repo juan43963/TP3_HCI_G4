@@ -3,6 +3,7 @@ package com.grupo4.smarthome.ui.screens.rooms
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -12,15 +13,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.components.MainShellScaffold
+import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneQuickAddFab
 
 @Composable
 fun RoomsScreen(
     onProfileClick: () -> Unit = {},
+    onAddRoom: () -> Unit = {},
+    showQuickAddFab: Boolean = true,
 ) {
     MainShellScaffold(
         title = stringResource(R.string.nav_rooms),
         onSearchClick = {},
         onProfileClick = onProfileClick,
+        floatingActionButton = {
+            if (showQuickAddFab) {
+                PhoneQuickAddFab(
+                    onClick = onAddRoom,
+                    modifier = Modifier.navigationBarsPadding(),
+                    contentDescriptionRes = R.string.quick_add_fab_open,
+                )
+            }
+        },
     ) { innerPadding ->
         Box(
             modifier = Modifier

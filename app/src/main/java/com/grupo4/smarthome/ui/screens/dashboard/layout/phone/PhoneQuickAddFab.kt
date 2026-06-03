@@ -1,5 +1,6 @@
 package com.grupo4.smarthome.ui.screens.dashboard.layout.phone
 
+import androidx.annotation.StringRes
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -14,6 +15,7 @@ import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 fun PhoneQuickAddFab(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    @StringRes contentDescriptionRes: Int = R.string.dashboard_fab_content_description,
 ) {
     FloatingActionButton(
         onClick = onClick,
@@ -23,7 +25,7 @@ fun PhoneQuickAddFab(
     ) {
         Icon(
             imageVector = SmartHomeIcons.Add,
-            contentDescription = stringResource(R.string.dashboard_fab_content_description),
+            contentDescription = stringResource(contentDescriptionRes),
         )
     }
 }

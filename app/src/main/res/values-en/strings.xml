@@ -23,4 +23,11 @@
     <string name="add_home_back_description">Back</string>
     <string name="add_home_close_description">Close</string>
     <string name="add_home_photo_content_description">Home photo %1$d</string>
+
+    <!-- Quick Actions FAB (RNF1: English strings) -->
+    <string name="quick_add_fab_open">Open quick actions</string>
+    <string name="quick_add_fab_close">Close quick actions</string>
+    <string name="quick_add_room">Add room</string>
+    <string name="quick_add_device">Add device</string>
+    <string name="quick_add_routine">Add routine</string>
 </resources>

@@ -163,6 +163,13 @@
     <string name="dashboard_search_content_description">Abrir búsqueda</string>
     <string name="dashboard_search_close_content_description">Cerrar búsqueda</string>
     <string name="dashboard_fab_content_description">Agregar</string>
+
+    <!-- Quick Actions FAB -->
+    <string name="quick_add_fab_open">Abrir acciones rápidas</string>
+    <string name="quick_add_fab_close">Cerrar acciones rápidas</string>
+    <string name="quick_add_room">Agregar habitación</string>
+    <string name="quick_add_device">Agregar dispositivo</string>
+    <string name="quick_add_routine">Agregar rutina</string>
     <string name="dashboard_my_homes">Mis hogares</string>
     <string name="dashboard_home_main">Casa Principal</string>
     <string name="dashboard_home_apartment">Departamento</string>
