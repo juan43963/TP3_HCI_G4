@@ -9,7 +9,6 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,7 +18,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,15 +26,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.outlined.CloudUpload
+import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -62,8 +59,8 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -107,7 +104,14 @@ fun BoxScope.AddHomeOverlay(
             onDismissRequest = onDismiss,
             properties = DialogProperties(usePlatformDefaultWidth = false),
         ) {
-            TabletAddHomeDialogContent(onDismiss = onDismiss)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                TabletAddHomeDialogContent(onDismiss = onDismiss)
+            }
         }
     }
 }
@@ -118,9 +122,7 @@ fun BoxScope.AddHomeOverlay(
 private fun PhoneAddHomeScreen(onDismiss: () -> Unit) {
     var homeName by rememberSaveable { mutableStateOf("") }
     var nameError by rememberSaveable { mutableStateOf(false) }
-    var selectedPhotoIndex by rememberSaveable { mutableStateOf(0) }
     var selectedTypeIndex by rememberSaveable { mutableStateOf(0) }
-    var shareEmail by rememberSaveable { mutableStateOf("") }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -147,31 +149,28 @@ private fun PhoneAddHomeScreen(onDismiss: () -> Unit) {
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    AddHomeSectionLabel(stringResource(R.string.add_home_photo_section))
-                    PhonePhotoRow(
-                        selectedIndex = selectedPhotoIndex,
-                        onSelect = { selectedPhotoIndex = it },
+                AddHomeFormCard {
+                    HomeNameField(
+                        value = homeName,
+                        error = nameError,
+                        onValueChange = { homeName = it; if (nameError) nameError = false },
+                        placeholderRes = R.string.add_home_name_placeholder_mobile,
                     )
                 }
-                HomeNameField(
-                    value = homeName,
-                    error = nameError,
-                    onValueChange = { homeName = it; if (nameError) nameError = false },
-                )
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                AddHomeFormCard {
                     AddHomeSectionLabel(stringResource(R.string.add_home_type_section))
-                    HomeTypeChips(
+                    Spacer(modifier = Modifier.height(12.dp))
+                    AddHomeTypeGrid(
                         selectedIndex = selectedTypeIndex,
                         onSelect = { selectedTypeIndex = it },
                     )
                 }
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    AddHomeSectionLabel(stringResource(R.string.add_home_share_section))
-                    HomeShareRow(
-                        value = shareEmail,
-                        onValueChange = { shareEmail = it },
-                    )
+                AddHomeFormCard {
+                    AddHomeSectionLabel(stringResource(R.string.add_home_fotos_section))
+                    Spacer(modifier = Modifier.height(12.dp))
+                    AddHomePhotoPlaceholders()
+                    Spacer(modifier = Modifier.height(10.dp))
+                    AddHomeGalleryButton()
                 }
                 AddHomeSubmitButton(
                     onSubmit = {
@@ -242,119 +241,88 @@ private fun AddHomeSubmitButton(onSubmit: () -> Unit, modifier: Modifier = Modif
 private fun TabletAddHomeDialogContent(onDismiss: () -> Unit) {
     var homeName by rememberSaveable { mutableStateOf("") }
     var nameError by rememberSaveable { mutableStateOf(false) }
-    var selectedPhotoIndex by rememberSaveable { mutableStateOf(0) }
     var selectedTypeIndex by rememberSaveable { mutableStateOf(0) }
-    var shareEmail by rememberSaveable { mutableStateOf("") }
 
     Surface(
         modifier = Modifier
-            .widthIn(min = 560.dp, max = 800.dp)
-            .heightIn(max = 560.dp),
+            .widthIn(max = 760.dp)
+            .fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         color = MaterialTheme.colorScheme.background,
+        shadowElevation = 6.dp,
     ) {
-        Row(modifier = Modifier.fillMaxHeight()) {
-            // Left panel — photo selector
-            Column(
-                modifier = Modifier
-                    .width(240.dp)
-                    .fillMaxHeight()
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                AddHomeSectionLabel(stringResource(R.string.add_home_photo_section))
-                TabletPhotoColumn(
-                    selectedIndex = selectedPhotoIndex,
-                    onSelect = { selectedPhotoIndex = it },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                UploadPhotoButton(modifier = Modifier.fillMaxWidth())
-            }
-            // Thin divider
-            Box(
-                modifier = Modifier
-                    .width(1.dp)
-                    .fillMaxHeight()
-                    .background(MaterialTheme.colorScheme.outlineVariant),
-            )
-            // Right panel — form
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .verticalScroll(rememberScrollState())
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.Top,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.add_home_title),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = stringResource(R.string.add_home_subtitle),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    IconButton(onClick = onDismiss) {
-                        Icon(
-                            imageVector = SmartHomeIcons.Close,
-                            contentDescription = stringResource(R.string.add_home_close_description),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
+                IconButton(onClick = onDismiss) {
+                    Icon(
+                        imageVector = SmartHomeIcons.Back,
+                        contentDescription = stringResource(R.string.add_home_back_description),
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
                 }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.add_home_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Text(
+                        text = stringResource(R.string.add_home_step),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                IconButton(onClick = onDismiss) {
+                    Icon(
+                        imageVector = SmartHomeIcons.Close,
+                        contentDescription = stringResource(R.string.add_home_close_description),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            Text(
+                text = stringResource(R.string.add_home_subtitle),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            AddHomeFormCard {
                 HomeNameField(
                     value = homeName,
                     error = nameError,
                     onValueChange = { homeName = it; if (nameError) nameError = false },
+                    placeholderRes = R.string.add_home_name_placeholder_mobile,
                 )
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    AddHomeSectionLabel(stringResource(R.string.add_home_type_section))
-                    HomeTypeChips(
-                        selectedIndex = selectedTypeIndex,
-                        onSelect = { selectedTypeIndex = it },
-                    )
-                }
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    AddHomeSectionLabel(stringResource(R.string.add_home_share_section))
-                    HomeShareRow(
-                        value = shareEmail,
-                        onValueChange = { shareEmail = it },
-                    )
-                }
-                Spacer(modifier = Modifier.height(4.dp))
-                Button(
-                    onClick = {
-                        if (homeName.isBlank()) nameError = true else onDismiss()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                    ),
-                ) {
-                    Text(
-                        text = stringResource(R.string.add_home_cta),
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.ExtraBold,
-                    )
-                }
             }
+            AddHomeFormCard {
+                AddHomeSectionLabel(stringResource(R.string.add_home_type_section))
+                Spacer(modifier = Modifier.height(8.dp))
+                AddHomeTypeGrid(
+                    selectedIndex = selectedTypeIndex,
+                    onSelect = { selectedTypeIndex = it },
+                    cellHeight = 56.dp,
+                )
+            }
+            AddHomeFormCard {
+                AddHomeSectionLabel(stringResource(R.string.add_home_fotos_section))
+                Spacer(modifier = Modifier.height(8.dp))
+                AddHomePhotoPlaceholders(tileModifier = Modifier.height(96.dp))
+                Spacer(modifier = Modifier.height(8.dp))
+                AddHomeGalleryButton()
+            }
+            AddHomeSubmitButton(
+                onSubmit = {
+                    if (homeName.isBlank()) nameError = true else onDismiss()
+                },
+            )
         }
     }
 }
@@ -378,6 +346,7 @@ private fun HomeNameField(
     error: Boolean,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
+    @StringRes placeholderRes: Int = R.string.add_home_name_placeholder,
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
@@ -392,7 +361,7 @@ private fun HomeNameField(
             modifier = Modifier.fillMaxWidth(),
             placeholder = {
                 Text(
-                    text = stringResource(R.string.add_home_name_placeholder),
+                    text = stringResource(placeholderRes),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -427,73 +396,103 @@ private fun HomeNameField(
     }
 }
 
+// Shared form card components
+
 @Composable
-private fun HomeTypeChips(
-    selectedIndex: Int,
-    onSelect: (Int) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val types = HomeTypeOption.entries
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            types.dropLast(1).forEachIndexed { idx, type ->
-                HomeTypeChip(
-                    selected = selectedIndex == idx,
-                    icon = type.icon,
-                    label = stringResource(type.labelRes),
-                    onClick = { onSelect(idx) },
-                )
-            }
-        }
-        Row {
-            val lastIdx = types.size - 1
-            HomeTypeChip(
-                selected = selectedIndex == lastIdx,
-                icon = types.last().icon,
-                label = stringResource(types.last().labelRes),
-                onClick = { onSelect(lastIdx) },
-            )
+private fun AddHomeFormCard(content: @Composable () -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            content()
         }
     }
 }
 
 @Composable
-private fun HomeTypeChip(
+private fun AddHomeTypeGrid(
+    selectedIndex: Int,
+    onSelect: (Int) -> Unit,
+    cellHeight: Dp = 72.dp,
+) {
+    val types = HomeTypeOption.entries
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            types.take(2).forEachIndexed { idx, type ->
+                AddHomeTypeGridCell(
+                    selected = selectedIndex == idx,
+                    icon = type.icon,
+                    label = stringResource(type.labelRes),
+                    onClick = { onSelect(idx) },
+                    height = cellHeight,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            types.drop(2).forEachIndexed { idx, type ->
+                AddHomeTypeGridCell(
+                    selected = selectedIndex == idx + 2,
+                    icon = type.icon,
+                    label = stringResource(type.labelRes),
+                    onClick = { onSelect(idx + 2) },
+                    height = cellHeight,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AddHomeTypeGridCell(
     selected: Boolean,
     icon: ImageVector,
     label: String,
     onClick: () -> Unit,
+    height: Dp,
     modifier: Modifier = Modifier,
 ) {
     val containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer
-    else MaterialTheme.colorScheme.surface
+        else MaterialTheme.colorScheme.surface
     val contentColor = if (selected) MaterialTheme.colorScheme.primary
-    else MaterialTheme.colorScheme.onSurface
+        else MaterialTheme.colorScheme.onSurface
+    val borderWidth = if (selected) 2.dp else 1.dp
     val borderColor = if (selected) MaterialTheme.colorScheme.primary
-    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+        else MaterialTheme.colorScheme.outlineVariant
 
     Surface(
         modifier = modifier
-            .height(36.dp)
+            .height(height)
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(10.dp),
+        shape = RoundedCornerShape(14.dp),
         color = containerColor,
-        border = BorderStroke(1.dp, borderColor),
+        border = BorderStroke(borderWidth, borderColor),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 12.dp),
+            modifier = Modifier.fillMaxSize(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.Center,
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = contentColor,
-                modifier = Modifier.size(16.dp),
+                modifier = Modifier.size(22.dp),
             )
+            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = label,
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.bodyMedium,
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
                 color = contentColor,
             )
@@ -502,224 +501,86 @@ private fun HomeTypeChip(
 }
 
 @Composable
-private fun HomeShareRow(
-    value: String,
-    onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
+private fun AddHomePhotoPlaceholders(
+    tileModifier: Modifier = Modifier.aspectRatio(1f),
 ) {
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
     ) {
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier.weight(1f),
-            placeholder = {
-                Text(
-                    text = stringResource(R.string.add_home_share_placeholder),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+        repeat(3) {
+            AddHomePhotoDashedTile(modifier = Modifier.weight(1f).then(tileModifier))
+        }
+    }
+}
+
+@Composable
+private fun AddHomePhotoDashedTile(modifier: Modifier = Modifier) {
+    val strokeColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f))
+            .drawBehind {
+                drawRoundRect(
+                    color = strokeColor,
+                    cornerRadius = CornerRadius(12.dp.toPx()),
+                    style = Stroke(
+                        width = 1.5f.dp.toPx(),
+                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 6f), 0f),
+                    ),
                 )
             },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-            ),
-        )
-        Button(
-            onClick = { /* visual only */ },
-            modifier = Modifier.height(56.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
+            Icon(
+                imageVector = Icons.Outlined.Image,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                modifier = Modifier.size(28.dp),
+            )
             Text(
-                text = stringResource(R.string.add_home_share_add_button),
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
-        }
-    }
-}
-
-// Photo selector components
-
-private val photoIcons = listOf(
-    SmartHomeIcons.Home,
-    SmartHomeIcons.Apartment,
-    SmartHomeIcons.Rooms,
-    SmartHomeIcons.Office,
-)
-
-@Composable
-private fun PhonePhotoRow(
-    selectedIndex: Int,
-    onSelect: (Int) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        photoIcons.forEachIndexed { index, _ ->
-            PhotoThumbnail(
-                index = index,
-                selected = selectedIndex == index,
-                onClick = { onSelect(index) },
-                modifier = Modifier
-                    .weight(1f)
-                    .aspectRatio(1f),
-            )
-        }
-        UploadPhotoTile(
-            modifier = Modifier
-                .weight(1f)
-                .aspectRatio(1f),
-        )
-    }
-}
-
-@Composable
-private fun TabletPhotoColumn(
-    selectedIndex: Int,
-    onSelect: (Int) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        photoIcons.forEachIndexed { index, _ ->
-            PhotoThumbnail(
-                index = index,
-                selected = selectedIndex == index,
-                onClick = { onSelect(index) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(72.dp),
+                text = stringResource(R.string.add_home_photo_label),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
 }
 
 @Composable
-private fun PhotoThumbnail(
-    index: Int,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val bgColor = when (index) {
-        0 -> MaterialTheme.colorScheme.primaryContainer
-        1 -> MaterialTheme.colorScheme.secondaryContainer
-        2 -> MaterialTheme.colorScheme.tertiaryContainer
-        else -> MaterialTheme.colorScheme.surfaceVariant
-    }
-    val primaryColor = MaterialTheme.colorScheme.primary
-
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(10.dp))
-            .background(bgColor)
-            .then(
-                if (selected) Modifier.border(2.dp, primaryColor, RoundedCornerShape(10.dp))
-                else Modifier
-            )
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            imageVector = photoIcons[index],
-            contentDescription = stringResource(
-                R.string.add_home_photo_content_description,
-                index + 1,
-            ),
-            tint = if (selected) primaryColor else MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(24.dp),
-        )
-    }
-}
-
-@Composable
-private fun UploadPhotoTile(modifier: Modifier = Modifier) {
-    val strokeColor = MaterialTheme.colorScheme.primary
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(10.dp))
-            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
-            .drawBehind {
-                drawRoundRect(
-                    color = strokeColor,
-                    cornerRadius = CornerRadius(10.dp.toPx()),
-                    style = Stroke(
-                        width = 2.dp.toPx(),
-                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 6f), 0f),
-                    ),
-                )
-            }
-            .clickable { /* visual only */ },
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.CloudUpload,
-            contentDescription = stringResource(R.string.add_home_upload_photo),
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(22.dp),
-        )
-    }
-}
-
-@Composable
-private fun UploadPhotoButton(modifier: Modifier = Modifier) {
-    val strokeColor = MaterialTheme.colorScheme.primary
-    Box(
-        modifier = modifier
+private fun AddHomeGalleryButton() {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
             .height(52.dp)
-            .clip(RoundedCornerShape(10.dp))
-            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
-            .drawBehind {
-                drawRoundRect(
-                    color = strokeColor,
-                    cornerRadius = CornerRadius(10.dp.toPx()),
-                    style = Stroke(
-                        width = 2.dp.toPx(),
-                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 6f), 0f),
-                    ),
-                )
-            }
             .clickable { /* visual only */ },
-        contentAlignment = Alignment.Center,
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
     ) {
         Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 imageVector = Icons.Outlined.CloudUpload,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(18.dp),
+                modifier = Modifier.size(20.dp),
             )
-            Column {
-                Text(
-                    text = stringResource(R.string.add_home_upload_drag),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                Text(
-                    text = stringResource(R.string.add_home_upload_hint),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = stringResource(R.string.add_home_gallery_button),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary,
+            )
         }
     }
 }

@@ -23,6 +23,10 @@
     <string name="add_home_back_description">Back</string>
     <string name="add_home_close_description">Close</string>
     <string name="add_home_photo_content_description">Home photo %1$d</string>
+    <string name="add_home_name_placeholder_mobile">E.g.: Mountain cabin</string>
+    <string name="add_home_fotos_section">Photos</string>
+    <string name="add_home_photo_label">Photo</string>
+    <string name="add_home_gallery_button">Upload from gallery</string>
 
     <!-- Quick Actions FAB (RNF1: English strings) -->
     <string name="quick_add_fab_open">Open quick actions</string>

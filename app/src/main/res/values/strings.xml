@@ -202,6 +202,10 @@
     <string name="add_home_back_description">Volver</string>
     <string name="add_home_close_description">Cerrar</string>
     <string name="add_home_photo_content_description">Foto de hogar %1$d</string>
+    <string name="add_home_name_placeholder_mobile">Ej.: Cabaña en la montaña</string>
+    <string name="add_home_fotos_section">Fotos</string>
+    <string name="add_home_photo_label">Foto</string>
+    <string name="add_home_gallery_button">Subir desde galería</string>
 
     <!-- Routines -->
     <string name="routines_header_title">Rutinas Automatizadas</string>
