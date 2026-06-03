@@ -56,6 +56,7 @@ import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeScreen
 import com.grupo4.smarthome.ui.screens.selecthome.SelectableHome
 import com.grupo4.smarthome.ui.screens.profile.ProfileScreen
 import com.grupo4.smarthome.ui.screens.rooms.RoomsScreen
+import com.grupo4.smarthome.ui.screens.routines.CreateRoutineOverlay
 import com.grupo4.smarthome.ui.screens.routines.RoutineDetailScreen
 import com.grupo4.smarthome.ui.screens.routines.RoutinesScreen
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
@@ -103,7 +104,14 @@ fun SmartHomeApp(
     var isDrawerVisible by remember(currentBaseRoute) { mutableStateOf(false) }
     var showAddHome by rememberSaveable { mutableStateOf(false) }
     var showQuickActions by rememberSaveable { mutableStateOf(false) }
+    var showCreateRoutine by rememberSaveable { mutableStateOf(false) }
     val openQuickActions: () -> Unit = { showQuickActions = true }
+    val openCreateRoutine: () -> Unit = {
+        showQuickActions = false
+        if (!isTablet) {
+            showCreateRoutine = true
+        }
+    }
     val openDrawer: () -> Unit = {
         if (isMainRoute) {
             isDrawerVisible = true
@@ -332,7 +340,7 @@ fun SmartHomeApp(
                         }
                     },
                     onQuickActionsOpen = openQuickActions,
-                    showQuickAddFab = !showQuickActions,
+                    showQuickAddFab = !showQuickActions && !showCreateRoutine,
                 )
             }
             composable(Screen.Rooms.route) {
@@ -343,7 +351,7 @@ fun SmartHomeApp(
                         }
                     },
                     onAddRoom = openQuickActions,
-                    showQuickAddFab = !showQuickActions,
+                    showQuickAddFab = !showQuickActions && !showCreateRoutine,
                 )
             }
             composable(Screen.Routines.route) {
@@ -354,7 +362,7 @@ fun SmartHomeApp(
                         }
                     },
                     onAddRoutine = openQuickActions,
-                    showQuickAddFab = !showQuickActions,
+                    showQuickAddFab = !showQuickActions && !showCreateRoutine,
                     onRoutineClick = { routineId ->
                         navController.navigate("${Screen.ROUTINE_DETAIL_ROUTE}/$routineId")
                     },
@@ -425,6 +433,13 @@ fun SmartHomeApp(
             QuickActionsOverlay(
                 visible = showQuickActions,
                 onDismiss = { showQuickActions = false },
+                onAddRoutine = openCreateRoutine,
+            )
+
+            CreateRoutineOverlay(
+                visible = showCreateRoutine,
+                isTablet = isTablet,
+                onDismiss = { showCreateRoutine = false },
             )
         }
     }

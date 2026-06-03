@@ -55,6 +55,9 @@ import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 fun BoxScope.QuickActionsOverlay(
     visible: Boolean,
     onDismiss: () -> Unit,
+    onAddRoom: () -> Unit = onDismiss,
+    onAddDevice: () -> Unit = onDismiss,
+    onAddRoutine: () -> Unit = onDismiss,
 ) {
     // Full-screen scrim
     AnimatedVisibility(
@@ -91,17 +94,17 @@ fun BoxScope.QuickActionsOverlay(
             QuickActionItem(
                 label = stringResource(R.string.quick_add_room),
                 icon = SmartHomeIcons.Rooms,
-                onClick = onDismiss,
+                onClick = onAddRoom,
             )
             QuickActionItem(
                 label = stringResource(R.string.quick_add_device),
                 icon = SmartHomeIcons.Devices,
-                onClick = onDismiss,
+                onClick = onAddDevice,
             )
             QuickActionItem(
                 label = stringResource(R.string.quick_add_routine),
                 icon = SmartHomeIcons.Routines,
-                onClick = onDismiss,
+                onClick = onAddRoutine,
             )
             FloatingActionButton(
                 onClick = onDismiss,
