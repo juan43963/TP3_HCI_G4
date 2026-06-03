@@ -327,9 +327,22 @@ fun SmartHomeApp(
             }
             composable(Screen.Rooms.route) {
                 RoomsScreen(
+                    windowSize = windowSize,
                     onProfileClick = {
                         navController.navigate(Screen.Profile.route) {
                             launchSingleTop = true
+                        }
+                    },
+                    onNavigateHome = {
+                        navController.navigate(Screen.Home.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onNavigateRoutines = {
+                        navController.navigate(Screen.Routines.route) {
+                            launchSingleTop = true
+                            restoreState = true
                         }
                     },
                 )
