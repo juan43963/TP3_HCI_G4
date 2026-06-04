@@ -84,8 +84,23 @@ fun RoutinesScreen(
     onAddRoutine: () -> Unit = {},
     onRoutineClick: (String) -> Unit = {},
     showQuickAddFab: Boolean = true,
+    isTablet: Boolean = false,
+    onNavigateHome: () -> Unit = {},
+    onNavigateRooms: () -> Unit = {},
     routines: List<RoutineUi> = sampleRoutines,
 ) {
+    if (isTablet) {
+        TabletRoutinesScreen(
+            routines = routines,
+            onProfileClick = onProfileClick,
+            onAddRoutine = onAddRoutine,
+            onNavigateHome = onNavigateHome,
+            onNavigateRooms = onNavigateRooms,
+            onRoutineClick = onRoutineClick,
+        )
+        return
+    }
+
     var selectedCategory by remember { mutableStateOf<RoutineCategory?>(null) }
     val visibleRoutines = remember(selectedCategory, routines) {
         if (selectedCategory == null) routines
@@ -154,7 +169,7 @@ fun RoutinesScreen(
 }
 
 @Composable
-private fun CategoryFilter(
+internal fun CategoryFilter(
     routines: List<RoutineUi>,
     selectedCategory: RoutineCategory?,
     onCategorySelected: (RoutineCategory?) -> Unit,
@@ -245,7 +260,7 @@ private fun FilterChip(
 }
 
 @Composable
-private fun RoutineCard(routine: RoutineUi, onClick: () -> Unit = {}) {
+internal fun RoutineCard(routine: RoutineUi, onClick: () -> Unit = {}) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -434,7 +449,7 @@ private fun PlayButton(onClick: () -> Unit) {
     }
 }
 
-private val sampleRoutines = listOf(
+internal val sampleRoutines = listOf(
     RoutineUi(
         id = "night",
         name = "Buenas noches",
@@ -480,5 +495,21 @@ private fun RoutinesScreenLightPreview() {
 private fun RoutinesScreenDarkPreview() {
     SmartHomeTheme(darkTheme = true) {
         RoutinesScreen()
+    }
+}
+
+@Preview(name = "Tablet landscape", showBackground = true, widthDp = 1280, heightDp = 800)
+@Composable
+private fun RoutinesScreenTabletPreview() {
+    SmartHomeTheme(darkTheme = false) {
+        RoutinesScreen(isTablet = true)
+    }
+}
+
+@Preview(name = "Tablet portrait", showBackground = true, widthDp = 834, heightDp = 1194)
+@Composable
+private fun RoutinesScreenTabletPortraitPreview() {
+    SmartHomeTheme(darkTheme = false) {
+        RoutinesScreen(isTablet = true)
     }
 }

@@ -14,6 +14,7 @@ fun HomeScreen(
     onNavigateRoutines: () -> Unit = {},
     onNavigateProfile: () -> Unit = {},
     onQuickActionsOpen: () -> Unit = {},
+    onCreateRoutine: () -> Unit = {},
     showQuickAddFab: Boolean = true,
 ) {
     DashboardScreen(
@@ -23,6 +24,7 @@ fun HomeScreen(
             onNavigateRooms = onNavigateRooms,
             onNavigateRoutines = onNavigateRoutines,
             onProfileClick = onNavigateProfile,
+            onCreateRoutine = onCreateRoutine,
             onQuickAddClick = onQuickActionsOpen,
             showQuickAddFab = showQuickAddFab,
         ),

@@ -98,6 +98,7 @@ fun TabletSettingsLayout(
                             onQuickAddClick = onAddHome,
                         ),
                         compact = portraitLike,
+                        quickAddMenuEnabled = false,
                     )
                 } else {
                     SelectHomeSidebar(

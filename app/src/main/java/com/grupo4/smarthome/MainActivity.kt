@@ -25,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -108,9 +109,7 @@ fun SmartHomeApp(
     val openQuickActions: () -> Unit = { showQuickActions = true }
     val openCreateRoutine: () -> Unit = {
         showQuickActions = false
-        if (!isTablet) {
-            showCreateRoutine = true
-        }
+        showCreateRoutine = true
     }
     val openDrawer: () -> Unit = {
         if (isMainRoute) {
@@ -340,7 +339,8 @@ fun SmartHomeApp(
                         }
                     },
                     onQuickActionsOpen = openQuickActions,
-                    showQuickAddFab = !showQuickActions && !showCreateRoutine,
+                    onCreateRoutine = openCreateRoutine,
+                    showQuickAddFab = !isTablet && !showQuickActions && !showCreateRoutine,
                 )
             }
             composable(Screen.Rooms.route) {
@@ -351,7 +351,7 @@ fun SmartHomeApp(
                         }
                     },
                     onAddRoom = openQuickActions,
-                    showQuickAddFab = !showQuickActions && !showCreateRoutine,
+                    showQuickAddFab = !isTablet && !showQuickActions && !showCreateRoutine,
                 )
             }
             composable(Screen.Routines.route) {
@@ -361,10 +361,25 @@ fun SmartHomeApp(
                             launchSingleTop = true
                         }
                     },
-                    onAddRoutine = openQuickActions,
-                    showQuickAddFab = !showQuickActions && !showCreateRoutine,
+                    onAddRoutine = if (isTablet) openCreateRoutine else openQuickActions,
+                    showQuickAddFab = !isTablet && !showQuickActions && !showCreateRoutine,
+                    isTablet = isTablet,
+                    onNavigateHome = {
+                        navController.navigate(Screen.Home.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onNavigateRooms = {
+                        navController.navigate(Screen.Rooms.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                     onRoutineClick = { routineId ->
-                        navController.navigate("${Screen.ROUTINE_DETAIL_ROUTE}/$routineId")
+                        if (!isTablet) {
+                            navController.navigate("${Screen.ROUTINE_DETAIL_ROUTE}/$routineId")
+                        }
                     },
                 )
             }
@@ -434,6 +449,9 @@ fun SmartHomeApp(
                 visible = showQuickActions,
                 onDismiss = { showQuickActions = false },
                 onAddRoutine = openCreateRoutine,
+                // Lift the overlay above the bottom NavigationBar (M3 default height
+                // 80.dp) so its close FAB stays where the "+" FAB was.
+                bottomBarPadding = if (showBottomBar) 80.dp else 0.dp,
             )
 
             CreateRoutineOverlay(

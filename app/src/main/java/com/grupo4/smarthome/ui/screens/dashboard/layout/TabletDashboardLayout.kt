@@ -11,6 +11,10 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -34,12 +38,15 @@ fun TabletDashboardLayout(
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val portraitLike = maxWidth < 900.dp
         val contentPadding = if (portraitLike) 24.dp else 32.dp
+        var quickAddMenuExpanded by remember { mutableStateOf(false) }
 
         DashboardScaffold(
             sidebar = {
                 TabletSidebar(
                     callbacks = callbacks,
                     compact = portraitLike,
+                    quickAddMenuExpanded = quickAddMenuExpanded,
+                    onQuickAddMenuExpandedChange = { quickAddMenuExpanded = it },
                 )
             },
             topBar = {
@@ -86,6 +93,13 @@ fun TabletDashboardLayout(
                     }
                 }
             },
+        )
+
+        TabletQuickActionsOverlay(
+            visible = quickAddMenuExpanded,
+            compact = portraitLike,
+            callbacks = callbacks,
+            onDismiss = { quickAddMenuExpanded = false },
         )
 
         if (callbacks.showQuickAddFab) {

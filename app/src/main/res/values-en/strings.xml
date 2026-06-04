@@ -31,6 +31,7 @@
     <!-- Quick Actions FAB (RNF1: English strings) -->
     <string name="quick_add_fab_open">Open quick actions</string>
     <string name="quick_add_fab_close">Close quick actions</string>
+    <string name="quick_add_close_short">Close</string>
     <string name="quick_add_room">Add room</string>
     <string name="quick_add_device">Add device</string>
     <string name="quick_add_routine">Add routine</string>

@@ -111,7 +111,7 @@ fun BoxScope.CreateRoutineOverlay(
     onDismiss: () -> Unit,
 ) {
     AnimatedVisibility(
-        visible = visible && !isTablet,
+        visible = visible,
         enter = slideInVertically(animationSpec = tween(300)) { it } + fadeIn(tween(220)),
         exit = slideOutVertically(animationSpec = tween(250)) { it } + fadeOut(tween(180)),
         modifier = Modifier.matchParentSize(),

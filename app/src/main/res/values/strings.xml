@@ -167,6 +167,7 @@
     <!-- Quick Actions FAB -->
     <string name="quick_add_fab_open">Abrir acciones rápidas</string>
     <string name="quick_add_fab_close">Cerrar acciones rápidas</string>
+    <string name="quick_add_close_short">Cerrar</string>
     <string name="quick_add_room">Agregar habitación</string>
     <string name="quick_add_device">Agregar dispositivo</string>
     <string name="quick_add_routine">Agregar rutina</string>
@@ -212,6 +213,7 @@
     <string name="routines_header_subtitle">Creá y gestioná rutinas para automatizar tu hogar.</string>
     <string name="routines_filter_label">Filtrar por categoría</string>
     <string name="routines_filter_all">Todas</string>
+    <string name="routines_search_placeholder">Buscar rutinas...</string>
     <string name="routines_category_morning">Mañana</string>
     <string name="routines_category_night">Noche</string>
     <string name="routines_category_comfort">Confort</string>

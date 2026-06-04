@@ -2,10 +2,10 @@ package com.grupo4.smarthome.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.theme.BrandIndigoDark
@@ -58,6 +59,7 @@ fun BoxScope.QuickActionsOverlay(
     onAddRoom: () -> Unit = onDismiss,
     onAddDevice: () -> Unit = onDismiss,
     onAddRoutine: () -> Unit = onDismiss,
+    bottomBarPadding: Dp = 0.dp,
 ) {
     // Full-screen scrim
     AnimatedVisibility(
@@ -77,15 +79,17 @@ fun BoxScope.QuickActionsOverlay(
         )
     }
 
-    // Action items + close FAB - anchored to BottomEnd
+
     AnimatedVisibility(
         visible = visible,
-        enter = fadeIn(tween(200)) + slideInVertically(tween(260)) { it / 3 },
-        exit = fadeOut(tween(160)) + slideOutVertically(tween(210)) { it / 3 },
+        enter = fadeIn(tween(180)) +
+            expandVertically(animationSpec = tween(220), expandFrom = Alignment.Bottom),
+        exit = fadeOut(tween(140)) +
+            shrinkVertically(animationSpec = tween(180), shrinkTowards = Alignment.Bottom),
         modifier = Modifier
             .align(Alignment.BottomEnd)
             .navigationBarsPadding()
-            .padding(end = 16.dp, bottom = 16.dp),
+            .padding(end = 16.dp, bottom = 16.dp + bottomBarPadding),
     ) {
         Column(
             horizontalAlignment = Alignment.End,

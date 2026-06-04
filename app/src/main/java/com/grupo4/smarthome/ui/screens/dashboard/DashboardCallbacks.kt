@@ -8,6 +8,7 @@ data class DashboardCallbacks(
     val onNavigateRooms: () -> Unit = {},
     val onNavigateRoutines: () -> Unit = {},
     val onCreateRoom: () -> Unit = {},
+    val onCreateDevice: () -> Unit = {},
     val onCreateRoutine: () -> Unit = {},
     val onQuickAddClick: () -> Unit = {},
     val showQuickAddFab: Boolean = true,
