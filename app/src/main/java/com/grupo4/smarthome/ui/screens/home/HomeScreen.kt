@@ -13,6 +13,7 @@ fun HomeScreen(
     onNavigateRooms: () -> Unit = {},
     onNavigateRoutines: () -> Unit = {},
     onNavigateProfile: () -> Unit = {},
+    onNavigateHistory: () -> Unit = {},
 ) {
     DashboardScreen(
         windowSize = windowSize,
@@ -21,6 +22,7 @@ fun HomeScreen(
             onNavigateRooms = onNavigateRooms,
             onNavigateRoutines = onNavigateRoutines,
             onProfileClick = onNavigateProfile,
+            onHistoryClick = onNavigateHistory,
         ),
     )
 }

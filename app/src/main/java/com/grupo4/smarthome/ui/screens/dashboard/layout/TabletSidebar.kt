@@ -18,6 +18,7 @@ fun TabletSidebar(
         onNavigateHome = callbacks.onNavigateHome,
         onNavigateRoutines = callbacks.onNavigateRoutines,
         onNavigateRooms = callbacks.onNavigateRooms,
+        onNavigateHistory = callbacks.onHistoryClick,
         onAddClick = callbacks.onQuickAddClick,
         modifier = modifier,
     )

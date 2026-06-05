@@ -6,6 +6,22 @@
     <string name="nav_rooms">Habitaciones</string>
     <string name="nav_routines">Rutinas</string>
     <string name="nav_profile">Perfil</string>
+    <string name="nav_history">Historial</string>
+
+    <!-- Profile menu (dropdown del avatar) -->
+    <string name="profile_menu_settings">Configuración</string>
+    <string name="profile_menu_history">Historial</string>
+    <string name="profile_menu_logout">Cerrar sesión</string>
+
+    <!-- Historial -->
+    <string name="history_title">Historial</string>
+    <string name="history_subtitle">Acciones realizadas con tus dispositivos</string>
+    <string name="history_refresh_content_description">Actualizar historial</string>
+    <string name="history_filter_label">Dispositivo</string>
+    <string name="history_filter_all">Todos los dispositivos</string>
+    <string name="history_device_metadata">%1$s · %2$s</string>
+    <string name="history_empty_title">Sin actividad</string>
+    <string name="history_empty_description">Todavía no se registraron acciones para este dispositivo.</string>
 
     <!-- Welcome -->
     <string name="welcome_brand_smart">Smart</string>

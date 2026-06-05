@@ -13,6 +13,7 @@ sealed class Screen(
     object Rooms : Screen("rooms", R.string.nav_rooms, SmartHomeIcons.Rooms)
     object Routines : Screen("routines", R.string.nav_routines, SmartHomeIcons.Routines)
     object Profile : Screen("profile", R.string.nav_profile, SmartHomeIcons.Profile)
+    object History : Screen("history", R.string.nav_history, SmartHomeIcons.History)
 
     companion object {
         val items: List<Screen> by lazy { listOf(Home, Routines, Rooms) }

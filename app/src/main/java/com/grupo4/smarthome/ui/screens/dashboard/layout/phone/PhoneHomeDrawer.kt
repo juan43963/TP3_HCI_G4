@@ -127,6 +127,15 @@ fun PhoneHomeDrawerContent(
                     onClose()
                 },
             )
+            DrawerActionRow(
+                label = stringResource(R.string.nav_history),
+                icon = SmartHomeIcons.History,
+                selected = false,
+                onClick = {
+                    callbacks.onHistoryClick()
+                    onClose()
+                },
+            )
         }
 
         Spacer(modifier = Modifier.weight(1f))

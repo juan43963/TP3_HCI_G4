@@ -49,6 +49,7 @@ import com.grupo4.smarthome.ui.navigation.Screen
 import com.grupo4.smarthome.ui.screens.dashboard.DashboardCallbacks
 import com.grupo4.smarthome.ui.screens.dashboard.DashboardPreviewData
 import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneHomeDrawer
+import com.grupo4.smarthome.ui.screens.history.HistoryScreen
 import com.grupo4.smarthome.ui.screens.home.HomeScreen
 import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeScreen
 import com.grupo4.smarthome.ui.screens.selecthome.SelectableHome
@@ -323,6 +324,11 @@ fun SmartHomeApp(
                             launchSingleTop = true
                         }
                     },
+                    onNavigateHistory = {
+                        navController.navigate(Screen.History.route) {
+                            launchSingleTop = true
+                        }
+                    },
                 )
             }
             composable(Screen.Rooms.route) {
@@ -372,6 +378,34 @@ fun SmartHomeApp(
                     },
                 )
             }
+            composable(Screen.History.route) {
+                HistoryScreen(
+                    windowSize = windowSize,
+                    onProfileClick = {
+                        navController.navigate(Screen.Profile.route) {
+                            launchSingleTop = true
+                        }
+                    },
+                    onNavigateHome = {
+                        navController.navigate(Screen.Home.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onNavigateRoutines = {
+                        navController.navigate(Screen.Routines.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onNavigateRooms = {
+                        navController.navigate(Screen.Rooms.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                )
+            }
         }
     }
 
@@ -382,7 +416,13 @@ fun SmartHomeApp(
                 ) {
                     PhoneHomeDrawer(
                         state = DashboardPreviewData.populated,
-                        callbacks = DashboardCallbacks(),
+                        callbacks = DashboardCallbacks(
+                            onHistoryClick = {
+                                navController.navigate(Screen.History.route) {
+                                    launchSingleTop = true
+                                }
+                            },
+                        ),
                         onClose = closeDrawer,
                     )
                 }

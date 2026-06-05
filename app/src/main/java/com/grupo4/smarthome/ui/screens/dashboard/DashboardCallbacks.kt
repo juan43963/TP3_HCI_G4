@@ -13,5 +13,6 @@ data class DashboardCallbacks(
     val onHomeSelected: (String) -> Unit = {},
     val onAddHomeClick: () -> Unit = {},
     val onSettingsClick: () -> Unit = {},
+    val onHistoryClick: () -> Unit = {},
     val onLogoutClick: () -> Unit = {},
 )

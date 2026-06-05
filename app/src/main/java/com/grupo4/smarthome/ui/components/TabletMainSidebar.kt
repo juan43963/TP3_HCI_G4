@@ -36,6 +36,7 @@ enum class TabletSidebarDestination {
     Home,
     Routines,
     Rooms,
+    History,
 }
 
 @Composable
@@ -45,6 +46,7 @@ fun TabletMainSidebar(
     onNavigateHome: () -> Unit,
     onNavigateRoutines: () -> Unit,
     onNavigateRooms: () -> Unit,
+    onNavigateHistory: () -> Unit,
     onAddClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -88,6 +90,13 @@ fun TabletMainSidebar(
                     selected = selectedDestination == TabletSidebarDestination.Rooms,
                     compact = compact,
                     onClick = onNavigateRooms,
+                )
+                TabletSidebarNavItem(
+                    label = stringResource(R.string.nav_history),
+                    icon = SmartHomeIcons.History,
+                    selected = selectedDestination == TabletSidebarDestination.History,
+                    compact = compact,
+                    onClick = onNavigateHistory,
                 )
             }
 

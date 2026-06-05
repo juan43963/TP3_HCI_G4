@@ -22,8 +22,10 @@ import androidx.compose.material.icons.outlined.CleaningServices
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Kitchen
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.Lock
@@ -68,6 +70,8 @@ object SmartHomeIcons {
     val SecurityRoutine = Icons.Outlined.VerifiedUser
     val CustomRoutine = Icons.Outlined.Settings
     val Settings = Icons.Outlined.Settings
+    val History = Icons.Outlined.History
+    val Refresh = Icons.Outlined.Refresh
     val Logout = Icons.AutoMirrored.Filled.Logout
     val Apartment = Icons.Outlined.Apartment
     val Office = Icons.Outlined.WorkOutline
