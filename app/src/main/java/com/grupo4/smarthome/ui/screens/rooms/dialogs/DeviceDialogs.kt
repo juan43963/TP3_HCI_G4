@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -77,7 +78,10 @@ fun AddDevicesToRoomDialog(
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
         Surface(
-            modifier = Modifier.widthIn(min = 700.dp, max = 860.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .widthIn(max = 860.dp),
             shape = RoundedCornerShape(18.dp),
             color = MaterialTheme.colorScheme.surface,
             shadowElevation = 8.dp,
@@ -156,7 +160,10 @@ fun EditDeviceDialog(
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
         Surface(
-            modifier = Modifier.widthIn(min = 460.dp, max = 560.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .widthIn(max = 560.dp),
             shape = RoundedCornerShape(18.dp),
             color = MaterialTheme.colorScheme.surface,
             shadowElevation = 8.dp,
@@ -212,7 +219,10 @@ fun DeleteDeviceDialog(
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
         Surface(
-            modifier = Modifier.widthIn(min = 440.dp, max = 540.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .widthIn(max = 540.dp),
             shape = RoundedCornerShape(18.dp),
             color = MaterialTheme.colorScheme.surface,
             shadowElevation = 8.dp,
@@ -407,24 +417,32 @@ private fun DeviceTypeGrid(
     pendingDevices: List<PendingDevice>,
     onDeviceTypeClick: (DeviceType, String) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        availableDeviceTypes.chunked(5).forEach { row ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                row.forEach { type ->
-                    val label = deviceTypeLabel(type)
-                    DeviceTypeTile(
-                        type = type,
-                        label = label,
-                        count = pendingDevices.count { it.type == type },
-                        onClick = { onDeviceTypeClick(type, label) },
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-                repeat(5 - row.size) {
-                    Spacer(modifier = Modifier.weight(1f))
+    BoxWithConstraints {
+        val columns = when {
+            maxWidth < 380.dp -> 2
+            maxWidth < 640.dp -> 3
+            else -> 5
+        }
+
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            availableDeviceTypes.chunked(columns).forEach { row ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    row.forEach { type ->
+                        val label = deviceTypeLabel(type)
+                        DeviceTypeTile(
+                            type = type,
+                            label = label,
+                            count = pendingDevices.count { it.type == type },
+                            onClick = { onDeviceTypeClick(type, label) },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    repeat(columns - row.size) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
                 }
             }
         }
@@ -651,46 +669,94 @@ private fun AddDevicesFooter(
     onNext: () -> Unit,
     onConfirm: () -> Unit,
 ) {
-    Row(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(18.dp),
-        horizontalArrangement = Arrangement.End,
     ) {
-        if (step == 2) {
+        if (maxWidth < 430.dp) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                if (step == 2) {
+                    OutlinedButton(
+                        onClick = onBack,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                    ) {
+                        Text(text = stringResource(R.string.rooms_back), fontWeight = FontWeight.Bold)
+                    }
+                }
+                OutlinedButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                ) {
+                    Text(text = stringResource(R.string.rooms_cancel), fontWeight = FontWeight.Bold)
+                }
+                Button(
+                    onClick = if (step == 1) onNext else onConfirm,
+                    enabled = step == 2 || hasDevices,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = BrandIndigoDark,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                    ),
+                ) {
+                    Text(
+                        text = stringResource(
+                            if (step == 1) R.string.rooms_next else R.string.rooms_add_devices_confirm,
+                        ),
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        softWrap = false,
+                    )
+                }
+            }
+            return@BoxWithConstraints
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+        ) {
+            if (step == 2) {
+                OutlinedButton(
+                    onClick = onBack,
+                    shape = RoundedCornerShape(10.dp),
+                ) {
+                    Text(text = stringResource(R.string.rooms_back), fontWeight = FontWeight.Bold)
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+            }
             OutlinedButton(
-                onClick = onBack,
+                onClick = onDismiss,
                 shape = RoundedCornerShape(10.dp),
             ) {
-                Text(text = stringResource(R.string.rooms_back), fontWeight = FontWeight.Bold)
+                Text(text = stringResource(R.string.rooms_cancel), fontWeight = FontWeight.Bold)
             }
             Spacer(modifier = Modifier.width(12.dp))
-        }
-        OutlinedButton(
-            onClick = onDismiss,
-            shape = RoundedCornerShape(10.dp),
-        ) {
-            Text(text = stringResource(R.string.rooms_cancel), fontWeight = FontWeight.Bold)
-        }
-        Spacer(modifier = Modifier.width(12.dp))
-        Button(
-            onClick = if (step == 1) onNext else onConfirm,
-            enabled = step == 2 || hasDevices,
-            shape = RoundedCornerShape(10.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = BrandIndigoDark,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-            ),
-        ) {
-            Text(
-                text = stringResource(
-                    if (step == 1) R.string.rooms_next else R.string.rooms_add_devices_confirm,
+            Button(
+                onClick = if (step == 1) onNext else onConfirm,
+                enabled = step == 2 || hasDevices,
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = BrandIndigoDark,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                 ),
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                softWrap = false,
-            )
+            ) {
+                Text(
+                    text = stringResource(
+                        if (step == 1) R.string.rooms_next else R.string.rooms_add_devices_confirm,
+                    ),
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    softWrap = false,
+                )
+            }
         }
     }
 }

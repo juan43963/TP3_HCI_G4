@@ -47,6 +47,11 @@ import com.grupo4.smarthome.data.model.DeviceType
 import com.grupo4.smarthome.ui.theme.BorderDefault
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
+enum class DeviceCardVariant {
+    Standard,
+    Phone,
+}
+
 @Composable
 fun DeviceCard(
     device: Device,
@@ -56,7 +61,21 @@ fun DeviceCard(
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
+    variant: DeviceCardVariant = DeviceCardVariant.Standard,
 ) {
+    if (variant == DeviceCardVariant.Phone) {
+        PhoneDeviceCard(
+            device = device,
+            editMode = editMode,
+            onToggle = onToggle,
+            onValueChange = onValueChange,
+            onEdit = onEdit,
+            onDelete = onDelete,
+            modifier = modifier,
+        )
+        return
+    }
+
     Surface(
         modifier = modifier
             .fillMaxWidth()
@@ -89,6 +108,52 @@ fun DeviceCard(
             )
             if (editMode) {
                 Spacer(modifier = Modifier.height(16.dp))
+                DeviceCardEditActions(
+                    onEdit = onEdit,
+                    onDelete = onDelete,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PhoneDeviceCard(
+    device: Device,
+    editMode: Boolean,
+    onToggle: () -> Unit,
+    onValueChange: (Int) -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = if (editMode) 178.dp else 130.dp),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(
+            width = 1.dp,
+            color = if (editMode) MaterialTheme.colorScheme.primary.copy(alpha = 0.48f) else RoomsSoftBorder,
+        ),
+        shadowElevation = 2.dp,
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            DeviceCardHeader(
+                device = device,
+                onToggle = onToggle,
+            )
+            DeviceControlContent(
+                device = device,
+                onToggle = onToggle,
+                onValueChange = onValueChange,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            if (editMode) {
                 DeviceCardEditActions(
                     onEdit = onEdit,
                     onDelete = onDelete,
@@ -201,11 +266,7 @@ private fun DeviceCardHeader(
 @Composable
 private fun DeviceMetadataText(device: Device) {
     Text(
-        text = stringResource(
-            R.string.rooms_device_metadata,
-            deviceTypeLabel(device.type),
-            deviceStatusLabel(device),
-        ),
+        text = deviceTypeLabel(device.type),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         maxLines = 1,
@@ -285,17 +346,6 @@ private fun RoomsGradientSwitch(
 }
 
 @Composable
-private fun deviceStatusLabel(device: Device): String = when {
-    device.type == DeviceType.DOOR && device.locked == true -> stringResource(R.string.rooms_device_locked)
-    device.type == DeviceType.DOOR -> stringResource(R.string.rooms_device_unlocked)
-    device.type == DeviceType.LIGHT && device.isOn -> stringResource(R.string.rooms_device_on_feminine)
-    device.type == DeviceType.AC && device.isOn -> stringResource(R.string.rooms_device_active)
-    device.type == DeviceType.SPEAKER && device.isOn -> stringResource(R.string.rooms_device_playing)
-    device.isOn -> stringResource(R.string.rooms_device_on)
-    else -> stringResource(R.string.rooms_device_off)
-}
-
-@Composable
 private fun DeviceControlContent(
     device: Device,
     onToggle: () -> Unit,
@@ -311,7 +361,7 @@ private fun DeviceControlContent(
             DeviceType.AC -> AirConditionerControl(device = device, onValueChange = onValueChange)
             DeviceType.DOOR -> DoorControl(device = device, onToggle = onToggle)
             DeviceType.SPEAKER -> SpeakerControl(device = device, onValueChange = onValueChange)
-            else -> GenericDeviceControl(device = device)
+            else -> NoAdditionalControl()
         }
     }
 }
@@ -342,29 +392,11 @@ private fun ControlValueRow(
 }
 
 @Composable
-private fun InactiveControlHint(device: Device) {
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(
-            text = deviceTypeLabel(device.type),
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            text = stringResource(R.string.rooms_device_is_off),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
 private fun LightControl(
     device: Device,
     onValueChange: (Int) -> Unit,
 ) {
     if (!device.isOn) {
-        InactiveControlHint(device = device)
         return
     }
     val brightness = device.brightness ?: 0
@@ -390,7 +422,6 @@ private fun AirConditionerControl(
     onValueChange: (Int) -> Unit,
 ) {
     if (!device.isOn) {
-        InactiveControlHint(device = device)
         return
     }
     val temperature = device.temperature ?: 22
@@ -450,7 +481,6 @@ private fun SpeakerControl(
     onValueChange: (Int) -> Unit,
 ) {
     if (!device.isOn) {
-        InactiveControlHint(device = device)
         return
     }
     val volume = device.volume ?: 60
@@ -525,61 +555,39 @@ private fun DoorControl(
     onToggle: () -> Unit,
 ) {
     val locked = device.locked == true
-    Column(
+    Box(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentAlignment = Alignment.CenterEnd,
     ) {
-        ControlValueRow(
-            label = stringResource(R.string.rooms_door_state),
-            value = deviceStatusLabel(device),
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        OutlinedButton(
+            onClick = onToggle,
+            modifier = Modifier
+                .height(40.dp)
+                .widthIn(min = 128.dp),
+            shape = RoundedCornerShape(10.dp),
+            contentPadding = PaddingValues(horizontal = 12.dp),
+            border = BorderStroke(1.dp, RoomsSelectedChipBorder),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.primary,
+            ),
         ) {
+            Icon(
+                imageVector = if (locked) SmartHomeIcons.Unlocked else SmartHomeIcons.Locked,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = stringResource(
-                    if (locked) R.string.rooms_door_locked_support else R.string.rooms_door_unlocked_support,
+                    if (locked) R.string.rooms_device_unlock else R.string.rooms_device_lock,
                 ),
-                modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
             )
-            OutlinedButton(
-                onClick = onToggle,
-                modifier = Modifier
-                    .height(40.dp)
-                    .widthIn(min = 128.dp),
-                shape = RoundedCornerShape(10.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp),
-                border = BorderStroke(1.dp, RoomsSelectedChipBorder),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.primary,
-                ),
-            ) {
-                Icon(
-                    imageVector = if (locked) SmartHomeIcons.Unlocked else SmartHomeIcons.Locked,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(
-                        if (locked) R.string.rooms_device_unlock else R.string.rooms_device_lock,
-                    ),
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                )
-            }
         }
     }
 }
 
 @Composable
-private fun GenericDeviceControl(device: Device) {
-    InactiveControlHint(device = device)
-}
+private fun NoAdditionalControl() = Unit

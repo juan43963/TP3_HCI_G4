@@ -3,6 +3,9 @@ package com.grupo4.smarthome.ui.screens.rooms
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.grupo4.smarthome.data.model.DeviceType
+import com.grupo4.smarthome.ui.screens.dashboard.DashboardCallbacks
+import com.grupo4.smarthome.ui.screens.dashboard.DashboardPreviewData
+import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneHomeDrawer
 import com.grupo4.smarthome.ui.screens.rooms.dialogs.AddDevicesToRoomDialog
 import com.grupo4.smarthome.ui.screens.rooms.dialogs.AddEditRoomDialog
 import com.grupo4.smarthome.ui.screens.rooms.dialogs.DeleteDeviceDialog
@@ -11,7 +14,10 @@ import com.grupo4.smarthome.ui.screens.rooms.dialogs.EditDeviceDialog
 import com.grupo4.smarthome.ui.screens.rooms.layout.TabletRoomDetailLayout
 import com.grupo4.smarthome.ui.screens.rooms.layout.TabletRoomsListDetailLayout
 import com.grupo4.smarthome.ui.screens.rooms.layout.TabletRoomsLayout
+import com.grupo4.smarthome.ui.screens.rooms.layout.phone.PhoneRoomsLayout
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
+
+private const val PhonePreviewDevice = "spec:width=393dp,height=852dp,dpi=440"
 
 @Preview(
     name = "Rooms Tablet Horizontal List-Detail - Poblado",
@@ -101,6 +107,92 @@ private fun RoomsTabletLandscapeEmptyDevicesPreview() {
 @Composable
 private fun RoomDetailTabletPortraitLivingPreview() {
     RoomsTabletDetailPreview(state = RoomsPreviewData.detailLiving)
+}
+
+@Preview(
+    name = "Rooms Phone - Listado poblado",
+    showBackground = true,
+    device = PhonePreviewDevice,
+)
+@Composable
+private fun RoomsPhonePopulatedPreview() {
+    RoomsPhonePreview(state = RoomsPreviewData.populated)
+}
+
+@Preview(
+    name = "Rooms Phone - Sin habitaciones",
+    showBackground = true,
+    device = PhonePreviewDevice,
+)
+@Composable
+private fun RoomsPhoneEmptyPreview() {
+    RoomsPhonePreview(state = RoomsPreviewData.emptyHome)
+}
+
+@Preview(
+    name = "Rooms Phone - Sin resultados",
+    showBackground = true,
+    device = PhonePreviewDevice,
+)
+@Composable
+private fun RoomsPhoneNoResultsPreview() {
+    RoomsPhonePreview(state = RoomsPreviewData.noResults)
+}
+
+@Preview(
+    name = "Rooms Phone - Editar habitaciones",
+    showBackground = true,
+    device = PhonePreviewDevice,
+)
+@Composable
+private fun RoomsPhoneEditRoomsPreview() {
+    RoomsPhonePreview(state = RoomsPreviewData.populated.copy(editRoomsMode = true))
+}
+
+@Preview(
+    name = "Room Detail Phone - Living",
+    showBackground = true,
+    device = PhonePreviewDevice,
+)
+@Composable
+private fun RoomDetailPhoneLivingPreview() {
+    RoomsPhonePreview(state = RoomsPreviewData.detailLiving)
+}
+
+@Preview(
+    name = "Room Detail Phone - Sin dispositivos",
+    showBackground = true,
+    device = PhonePreviewDevice,
+)
+@Composable
+private fun RoomDetailPhoneEmptyDevicesPreview() {
+    RoomsPhonePreview(state = RoomsPreviewData.detailEmptyRoom)
+}
+
+@Preview(
+    name = "Room Detail Phone - Editar dispositivos",
+    showBackground = true,
+    device = PhonePreviewDevice,
+)
+@Composable
+private fun RoomDetailPhoneEditDevicesPreview() {
+    RoomsPhonePreview(state = RoomsPreviewData.detailLivingEditingDevices)
+}
+
+@Preview(
+    name = "Rooms Phone - Drawer",
+    showBackground = true,
+    device = PhonePreviewDevice,
+)
+@Composable
+private fun RoomsPhoneDrawerPreview() {
+    SmartHomeTheme(darkTheme = false) {
+        PhoneHomeDrawer(
+            state = DashboardPreviewData.populated,
+            callbacks = DashboardCallbacks(),
+            onClose = {},
+        )
+    }
 }
 
 @Preview(name = "Dialog - Agregar habitación", showBackground = true)
@@ -200,10 +292,90 @@ private fun DeleteDeviceDialogPreview() {
     }
 }
 
+@Preview(
+    name = "Dialog Phone - Agregar habitación",
+    showBackground = true,
+    device = PhonePreviewDevice,
+)
+@Composable
+private fun AddRoomDialogPhonePreview() {
+    SmartHomeTheme(darkTheme = false) {
+        AddEditRoomDialog(
+            room = null,
+            onDismiss = {},
+            onConfirm = { _, _ -> },
+        )
+    }
+}
+
+@Preview(
+    name = "Dialog Phone - Agregar dispositivos",
+    showBackground = true,
+    device = PhonePreviewDevice,
+)
+@Composable
+private fun AddDevicesDialogPhonePreview() {
+    SmartHomeTheme(darkTheme = false) {
+        AddDevicesToRoomDialog(
+            roomName = "Living",
+            availableDeviceTypes = RoomsPreviewData.availableDeviceTypes,
+            onDismiss = {},
+            onConfirm = {},
+        )
+    }
+}
+
+@Preview(
+    name = "Dialog Phone - Editar dispositivo",
+    showBackground = true,
+    device = PhonePreviewDevice,
+)
+@Composable
+private fun EditDeviceDialogPhonePreview() {
+    val device = RoomsPreviewData.detailLiving.rooms
+        .first { it.id == "living" }
+        .devices
+        .first()
+    SmartHomeTheme(darkTheme = false) {
+        EditDeviceDialog(
+            device = device,
+            onDismiss = {},
+            onConfirm = {},
+        )
+    }
+}
+
+@Preview(
+    name = "Dialog Phone - Eliminar dispositivo",
+    showBackground = true,
+    device = PhonePreviewDevice,
+)
+@Composable
+private fun DeleteDeviceDialogPhonePreview() {
+    SmartHomeTheme(darkTheme = false) {
+        DeleteDeviceDialog(
+            deviceName = "Lámpara principal",
+            onDismiss = {},
+            onConfirm = {},
+        )
+    }
+}
+
 @Composable
 private fun RoomsTabletListDetailPreview(state: RoomsUiState) {
     SmartHomeTheme(darkTheme = false) {
         TabletRoomsListDetailLayout(
+            state = state,
+            presentation = state.toPresentationState(),
+            callbacks = RoomsCallbacks(),
+        )
+    }
+}
+
+@Composable
+private fun RoomsPhonePreview(state: RoomsUiState) {
+    SmartHomeTheme(darkTheme = false) {
+        PhoneRoomsLayout(
             state = state,
             presentation = state.toPresentationState(),
             callbacks = RoomsCallbacks(),

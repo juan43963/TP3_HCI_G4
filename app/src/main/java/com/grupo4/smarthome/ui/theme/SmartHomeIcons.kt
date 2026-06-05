@@ -6,6 +6,7 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -56,6 +57,7 @@ object SmartHomeIcons {
     val Search = Icons.Default.Search
     val Add = Icons.Default.Add
     val Check = Icons.Default.Check
+    val ChevronRight = Icons.Default.ChevronRight
     val Favorite = Icons.Default.Star
     val FavoriteBorder = Icons.Outlined.StarBorder
     val Play = Icons.Default.PlayArrow

@@ -299,6 +299,7 @@ fun RoomsFilterChips(
     onFilterSelected: (RoomType?) -> Unit,
     modifier: Modifier = Modifier,
     compact: Boolean = false,
+    showCounts: Boolean = true,
 ) {
     Row(
         modifier = modifier
@@ -312,6 +313,7 @@ fun RoomsFilterChips(
             selected = selectedRoomType == null,
             onClick = { onFilterSelected(null) },
             compact = compact,
+            showCount = showCounts,
         )
         RoomType.entries.forEach { type ->
             RoomsFilterChip(
@@ -320,6 +322,7 @@ fun RoomsFilterChips(
                 selected = selectedRoomType == type,
                 onClick = { onFilterSelected(type) },
                 compact = compact,
+                showCount = showCounts,
             )
         }
     }
@@ -332,6 +335,7 @@ private fun RoomsFilterChip(
     selected: Boolean,
     onClick: () -> Unit,
     compact: Boolean,
+    showCount: Boolean,
 ) {
     val containerColor = if (selected) RoomsSelectedChipContainer else MaterialTheme.colorScheme.surface
     val contentColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
@@ -359,23 +363,25 @@ private fun RoomsFilterChip(
                 fontWeight = FontWeight.SemiBold,
                 color = contentColor,
             )
-            Box(
-                modifier = Modifier
-                    .background(
-                        color = when {
-                            selected -> MaterialTheme.colorScheme.surface
-                            else -> MaterialTheme.colorScheme.surfaceVariant
-                        },
-                        shape = CircleShape,
+            if (showCount) {
+                Box(
+                    modifier = Modifier
+                        .background(
+                            color = when {
+                                selected -> MaterialTheme.colorScheme.surface
+                                else -> MaterialTheme.colorScheme.surfaceVariant
+                            },
+                            shape = CircleShape,
+                        )
+                        .padding(horizontal = if (compact) 6.dp else 8.dp, vertical = 2.dp),
+                ) {
+                    Text(
+                        text = count.toString(),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = contentColor,
                     )
-                    .padding(horizontal = if (compact) 6.dp else 8.dp, vertical = 2.dp),
-            ) {
-                Text(
-                    text = count.toString(),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = contentColor,
-                )
+                }
             }
         }
     }
@@ -384,6 +390,7 @@ private fun RoomsFilterChip(
 enum class RoomCardVariant {
     Standard,
     Compact,
+    Phone,
 }
 
 @Composable
@@ -399,29 +406,52 @@ fun RoomCard(
     selected: Boolean = false,
 ) {
     val compact = variant == RoomCardVariant.Compact
+    val phone = variant == RoomCardVariant.Phone
     val cardBorder = when {
         selected -> BorderStroke(1.dp, RoomsSelectedChipBorder)
         editMode -> BorderStroke(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f))
-        compact -> BorderStroke(1.dp, RoomsSoftBorder)
+        compact || phone -> BorderStroke(1.dp, RoomsSoftBorder)
         else -> BorderStroke(1.dp, RoomsSoftBorder)
     }
 
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .defaultMinSize(minHeight = if (compact) 118.dp else 198.dp)
+            .defaultMinSize(
+                minHeight = when {
+                    phone && editMode -> 146.dp
+                    phone -> 96.dp
+                    compact -> 118.dp
+                    else -> 198.dp
+                },
+            )
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(if (compact) 12.dp else 14.dp),
+        shape = RoundedCornerShape(if (phone) 18.dp else if (compact) 12.dp else 14.dp),
         color = if (selected) RoomsSelectedChipContainer.copy(alpha = 0.5f)
         else MaterialTheme.colorScheme.surface,
         border = cardBorder,
-        shadowElevation = if (compact) 0.dp else 3.dp,
+        shadowElevation = when {
+            phone -> 2.dp
+            compact -> 0.dp
+            else -> 3.dp
+        },
     ) {
         Column(
-            modifier = Modifier.padding(if (compact) 12.dp else 18.dp),
-            verticalArrangement = Arrangement.spacedBy(if (compact) 10.dp else 12.dp),
+            modifier = Modifier.padding(
+                when {
+                    phone -> 16.dp
+                    compact -> 12.dp
+                    else -> 18.dp
+                },
+            ),
+            verticalArrangement = Arrangement.spacedBy(if (compact || phone) 10.dp else 12.dp),
         ) {
-            if (compact) {
+            if (phone) {
+                RoomCardPhoneContent(
+                    room = room,
+                    onToggleFavorite = onToggleFavorite,
+                )
+            } else if (compact) {
                 RoomCardCompactContent(
                     room = room,
                     onToggleFavorite = onToggleFavorite,
@@ -472,7 +502,7 @@ fun RoomCard(
                         onClick = onEdit,
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(10.dp),
-                        contentPadding = ButtonDefaults.compactContentPadding(compact),
+                        contentPadding = ButtonDefaults.compactContentPadding(compact || phone),
                     ) {
                         Text(text = stringResource(R.string.rooms_edit_room), fontWeight = FontWeight.Bold)
                     }
@@ -480,7 +510,7 @@ fun RoomCard(
                         onClick = onDelete,
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(10.dp),
-                        contentPadding = ButtonDefaults.compactContentPadding(compact),
+                        contentPadding = ButtonDefaults.compactContentPadding(compact || phone),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
                         colors = ButtonDefaults.outlinedButtonColors(
                             contentColor = MaterialTheme.colorScheme.error,
@@ -491,6 +521,43 @@ fun RoomCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun RoomCardPhoneContent(
+    room: Room,
+    onToggleFavorite: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        RoomTypeIconTile(room = room, compact = true)
+        Column(modifier = Modifier.weight(1f)) {
+            RoomCardCopy(
+                room = room,
+                compact = false,
+                showStatusLine = false,
+            )
+            Spacer(modifier = Modifier.height(5.dp))
+            RoomDevicesSummaryText(
+                activeDevices = room.devicesActive,
+                totalDevices = room.devicesTotal,
+            )
+        }
+        RoomFavoriteButton(
+            isFavorite = room.isFavorite,
+            compact = true,
+            onToggleFavorite = onToggleFavorite,
+        )
+        Icon(
+            imageVector = com.grupo4.smarthome.ui.theme.SmartHomeIcons.ChevronRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(22.dp),
+        )
     }
 }
 
@@ -613,22 +680,9 @@ fun RoomDevicesProgress(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(5.dp),
     ) {
-        Text(
-            text = if (totalDevices == 0) {
-                stringResource(R.string.rooms_no_linked_devices)
-            } else {
-                pluralStringResource(
-                    R.plurals.rooms_active_devices_progress,
-                    totalDevices,
-                    activeDevices,
-                    totalDevices,
-                )
-            },
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+        RoomDevicesSummaryText(
+            activeDevices = activeDevices,
+            totalDevices = totalDevices,
         )
         if (totalDevices > 0) {
             val progress = (activeDevices.toFloat() / totalDevices.toFloat()).coerceIn(0f, 1f)
@@ -652,6 +706,30 @@ fun RoomDevicesProgress(
             }
         }
     }
+}
+
+@Composable
+private fun RoomDevicesSummaryText(
+    activeDevices: Int,
+    totalDevices: Int,
+) {
+    Text(
+        text = if (totalDevices == 0) {
+            stringResource(R.string.rooms_no_linked_devices)
+        } else {
+            pluralStringResource(
+                R.plurals.rooms_active_devices_progress,
+                totalDevices,
+                activeDevices,
+                totalDevices,
+            )
+        },
+        style = MaterialTheme.typography.labelMedium,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+    )
 }
 
 @Composable

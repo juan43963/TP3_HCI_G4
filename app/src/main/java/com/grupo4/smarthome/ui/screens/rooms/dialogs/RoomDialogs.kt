@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -65,7 +66,10 @@ fun AddEditRoomDialog(
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
         Surface(
-            modifier = Modifier.widthIn(min = 520.dp, max = 620.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .widthIn(max = 620.dp),
             shape = RoundedCornerShape(18.dp),
             color = MaterialTheme.colorScheme.surface,
             shadowElevation = 8.dp,
@@ -149,7 +153,10 @@ fun DeleteRoomDialog(
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
         Surface(
-            modifier = Modifier.widthIn(min = 440.dp, max = 540.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .widthIn(max = 540.dp),
             shape = RoundedCornerShape(18.dp),
             color = MaterialTheme.colorScheme.surface,
             shadowElevation = 8.dp,
@@ -262,22 +269,25 @@ private fun RoomTypeSelector(
     selectedType: RoomType?,
     onSelected: (RoomType) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        RoomType.entries.chunked(3).forEach { row ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                row.forEach { type ->
-                    RoomTypeTile(
-                        type = type,
-                        selected = selectedType == type,
-                        onClick = { onSelected(type) },
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-                repeat(3 - row.size) {
-                    Spacer(modifier = Modifier.weight(1f))
+    BoxWithConstraints {
+        val columns = if (maxWidth < 380.dp) 2 else 3
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            RoomType.entries.chunked(columns).forEach { row ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    row.forEach { type ->
+                        RoomTypeTile(
+                            type = type,
+                            selected = selectedType == type,
+                            onClick = { onSelected(type) },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    repeat(columns - row.size) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
                 }
             }
         }
