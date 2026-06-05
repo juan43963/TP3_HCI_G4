@@ -33,6 +33,7 @@ import com.grupo4.smarthome.ui.screens.rooms.components.RoomCard
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsEmptyState
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsFilterChips
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsHeader
+import com.grupo4.smarthome.ui.screens.rooms.components.RoomsHomeEmptyState
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsTopBar
 
 @Composable
@@ -111,11 +112,9 @@ fun TabletRoomsLayout(
                         }
                         if (presentation.isEmptyHome) {
                             item(span = { GridItemSpan(maxLineSpan) }) {
-                                RoomsEmptyState(
-                                    title = stringResource(R.string.rooms_empty_title),
-                                    description = stringResource(R.string.rooms_empty_description),
+                                RoomsHomeEmptyState(
                                     buttonLabel = stringResource(R.string.rooms_empty_cta),
-                                    onButtonClick = callbacks.onCreateRoomClick,
+                                    onCreateRoomClick = callbacks.onCreateRoomClick,
                                 )
                             }
                         } else if (presentation.hasNoResults) {
