@@ -38,3 +38,5 @@ release/
 *.log
 *.tmp
 *.temp
+
+docs/
