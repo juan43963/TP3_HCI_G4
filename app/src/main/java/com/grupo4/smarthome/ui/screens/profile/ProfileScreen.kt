@@ -62,6 +62,7 @@ fun ProfileScreen(
     onNavigateHome: () -> Unit = {},
     onNavigateRooms: () -> Unit = {},
     onNavigateRoutines: () -> Unit = {},
+    onNavigateHistory: () -> Unit = {},
     onAddHome: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
@@ -77,6 +78,7 @@ fun ProfileScreen(
             onNavigateHome = onNavigateHome,
             onNavigateRooms = onNavigateRooms,
             onNavigateRoutines = onNavigateRoutines,
+            onNavigateHistory = onNavigateHistory,
             onAddHome = onAddHome,
             modifier = modifier,
         )

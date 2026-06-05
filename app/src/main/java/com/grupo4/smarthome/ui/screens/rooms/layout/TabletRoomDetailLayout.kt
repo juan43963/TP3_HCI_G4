@@ -70,6 +70,7 @@ fun TabletRoomDetailLayout(
                 onNavigateHome = callbacks.onNavigateHome,
                 onNavigateRoutines = callbacks.onNavigateRoutines,
                 onNavigateRooms = callbacks.onBackToRooms,
+                onNavigateHistory = callbacks.onNavigateHistory,
                 onAddClick = { callbacks.onAddDeviceClick(room.id) },
             )
             Column(

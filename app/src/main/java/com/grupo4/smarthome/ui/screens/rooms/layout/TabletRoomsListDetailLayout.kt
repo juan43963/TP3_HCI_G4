@@ -95,6 +95,7 @@ fun TabletRoomsListDetailLayout(
                 onNavigateHome = callbacks.onNavigateHome,
                 onNavigateRoutines = callbacks.onNavigateRoutines,
                 onNavigateRooms = {},
+                onNavigateHistory = callbacks.onNavigateHistory,
                 onAddClick = callbacks.onAddClick,
             )
 

@@ -32,6 +32,7 @@ fun RoomsScreen(
     onProfileClick: () -> Unit = {},
     onNavigateHome: () -> Unit = {},
     onNavigateRoutines: () -> Unit = {},
+    onNavigateHistory: () -> Unit = {},
 ) {
     var rooms by remember { mutableStateOf(RoomsPreviewData.populated.rooms) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
@@ -122,6 +123,7 @@ fun RoomsScreen(
             },
             onNavigateHome = onNavigateHome,
             onNavigateRoutines = onNavigateRoutines,
+            onNavigateHistory = onNavigateHistory,
         ),
         modifier = modifier,
     )

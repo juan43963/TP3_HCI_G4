@@ -80,6 +80,7 @@ fun TabletSettingsLayout(
     onNavigateHome: () -> Unit,
     onNavigateRooms: () -> Unit,
     onNavigateRoutines: () -> Unit,
+    onNavigateHistory: () -> Unit = {},
     onAddHome: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -95,6 +96,7 @@ fun TabletSettingsLayout(
                             onNavigateHome = onNavigateHome,
                             onNavigateRooms = onNavigateRooms,
                             onNavigateRoutines = onNavigateRoutines,
+                            onHistoryClick = onNavigateHistory,
                             onQuickAddClick = onAddHome,
                         ),
                         compact = portraitLike,

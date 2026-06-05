@@ -326,7 +326,11 @@ fun SmartHomeApp(
                     },
                     onNavigateHistory = {
                         navController.navigate(Screen.History.route) {
+                            popUpTo(navController.graph[Screen.Home.route].id) {
+                                saveState = true
+                            }
                             launchSingleTop = true
+                            restoreState = true
                         }
                     },
                 )
@@ -347,6 +351,12 @@ fun SmartHomeApp(
                     },
                     onNavigateRoutines = {
                         navController.navigate(Screen.Routines.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onNavigateHistory = {
+                        navController.navigate(Screen.History.route) {
                             launchSingleTop = true
                             restoreState = true
                         }
@@ -385,6 +395,12 @@ fun SmartHomeApp(
                     },
                     onNavigateRoutines = {
                         navController.navigate(Screen.Routines.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onNavigateHistory = {
+                        navController.navigate(Screen.History.route) {
                             launchSingleTop = true
                             restoreState = true
                         }
@@ -432,7 +448,11 @@ fun SmartHomeApp(
                         callbacks = DashboardCallbacks(
                             onHistoryClick = {
                                 navController.navigate(Screen.History.route) {
+                                    popUpTo(navController.graph[Screen.Home.route].id) {
+                                        saveState = true
+                                    }
                                     launchSingleTop = true
+                                    restoreState = true
                                 }
                             },
                         ),
