@@ -36,6 +36,14 @@
     <string name="quick_add_device">Add device</string>
     <string name="quick_add_routine">Add routine</string>
 
+    <!-- Routines empty states -->
+    <string name="routines_empty_title">No routines</string>
+    <string name="routines_empty_description">There are no routines to show yet.</string>
+    <string name="routines_empty_create_first">Create first routine</string>
+    <string name="routines_empty_detail_title">Routine details</string>
+    <string name="routines_empty_detail_description">When you select or create a routine, you will see its configuration, schedule and actions here.</string>
+    <string name="routines_empty_detail_action">Select or create a routine</string>
+
     <!-- Create routine flow -->
     <string name="action_cancel">Cancel</string>
     <string name="create_routine_step_one_label">NEW ROUTINE · STEP 1 OF 2</string>

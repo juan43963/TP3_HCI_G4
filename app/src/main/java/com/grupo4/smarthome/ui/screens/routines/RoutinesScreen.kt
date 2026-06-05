@@ -158,13 +158,44 @@ fun RoutinesScreen(
                     onCategorySelected = { selectedCategory = it },
                 )
             }
-            items(items = visibleRoutines, key = { it.id }) { routine ->
-                RoutineCard(
-                    routine = routine,
-                    onClick = { onRoutineClick(routine.id) },
-                )
+            if (routines.isEmpty()) {
+                item {
+                    RoutinesEmptyStateCard(
+                        onCreateRoutineClick = onAddRoutine,
+                        compact = true,
+                    )
+                }
+            } else {
+                items(items = visibleRoutines, key = { it.id }) { routine ->
+                    RoutineCard(
+                        routine = routine,
+                        onClick = { onRoutineClick(routine.id) },
+                    )
+                }
             }
         }
+    }
+}
+
+@Preview(name = "Routines Phone - Sin rutinas", showBackground = true, showSystemUi = true)
+@Composable
+private fun RoutinesScreenEmptyPreview() {
+    SmartHomeTheme(darkTheme = false) {
+        RoutinesScreen(
+            routines = emptyList(),
+            showQuickAddFab = true,
+        )
+    }
+}
+
+@Preview(name = "Routines Tablet - Sin rutinas", showBackground = true, widthDp = 1280, heightDp = 800)
+@Composable
+private fun RoutinesScreenTabletEmptyPreview() {
+    SmartHomeTheme(darkTheme = false) {
+        RoutinesScreen(
+            routines = emptyList(),
+            isTablet = true,
+        )
     }
 }
 

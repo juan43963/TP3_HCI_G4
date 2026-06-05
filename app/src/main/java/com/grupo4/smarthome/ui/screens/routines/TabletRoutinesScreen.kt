@@ -24,7 +24,10 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -48,6 +51,7 @@ import com.grupo4.smarthome.ui.screens.dashboard.layout.DashboardScaffold
 import com.grupo4.smarthome.ui.screens.dashboard.layout.SidebarDestination
 import com.grupo4.smarthome.ui.screens.dashboard.layout.TabletSidebar
 import com.grupo4.smarthome.ui.screens.dashboard.layout.TabletQuickActionsOverlay
+import com.grupo4.smarthome.ui.theme.BrandIndigoDark
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 
@@ -118,7 +122,15 @@ fun TabletRoutinesScreen(
                 )
             },
             content = {
-                if (selectedRoutine == null) {
+                if (routines.isEmpty() && !portraitLike) {
+                    TabletRoutinesEmptyTwoPane(
+                        routines = routines,
+                        selectedCategory = selectedCategory,
+                        onCategorySelected = { selectedCategory = it },
+                        onAddRoutine = onAddRoutine,
+                        contentPadding = contentPadding,
+                    )
+                } else if (selectedRoutine == null) {
                     TabletRoutinesGrid(
                         routines = routines,
                         visibleRoutines = visibleRoutines,
@@ -126,6 +138,7 @@ fun TabletRoutinesScreen(
                         onCategorySelected = { selectedCategory = it },
                         portraitLike = portraitLike,
                         contentPadding = contentPadding,
+                        onAddRoutine = onAddRoutine,
                         onRoutineSelected = { routine ->
                             selectedRoutineId = routine.id
                             onRoutineClick(routine.id)
@@ -163,6 +176,7 @@ private fun TabletRoutinesGrid(
     onCategorySelected: (RoutineCategory?) -> Unit,
     portraitLike: Boolean,
     contentPadding: androidx.compose.ui.unit.Dp,
+    onAddRoutine: () -> Unit,
     onRoutineSelected: (RoutineUi) -> Unit,
 ) {
     LazyVerticalGrid(
@@ -187,10 +201,132 @@ private fun TabletRoutinesGrid(
                 onCategorySelected = onCategorySelected,
             )
         }
-        gridItems(items = visibleRoutines, key = { it.id }) { routine ->
-            RoutineCard(
-                routine = routine,
-                onClick = { onRoutineSelected(routine) },
+        if (routines.isEmpty()) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                RoutinesEmptyStateCard(
+                    onCreateRoutineClick = onAddRoutine,
+                    dashed = true,
+                    visual = RoutinesEmptyVisual.Search,
+                )
+            }
+        } else {
+            gridItems(items = visibleRoutines, key = { it.id }) { routine ->
+                RoutineCard(
+                    routine = routine,
+                    onClick = { onRoutineSelected(routine) },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TabletRoutinesEmptyTwoPane(
+    routines: List<RoutineUi>,
+    selectedCategory: RoutineCategory?,
+    onCategorySelected: (RoutineCategory?) -> Unit,
+    onAddRoutine: () -> Unit,
+    contentPadding: androidx.compose.ui.unit.Dp,
+) {
+    Row(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier
+                .weight(0.42f)
+                .fillMaxHeight(),
+            contentPadding = PaddingValues(
+                start = contentPadding,
+                end = contentPadding,
+                top = 8.dp,
+                bottom = 28.dp,
+            ),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            item {
+                TabletRoutinesHeaderActions(onAddRoutine = onAddRoutine)
+            }
+            item {
+                RoutinesTabletSearchBar(modifier = Modifier.fillMaxWidth())
+            }
+            item {
+                CategoryFilter(
+                    routines = routines,
+                    selectedCategory = selectedCategory,
+                    onCategorySelected = onCategorySelected,
+                )
+            }
+            item {
+                RoutinesEmptyStateCard(
+                    onCreateRoutineClick = onAddRoutine,
+                    dashed = true,
+                    visual = RoutinesEmptyVisual.Search,
+                )
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .width(1.dp)
+                .fillMaxHeight()
+                .background(MaterialTheme.colorScheme.outlineVariant),
+        )
+
+        Box(
+            modifier = Modifier
+                .weight(0.58f)
+                .fillMaxHeight()
+                .padding(
+                    start = contentPadding,
+                    top = 8.dp,
+                    end = contentPadding,
+                    bottom = 28.dp,
+                ),
+        ) {
+            RoutinesEmptyDetailPane()
+        }
+    }
+}
+
+@Composable
+private fun TabletRoutinesHeaderActions(onAddRoutine: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        TabletRoutinesHeader(modifier = Modifier.weight(1f))
+        IconButton(
+            onClick = {},
+            modifier = Modifier
+                .size(48.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)),
+        ) {
+            Icon(
+                imageVector = SmartHomeIcons.Rename,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp),
+            )
+        }
+        Button(
+            onClick = onAddRoutine,
+            modifier = Modifier.height(48.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = BrandIndigoDark,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+            ),
+            contentPadding = PaddingValues(horizontal = 16.dp),
+        ) {
+            Icon(
+                imageVector = SmartHomeIcons.Add,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = stringResource(R.string.dashboard_create_routine),
+                fontWeight = FontWeight.Bold,
             )
         }
     }
@@ -261,8 +397,8 @@ private fun TabletRoutinesTwoPane(
 }
 
 @Composable
-private fun TabletRoutinesHeader() {
-    Column {
+private fun TabletRoutinesHeader(modifier: Modifier = Modifier) {
+    Column(modifier = modifier) {
         Text(
             text = stringResource(R.string.routines_header_title),
             style = MaterialTheme.typography.headlineMedium.copy(
