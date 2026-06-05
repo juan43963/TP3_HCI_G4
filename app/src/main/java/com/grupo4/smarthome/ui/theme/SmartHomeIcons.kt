@@ -6,6 +6,7 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -31,20 +32,20 @@ import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.MeetingRoom
+import androidx.compose.material.icons.outlined.Microwave
 import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Plumbing
 import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.SensorDoor
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Shower
-import androidx.compose.material.icons.outlined.SmartToy
 import androidx.compose.material.icons.outlined.Speaker
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material.icons.outlined.VerifiedUser
+import androidx.compose.material.icons.outlined.WaterDrop
 import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.material.icons.outlined.Weekend
 import androidx.compose.material.icons.outlined.Window
@@ -58,6 +59,7 @@ object SmartHomeIcons {
     val Search = Icons.Default.Search
     val Add = Icons.Default.Add
     val Check = Icons.Default.Check
+    val ChevronRight = Icons.Default.ChevronRight
     val Favorite = Icons.Default.Star
     val FavoriteBorder = Icons.Outlined.StarBorder
     val Play = Icons.Default.PlayArrow
@@ -94,13 +96,12 @@ object SmartHomeIcons {
     val AirConditioner = Icons.Outlined.AcUnit
     val Door = Icons.Outlined.SensorDoor
     val Alarm = Icons.Outlined.NotificationsActive
-    val Oven = Icons.Outlined.Kitchen
+    val Oven = Icons.Outlined.Microwave
     val Fridge = Icons.Outlined.Kitchen
     val Speaker = Icons.Outlined.Speaker
     val Blinds = Icons.Outlined.Window
-    val Vacuum = Icons.Outlined.SmartToy
-    val VacuumFallback = Icons.Outlined.CleaningServices
-    val Faucet = Icons.Outlined.Plumbing
+    val Vacuum = Icons.Outlined.CleaningServices
+    val Faucet = Icons.Outlined.WaterDrop
     val Locked = Icons.Outlined.Lock
     val Unlocked = Icons.Outlined.LockOpen
 
