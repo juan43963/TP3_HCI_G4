@@ -45,7 +45,15 @@ fun DashboardBodyContent(
             onActionClick = callbacks.onCreateRoom,
         ) {
             if (presentation.hasRoomsWithoutFavorites) {
-                InfoEmptyStateCard(text = stringResource(R.string.dashboard_empty_favorite_rooms))
+                InfoEmptyStateCard(
+                    messagePrefix = stringResource(R.string.dashboard_empty_favorite_rooms_prefix),
+                    highlightedTarget = stringResource(R.string.dashboard_empty_favorite_rooms_target),
+                    messageSuffix = stringResource(R.string.dashboard_empty_favorite_rooms_suffix),
+                    actionLabel = stringResource(R.string.dashboard_create_room),
+                    tabletActionLabel = stringResource(R.string.dashboard_go_to_rooms),
+                    onActionClick = callbacks.onCreateRoom,
+                    onTabletActionClick = callbacks.onNavigateRooms,
+                )
             } else {
                 DashboardAdaptiveGrid(
                     itemCount = presentation.favoriteRooms.size,
@@ -76,7 +84,15 @@ fun DashboardBodyContent(
                 }
 
                 presentation.hasRoutinesWithoutFavorites -> {
-                    InfoEmptyStateCard(text = stringResource(R.string.dashboard_empty_favorite_routines))
+                    InfoEmptyStateCard(
+                        messagePrefix = stringResource(R.string.dashboard_empty_favorite_routines_prefix),
+                        highlightedTarget = stringResource(R.string.dashboard_empty_favorite_routines_target),
+                        messageSuffix = stringResource(R.string.dashboard_empty_favorite_routines_suffix),
+                        actionLabel = stringResource(R.string.dashboard_create_routine),
+                        tabletActionLabel = stringResource(R.string.dashboard_go_to_routines),
+                        onActionClick = callbacks.onCreateRoutine,
+                        onTabletActionClick = callbacks.onNavigateRoutines,
+                    )
                 }
 
                 else -> {

@@ -1,50 +1,239 @@
 package com.grupo4.smarthome.ui.screens.dashboard.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 import com.grupo4.smarthome.ui.theme.StarActive
 
 @Composable
 fun InfoEmptyStateCard(
-    text: String,
+    messagePrefix: String,
+    highlightedTarget: String,
+    messageSuffix: String,
+    actionLabel: String,
+    tabletActionLabel: String,
+    onActionClick: () -> Unit,
+    onTabletActionClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
-        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.22f),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Icon(
-                imageVector = SmartHomeIcons.FavoriteBorder,
-                contentDescription = null,
-                tint = StarActive,
-                modifier = Modifier.size(22.dp),
+    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+        val compact = maxWidth < 560.dp
+        if (compact) {
+            FavoriteEmptyMobileCard(
+                messagePrefix = messagePrefix,
+                highlightedTarget = highlightedTarget,
+                messageSuffix = messageSuffix,
+                actionLabel = actionLabel,
+                onActionClick = onActionClick,
             )
-            Text(
-                text = text,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+        } else {
+            FavoriteEmptyTabletCard(
+                messagePrefix = messagePrefix,
+                highlightedTarget = highlightedTarget,
+                messageSuffix = messageSuffix,
+                actionLabel = tabletActionLabel,
+                onActionClick = onTabletActionClick,
             )
         }
     }
+}
+
+@Composable
+private fun FavoriteEmptyMobileCard(
+    messagePrefix: String,
+    highlightedTarget: String,
+    messageSuffix: String,
+    actionLabel: String,
+    onActionClick: () -> Unit,
+) {
+    val borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.72f)
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 148.dp)
+            .clip(RoundedCornerShape(18.dp))
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.48f))
+            .dashedBorder(borderColor, 18.dp)
+            .padding(horizontal = 18.dp, vertical = 18.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            FavoriteIconCircle(size = 54.dp)
+            FavoriteMessage(
+                messagePrefix = messagePrefix,
+                highlightedTarget = highlightedTarget,
+                messageSuffix = messageSuffix,
+                centerText = true,
+            )
+            OutlinedButton(
+                onClick = onActionClick,
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.primary,
+                ),
+            ) {
+                Icon(
+                    imageVector = SmartHomeIcons.Add,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Text(
+                    text = actionLabel,
+                    modifier = Modifier.padding(start = 8.dp),
+                    style = MaterialTheme.typography.labelLarge,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun FavoriteEmptyTabletCard(
+    messagePrefix: String,
+    highlightedTarget: String,
+    messageSuffix: String,
+    actionLabel: String,
+    onActionClick: () -> Unit,
+) {
+    val borderColor = MaterialTheme.colorScheme.outlineVariant
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.72f))
+            .dashedBorder(borderColor, 14.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Surface(
+                modifier = Modifier.size(40.dp),
+                shape = RoundedCornerShape(10.dp),
+                color = StarActive.copy(alpha = 0.14f),
+            ) {
+                IconButton(onClick = onActionClick) {
+                    Icon(
+                        imageVector = SmartHomeIcons.FavoriteBorder,
+                        contentDescription = null,
+                        tint = StarActive,
+                        modifier = Modifier.size(19.dp),
+                    )
+                }
+            }
+            FavoriteMessage(
+                messagePrefix = messagePrefix,
+                highlightedTarget = highlightedTarget,
+                messageSuffix = messageSuffix,
+                centerText = false,
+                modifier = Modifier.weight(1f),
+            )
+            TextButton(onClick = onActionClick) {
+                Text(
+                    text = actionLabel,
+                    style = MaterialTheme.typography.labelMedium,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun FavoriteIconCircle(size: androidx.compose.ui.unit.Dp) {
+    Box(
+        modifier = Modifier
+            .size(size)
+            .background(
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.36f),
+                shape = CircleShape,
+            )
+            .dashedBorder(MaterialTheme.colorScheme.outline.copy(alpha = 0.72f), size / 2),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = SmartHomeIcons.Favorite,
+            contentDescription = null,
+            tint = StarActive,
+            modifier = Modifier.size(26.dp),
+        )
+    }
+}
+
+@Composable
+private fun FavoriteMessage(
+    messagePrefix: String,
+    highlightedTarget: String,
+    messageSuffix: String,
+    centerText: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val primary = MaterialTheme.colorScheme.primary
+    val annotatedText = buildAnnotatedString {
+        append(messagePrefix)
+        append(" ")
+        pushStyle(SpanStyle(color = primary))
+        append(highlightedTarget)
+        pop()
+        append(" ")
+        append(messageSuffix)
+    }
+
+    Text(
+        text = annotatedText,
+        modifier = modifier,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = if (centerText) androidx.compose.ui.text.style.TextAlign.Center
+        else androidx.compose.ui.text.style.TextAlign.Start,
+    )
+}
+
+private fun Modifier.dashedBorder(
+    color: androidx.compose.ui.graphics.Color,
+    cornerRadius: androidx.compose.ui.unit.Dp,
+): Modifier = drawBehind {
+    drawRoundRect(
+        color = color,
+        cornerRadius = CornerRadius(cornerRadius.toPx()),
+        style = Stroke(
+            width = 1.2.dp.toPx(),
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 8f), 0f),
+        ),
+    )
 }

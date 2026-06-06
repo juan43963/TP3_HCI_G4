@@ -16,27 +16,42 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.AcUnit
 import androidx.compose.material.icons.outlined.Apartment
+import androidx.compose.material.icons.outlined.Bathtub
+import androidx.compose.material.icons.outlined.Bed
 import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.CleaningServices
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DriveFileRenameOutline
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Kitchen
 import androidx.compose.material.icons.outlined.Lightbulb
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.MeetingRoom
+import androidx.compose.material.icons.outlined.Microwave
+import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.SensorDoor
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Shield
-import androidx.compose.material.icons.outlined.SpeakerGroup
+import androidx.compose.material.icons.outlined.Shower
+import androidx.compose.material.icons.outlined.Speaker
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material.icons.outlined.Thermostat
 import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material.icons.outlined.VerifiedUser
+import androidx.compose.material.icons.outlined.WaterDrop
 import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.material.icons.outlined.Weekend
+import androidx.compose.material.icons.outlined.Window
 import androidx.compose.material.icons.outlined.WorkOutline
 
 object SmartHomeIcons {
@@ -46,6 +61,8 @@ object SmartHomeIcons {
     val Devices = Icons.Default.Devices
     val Search = Icons.Default.Search
     val Add = Icons.Default.Add
+    val Check = Icons.Default.Check
+    val ChevronRight = Icons.Default.ChevronRight
     val Favorite = Icons.Default.Star
     val FavoriteBorder = Icons.Outlined.StarBorder
     val Play = Icons.Default.PlayArrow
@@ -64,19 +81,36 @@ object SmartHomeIcons {
     val Menu = Icons.Default.Menu
     val Profile = Icons.Outlined.Person
     val Close = Icons.Default.Close
+    val Back = Icons.AutoMirrored.Filled.ArrowBack
+    val Edit = Icons.Outlined.Edit
+    val Delete = Icons.Outlined.Delete
     val ExpandMore = Icons.Default.KeyboardArrowDown
     val Selected = Icons.Default.CheckCircle
+    val CheckCircleOutline = Icons.Default.CheckCircle
+
+    val Living = Icons.Outlined.Weekend
+    val Bedroom = Icons.Outlined.Bed
+    val Kitchen = Icons.Outlined.Restaurant
+    val Bathroom = Icons.Outlined.Shower
+    val BathroomFallback = Icons.Outlined.Bathtub
+    val Light = Icons.Outlined.Lightbulb
+    val AirConditioner = Icons.Outlined.AcUnit
+    val Door = Icons.Outlined.SensorDoor
+    val Alarm = Icons.Outlined.NotificationsActive
+    val Oven = Icons.Outlined.Microwave
+    val Fridge = Icons.Outlined.Kitchen
+    val Speaker = Icons.Outlined.Speaker
+    val Blinds = Icons.Outlined.Window
+    val Vacuum = Icons.Outlined.CleaningServices
+    val Faucet = Icons.Outlined.WaterDrop
+    val Locked = Icons.Outlined.Lock
+    val Unlocked = Icons.Outlined.LockOpen
 
     // Routine detail
-    val Back = Icons.AutoMirrored.Filled.ArrowBack
     val MoreOptions = Icons.Default.MoreVert
-    val ChevronRight = Icons.Default.ChevronRight
     val Rename = Icons.Outlined.DriveFileRenameOutline
-    val Delete = Icons.Outlined.Delete
-    val Check = Icons.Default.Check
     val DragHandle = Icons.Default.DragIndicator
     val Calendar = Icons.Outlined.CalendarMonth
-    val Speaker = Icons.Outlined.SpeakerGroup
     val Lightbulb = Icons.Outlined.Lightbulb
     val Thermostat = Icons.Outlined.Thermostat
 
