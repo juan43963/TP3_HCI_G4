@@ -1,5 +1,6 @@
 package com.grupo4.smarthome.ui.screens.selecthome
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +31,8 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -48,6 +51,7 @@ data class SelectableHome(
     val name: String,
     val roomsCount: Int,
     val devicesCount: Int,
+    val photoIndex: Int? = null,
 )
 
 @Composable
@@ -59,6 +63,9 @@ fun SelectHomeScreen(
     onAddHome: () -> Unit,
     onProfileClick: () -> Unit,
     modifier: Modifier = Modifier,
+    isLoading: Boolean = false,
+    errorMessage: String? = null,
+    onRetry: () -> Unit = {},
 ) {
     if (windowSize.widthSizeClass == WindowWidthSizeClass.Compact) {
         PhoneSelectHomeLayout(
@@ -67,6 +74,9 @@ fun SelectHomeScreen(
             onHomeSelected = onHomeSelected,
             onAddHome = onAddHome,
             onProfileClick = onProfileClick,
+            isLoading = isLoading,
+            errorMessage = errorMessage,
+            onRetry = onRetry,
             modifier = modifier,
         )
     } else {
@@ -76,6 +86,9 @@ fun SelectHomeScreen(
             onHomeSelected = onHomeSelected,
             onAddHome = onAddHome,
             onProfileClick = onProfileClick,
+            isLoading = isLoading,
+            errorMessage = errorMessage,
+            onRetry = onRetry,
             modifier = modifier,
         )
     }
@@ -88,6 +101,9 @@ private fun PhoneSelectHomeLayout(
     onHomeSelected: (SelectableHome) -> Unit,
     onAddHome: () -> Unit,
     onProfileClick: () -> Unit,
+    isLoading: Boolean,
+    errorMessage: String?,
+    onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     MainShellScaffold(
@@ -132,12 +148,84 @@ private fun PhoneSelectHomeLayout(
                     )
                 }
             }
-            items(items = homes, key = { it.id }) { home ->
-                HomeCard(
-                    home = home,
-                    onClick = { onHomeSelected(home) },
-                )
+            when {
+                isLoading && homes.isEmpty() -> item { SelectHomeLoading() }
+                errorMessage != null && homes.isEmpty() -> item {
+                    SelectHomeError(message = errorMessage, onRetry = onRetry)
+                }
+                homes.isEmpty() -> item { SelectHomeEmpty() }
+                else -> items(items = homes, key = { it.id }) { home ->
+                    HomeCard(
+                        home = home,
+                        onClick = { onHomeSelected(home) },
+                    )
+                }
             }
+        }
+    }
+}
+
+@Composable
+internal fun SelectHomeLoading(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 48.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        androidx.compose.material3.CircularProgressIndicator()
+    }
+}
+
+@Composable
+internal fun SelectHomeEmpty(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 48.dp, start = 16.dp, end = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Icon(
+            imageVector = SmartHomeIcons.Home,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(48.dp),
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = stringResource(R.string.select_home_empty_title),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = stringResource(R.string.select_home_empty_body),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+@Composable
+internal fun SelectHomeError(message: String, onRetry: () -> Unit, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 48.dp, start = 16.dp, end = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.error,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        androidx.compose.material3.OutlinedButton(onClick = onRetry) {
+            Text(text = stringResource(R.string.select_home_retry))
         }
     }
 }
@@ -157,7 +245,19 @@ internal fun HomeCard(
         shadowElevation = 1.dp,
     ) {
         Column {
-            HomePhotoPlaceholder(homeName = home.name)
+            val photoRes = homePhotoRes(home.photoIndex)
+            if (photoRes != null) {
+                Image(
+                    painter = painterResource(photoRes),
+                    contentDescription = home.name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(160.dp),
+                )
+            } else {
+                HomePhotoPlaceholder(homeName = home.name)
+            }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -272,6 +372,9 @@ private fun SelectHomeScreenPhonePreview() {
             onHomeSelected = {},
             onAddHome = {},
             onProfileClick = {},
+            isLoading = false,
+            errorMessage = null,
+            onRetry = {},
         )
     }
 }

@@ -22,12 +22,14 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -62,6 +64,8 @@ import com.grupo4.smarthome.ui.components.AppDrawerOverlay
 import com.grupo4.smarthome.ui.components.LocalOpenDrawer
 import com.grupo4.smarthome.ui.components.QuickActionsOverlay
 import com.grupo4.smarthome.ui.navigation.AuthScreen
+import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeViewModel
+import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeViewModelFactory
 import com.grupo4.smarthome.ui.navigation.Screen
 import com.grupo4.smarthome.ui.screens.dashboard.DashboardCallbacks
 import com.grupo4.smarthome.ui.screens.dashboard.DashboardPreviewData
@@ -69,7 +73,6 @@ import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneHomeDrawer
 import com.grupo4.smarthome.ui.screens.home.HomeScreen
 import com.grupo4.smarthome.ui.screens.selecthome.AddHomeOverlay
 import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeScreen
-import com.grupo4.smarthome.ui.screens.selecthome.SelectableHome
 import com.grupo4.smarthome.ui.screens.profile.ProfileScreen
 import com.grupo4.smarthome.ui.screens.rooms.RoomsScreen
 import com.grupo4.smarthome.ui.screens.routines.AddRoutineTabletOverlay
@@ -120,6 +123,25 @@ fun SmartHomeApp(
 
     var isDrawerVisible by remember(currentBaseRoute) { mutableStateOf(false) }
     var showAddHome by rememberSaveable { mutableStateOf(false) }
+
+    // ViewModel de casas a nivel Activity: lo comparten SelectHome y el AddHomeOverlay (fuera del NavHost)
+    val homesApplication = LocalContext.current.applicationContext as SmartHomeApplication
+    val selectHomeViewModel: SelectHomeViewModel = viewModel(
+        factory = remember(homesApplication) {
+            SelectHomeViewModelFactory(
+                homesApplication.appContainer.homesRepository,
+                homesApplication.appContainer.sessionManager,
+            )
+        },
+    )
+    val selectHomeUiState by selectHomeViewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(selectHomeUiState.homeJustCreated) {
+        if (selectHomeUiState.homeJustCreated) {
+            selectHomeViewModel.consumeHomeCreated()
+            showAddHome = false
+        }
+    }
     var showQuickActions by rememberSaveable { mutableStateOf(false) }
     var showCreateRoutine by rememberSaveable { mutableStateOf(false) }
     val openQuickActions: () -> Unit = { showQuickActions = true }
@@ -360,11 +382,11 @@ fun SmartHomeApp(
             composable(Screen.SELECT_HOME_ROUTE) {
                 SelectHomeScreen(
                     windowSize = windowSize,
-                    userName = "Juan",
-                    homes = listOf(
-                        SelectableHome("apartment", "Departamento", roomsCount = 8, devicesCount = 22),
-                        SelectableHome("office", "Oficina", roomsCount = 0, devicesCount = 0),
-                    ),
+                    userName = selectHomeUiState.userName,
+                    homes = selectHomeUiState.homes,
+                    isLoading = selectHomeUiState.isLoading,
+                    errorMessage = selectHomeUiState.errorMessage,
+                    onRetry = selectHomeViewModel::loadHomes,
                     onHomeSelected = {
                         navController.navigate(Screen.Home.route) {
                             popUpTo(Screen.SELECT_HOME_ROUTE) { inclusive = true }
@@ -515,6 +537,11 @@ fun SmartHomeApp(
                 visible = showAddHome,
                 isTablet = isTablet,
                 onDismiss = { showAddHome = false },
+                isCreating = selectHomeUiState.isCreating,
+                errorMessage = selectHomeUiState.createError,
+                onCreate = { name, typeIndex, photoIndex ->
+                    selectHomeViewModel.createHome(name, typeIndex, photoIndex)
+                },
             )
 
             QuickActionsOverlay(

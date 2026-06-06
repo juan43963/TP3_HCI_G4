@@ -4,7 +4,16 @@ data class Home(
     val id: String,
     val name: String,
     val rooms: List<Room>,
+    val type: HomeType = HomeType.OTRO,
+    val photoIndex: Int? = null,
 )
+
+enum class HomeType {
+    CASA,
+    DEPARTAMENTO,
+    OFICINA,
+    OTRO,
+}
 
 data class Room(
     val id: String,

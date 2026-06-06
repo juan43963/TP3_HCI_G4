@@ -127,6 +127,9 @@
     <string name="select_home_welcome_title">¡Bienvenido,\n%1$s!</string>
     <string name="select_home_welcome_title_inline">¡Bienvenido, %1$s!</string>
     <string name="select_home_subtitle">Seleccioná el entorno que querés gestionar hoy.</string>
+    <string name="select_home_empty_title">Todavía no tenés hogares</string>
+    <string name="select_home_empty_body">Creá tu primer hogar para empezar a gestionarlo.</string>
+    <string name="select_home_retry">Reintentar</string>
     <string name="select_home_rooms_count">%1$d habitaciones</string>
     <string name="select_home_devices_count">%1$d dispositivos</string>
     <string name="select_home_photo_placeholder">Foto · %1$s</string>
@@ -211,6 +214,7 @@
     <string name="add_home_share_placeholder">ejemplo@mail.com</string>
     <string name="add_home_share_add_button">Agregar</string>
     <string name="add_home_cta">Crear hogar</string>
+    <string name="add_home_creating">Creando...</string>
     <string name="add_home_back_description">Volver</string>
     <string name="add_home_close_description">Cerrar</string>
     <string name="add_home_photo_content_description">Foto de hogar %1$d</string>

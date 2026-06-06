@@ -8,7 +8,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,7 +19,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -32,8 +33,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreHoriz
-import androidx.compose.material.icons.outlined.CloudUpload
-import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -52,11 +51,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -89,6 +86,9 @@ fun BoxScope.AddHomeOverlay(
     visible: Boolean,
     isTablet: Boolean,
     onDismiss: () -> Unit,
+    isCreating: Boolean = false,
+    errorMessage: String? = null,
+    onCreate: (name: String, typeIndex: Int, photoIndex: Int?) -> Unit = { _, _, _ -> },
 ) {
     AnimatedVisibility(
         visible = visible && !isTablet,
@@ -96,7 +96,12 @@ fun BoxScope.AddHomeOverlay(
         exit = slideOutVertically(animationSpec = tween(250)) { it } + fadeOut(tween(180)),
         modifier = Modifier.matchParentSize(),
     ) {
-        PhoneAddHomeScreen(onDismiss = onDismiss)
+        PhoneAddHomeScreen(
+            onDismiss = onDismiss,
+            isCreating = isCreating,
+            errorMessage = errorMessage,
+            onCreate = onCreate,
+        )
     }
 
     if (visible && isTablet) {
@@ -110,7 +115,12 @@ fun BoxScope.AddHomeOverlay(
                     .padding(horizontal = 32.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                TabletAddHomeDialogContent(onDismiss = onDismiss)
+                TabletAddHomeDialogContent(
+                    onDismiss = onDismiss,
+                    isCreating = isCreating,
+                    errorMessage = errorMessage,
+                    onCreate = onCreate,
+                )
             }
         }
     }
@@ -119,10 +129,16 @@ fun BoxScope.AddHomeOverlay(
 // Phone layout
 
 @Composable
-private fun PhoneAddHomeScreen(onDismiss: () -> Unit) {
+private fun PhoneAddHomeScreen(
+    onDismiss: () -> Unit,
+    isCreating: Boolean,
+    errorMessage: String?,
+    onCreate: (name: String, typeIndex: Int, photoIndex: Int?) -> Unit,
+) {
     var homeName by rememberSaveable { mutableStateOf("") }
     var nameError by rememberSaveable { mutableStateOf(false) }
     var selectedTypeIndex by rememberSaveable { mutableStateOf(0) }
+    var selectedPhotoIndex by rememberSaveable { mutableStateOf<Int?>(null) }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -168,13 +184,17 @@ private fun PhoneAddHomeScreen(onDismiss: () -> Unit) {
                 AddHomeFormCard {
                     AddHomeSectionLabel(stringResource(R.string.add_home_fotos_section))
                     Spacer(modifier = Modifier.height(12.dp))
-                    AddHomePhotoPlaceholders()
-                    Spacer(modifier = Modifier.height(10.dp))
-                    AddHomeGalleryButton()
+                    AddHomePhotoPicker(
+                        selectedIndex = selectedPhotoIndex,
+                        onSelect = { selectedPhotoIndex = it },
+                    )
                 }
+                AddHomeErrorText(errorMessage)
                 AddHomeSubmitButton(
+                    isCreating = isCreating,
                     onSubmit = {
-                        if (homeName.isBlank()) nameError = true else onDismiss()
+                        if (homeName.isBlank()) nameError = true
+                        else onCreate(homeName, selectedTypeIndex, selectedPhotoIndex)
                     },
                 )
             }
@@ -215,9 +235,14 @@ private fun AddHomePhoneTopBar(onBack: () -> Unit) {
 }
 
 @Composable
-private fun AddHomeSubmitButton(onSubmit: () -> Unit, modifier: Modifier = Modifier) {
+private fun AddHomeSubmitButton(
+    isCreating: Boolean,
+    onSubmit: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Button(
         onClick = onSubmit,
+        enabled = !isCreating,
         modifier = modifier
             .fillMaxWidth()
             .height(52.dp),
@@ -228,20 +253,39 @@ private fun AddHomeSubmitButton(onSubmit: () -> Unit, modifier: Modifier = Modif
         ),
     ) {
         Text(
-            text = stringResource(R.string.add_home_cta),
+            text = stringResource(
+                if (isCreating) R.string.add_home_creating else R.string.add_home_cta
+            ),
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.ExtraBold,
         )
     }
 }
 
+@Composable
+private fun AddHomeErrorText(message: String?) {
+    if (message == null) return
+    Text(
+        text = message,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.error,
+        modifier = Modifier.fillMaxWidth(),
+    )
+}
+
 // Tablet layout
 
 @Composable
-private fun TabletAddHomeDialogContent(onDismiss: () -> Unit) {
+private fun TabletAddHomeDialogContent(
+    onDismiss: () -> Unit,
+    isCreating: Boolean,
+    errorMessage: String?,
+    onCreate: (name: String, typeIndex: Int, photoIndex: Int?) -> Unit,
+) {
     var homeName by rememberSaveable { mutableStateOf("") }
     var nameError by rememberSaveable { mutableStateOf(false) }
     var selectedTypeIndex by rememberSaveable { mutableStateOf(0) }
+    var selectedPhotoIndex by rememberSaveable { mutableStateOf<Int?>(null) }
 
     Surface(
         modifier = Modifier
@@ -314,13 +358,18 @@ private fun TabletAddHomeDialogContent(onDismiss: () -> Unit) {
             AddHomeFormCard {
                 AddHomeSectionLabel(stringResource(R.string.add_home_fotos_section))
                 Spacer(modifier = Modifier.height(8.dp))
-                AddHomePhotoPlaceholders(tileModifier = Modifier.height(96.dp))
-                Spacer(modifier = Modifier.height(8.dp))
-                AddHomeGalleryButton()
+                AddHomePhotoPicker(
+                    selectedIndex = selectedPhotoIndex,
+                    onSelect = { selectedPhotoIndex = it },
+                    tileHeight = 96.dp,
+                )
             }
+            AddHomeErrorText(errorMessage)
             AddHomeSubmitButton(
+                isCreating = isCreating,
                 onSubmit = {
-                    if (homeName.isBlank()) nameError = true else onDismiss()
+                    if (homeName.isBlank()) nameError = true
+                    else onCreate(homeName, selectedTypeIndex, selectedPhotoIndex)
                 },
             )
         }
@@ -500,87 +549,39 @@ private fun AddHomeTypeGridCell(
     }
 }
 
+// Selección de 1 de las fotos preset empaquetadas (se guarda el índice en metadata)
 @Composable
-private fun AddHomePhotoPlaceholders(
-    tileModifier: Modifier = Modifier.aspectRatio(1f),
+private fun AddHomePhotoPicker(
+    selectedIndex: Int?,
+    onSelect: (Int) -> Unit,
+    tileHeight: Dp = 84.dp,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        repeat(3) {
-            AddHomePhotoDashedTile(modifier = Modifier.weight(1f).then(tileModifier))
-        }
-    }
-}
-
-@Composable
-private fun AddHomePhotoDashedTile(modifier: Modifier = Modifier) {
-    val strokeColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f))
-            .drawBehind {
-                drawRoundRect(
-                    color = strokeColor,
-                    cornerRadius = CornerRadius(12.dp.toPx()),
-                    style = Stroke(
-                        width = 1.5f.dp.toPx(),
-                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 6f), 0f),
-                    ),
+        homePresetPhotos.forEachIndexed { index, photoRes ->
+            val selected = selectedIndex == index
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(tileHeight)
+                    .clip(RoundedCornerShape(12.dp))
+                    .border(
+                        width = if (selected) 3.dp else 1.dp,
+                        color = if (selected) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.outlineVariant,
+                        shape = RoundedCornerShape(12.dp),
+                    )
+                    .clickable { onSelect(index) },
+            ) {
+                Image(
+                    painter = painterResource(photoRes),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize(),
                 )
-            },
-        contentAlignment = Alignment.Center,
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Image,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                modifier = Modifier.size(28.dp),
-            )
-            Text(
-                text = stringResource(R.string.add_home_photo_label),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
-
-@Composable
-private fun AddHomeGalleryButton() {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(52.dp)
-            .clickable { /* visual only */ },
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxSize(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.CloudUpload,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(20.dp),
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = stringResource(R.string.add_home_gallery_button),
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.primary,
-            )
+            }
         }
     }
 }
@@ -591,7 +592,7 @@ private fun AddHomeGalleryButton() {
 @Composable
 private fun AddHomePhoneLightPreview() {
     SmartHomeTheme(darkTheme = false) {
-        PhoneAddHomeScreen(onDismiss = {})
+        PhoneAddHomeScreen(onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _ -> })
     }
 }
 
@@ -599,7 +600,7 @@ private fun AddHomePhoneLightPreview() {
 @Composable
 private fun AddHomePhoneDarkPreview() {
     SmartHomeTheme(darkTheme = true) {
-        PhoneAddHomeScreen(onDismiss = {})
+        PhoneAddHomeScreen(onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _ -> })
     }
 }
 
@@ -608,7 +609,7 @@ private fun AddHomePhoneDarkPreview() {
 private fun AddHomeTabletLandscapePreview() {
     SmartHomeTheme(darkTheme = false) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            TabletAddHomeDialogContent(onDismiss = {})
+            TabletAddHomeDialogContent(onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _ -> })
         }
     }
 }
@@ -618,7 +619,7 @@ private fun AddHomeTabletLandscapePreview() {
 private fun AddHomeTabletPortraitPreview() {
     SmartHomeTheme(darkTheme = true) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            TabletAddHomeDialogContent(onDismiss = {})
+            TabletAddHomeDialogContent(onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _ -> })
         }
     }
 }

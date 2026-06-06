@@ -11,6 +11,8 @@ object ApiRoutes {
     const val UsersChangePassword = "users/change-password"
     const val UsersLogout = "users/logout"
 
+    const val Homes = "homes"
+
     fun resolve(path: String): String =
         "${ApiConstants.BaseUrl.trimEnd('/')}/${path.trimStart('/')}"
 }
