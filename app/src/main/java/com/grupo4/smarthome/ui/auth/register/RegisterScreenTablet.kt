@@ -28,10 +28,12 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -54,18 +56,46 @@ private val StepCircleSize = 40.dp
 @Composable
 fun RegisterScreenTablet(
     onNavigateToLogin: () -> Unit,
-    onRegisterSuccess: () -> Unit,
+    onRegisterSuccess: (String) -> Unit,
+    viewModel: RegisterViewModel,
 ) {
-    var step by rememberSaveable { mutableStateOf(1) }
-    var fullName by rememberSaveable { mutableStateOf("") }
-    var email by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
-    var confirmPassword by rememberSaveable { mutableStateOf("") }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(uiState.registrationCompleted, uiState.registeredEmail) {
+        val email = uiState.registeredEmail
+        if (uiState.registrationCompleted && email != null) {
+            viewModel.consumeRegistrationCompleted()
+            onRegisterSuccess(email)
+        }
+    }
+
+    RegisterScreenTabletContent(
+        uiState = uiState,
+        onNavigateToLogin = onNavigateToLogin,
+        onFullNameChange = viewModel::onFullNameChange,
+        onEmailChange = viewModel::onEmailChange,
+        onPasswordChange = viewModel::onPasswordChange,
+        onConfirmPasswordChange = viewModel::onConfirmPasswordChange,
+        onNextStep = viewModel::onNextStep,
+        onPreviousStep = viewModel::onPreviousStep,
+        onRegister = viewModel::register,
+    )
+}
+
+@Composable
+private fun RegisterScreenTabletContent(
+    uiState: RegisterUiState,
+    onNavigateToLogin: () -> Unit,
+    onFullNameChange: (String) -> Unit,
+    onEmailChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onConfirmPasswordChange: (String) -> Unit,
+    onNextStep: () -> Unit,
+    onPreviousStep: () -> Unit,
+    onRegister: () -> Unit,
+) {
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     var confirmPasswordVisible by rememberSaveable { mutableStateOf(false) }
-
-    val step1Valid = fullName.isNotBlank() && email.isNotBlank()
-    val step2Valid = password.isNotBlank() && password == confirmPassword
 
     Box(
         modifier = Modifier
@@ -88,7 +118,7 @@ fun RegisterScreenTablet(
                 .padding(horizontal = 40.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            StepIndicatorTablet(currentStep = step)
+            StepIndicatorTablet(currentStep = uiState.step)
 
             Spacer(modifier = Modifier.height(40.dp))
 
@@ -105,7 +135,7 @@ fun RegisterScreenTablet(
 
             Text(
                 text = stringResource(
-                    if (step == 1) R.string.register_subtitle_step1
+                    if (uiState.step == 1) R.string.register_subtitle_step1
                     else R.string.register_subtitle_step2
                 ),
                 style = MaterialTheme.typography.titleMedium,
@@ -115,44 +145,48 @@ fun RegisterScreenTablet(
 
             Spacer(modifier = Modifier.height(36.dp))
 
-            if (step == 1) {
+            if (uiState.step == 1) {
                 AuthRoundedField(
-                    value = fullName,
-                    onValueChange = { fullName = it },
+                    value = uiState.fullName,
+                    onValueChange = onFullNameChange,
                     placeholder = stringResource(R.string.register_field_full_name),
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 AuthRoundedField(
-                    value = email,
-                    onValueChange = { email = it },
+                    value = uiState.email,
+                    onValueChange = onEmailChange,
                     placeholder = stringResource(R.string.register_field_email),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 )
+
+                RegisterErrorText(errorMessage = uiState.errorMessage)
 
                 Spacer(modifier = Modifier.height(32.dp))
 
                 PrimaryButtonTablet(
                     text = stringResource(R.string.register_cta_continue),
-                    enabled = step1Valid,
-                    onClick = { step = 2 },
+                    enabled = uiState.step1Valid,
+                    onClick = onNextStep,
                     modifier = Modifier.fillMaxWidth(),
                 )
             } else {
                 PasswordField(
-                    value = password,
-                    onValueChange = { password = it },
+                    value = uiState.password,
+                    onValueChange = onPasswordChange,
                     placeholder = stringResource(R.string.register_field_password),
                     visible = passwordVisible,
                     onToggleVisible = { passwordVisible = !passwordVisible },
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 PasswordField(
-                    value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
+                    value = uiState.confirmPassword,
+                    onValueChange = onConfirmPasswordChange,
                     placeholder = stringResource(R.string.register_field_confirm_password),
                     visible = confirmPasswordVisible,
                     onToggleVisible = { confirmPasswordVisible = !confirmPasswordVisible },
                 )
+
+                RegisterErrorText(errorMessage = uiState.errorMessage)
 
                 Spacer(modifier = Modifier.height(32.dp))
 
@@ -162,13 +196,16 @@ fun RegisterScreenTablet(
                 ) {
                     SecondaryButtonTablet(
                         text = stringResource(R.string.register_cta_back),
-                        onClick = { step = 1 },
+                        onClick = onPreviousStep,
                         modifier = Modifier.weight(1f),
                     )
                     PrimaryButtonTablet(
-                        text = stringResource(R.string.register_cta_create),
-                        enabled = step2Valid,
-                        onClick = onRegisterSuccess,
+                        text = stringResource(
+                            if (uiState.isLoading) R.string.register_cta_creating
+                            else R.string.register_cta_create
+                        ),
+                        enabled = uiState.step2Valid,
+                        onClick = onRegister,
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -358,9 +395,16 @@ private fun LoginFooterTablet(onLoginClick: () -> Unit) {
 @Composable
 private fun RegisterScreenTabletPreview() {
     SmartHomeTheme(darkTheme = false) {
-        RegisterScreenTablet(
+        RegisterScreenTabletContent(
+            uiState = RegisterUiState(),
             onNavigateToLogin = {},
-            onRegisterSuccess = {},
+            onFullNameChange = {},
+            onEmailChange = {},
+            onPasswordChange = {},
+            onConfirmPasswordChange = {},
+            onNextStep = {},
+            onPreviousStep = {},
+            onRegister = {},
         )
     }
 }
@@ -373,9 +417,16 @@ private fun RegisterScreenTabletPreview() {
 @Composable
 private fun RegisterScreenTabletDarkPreview() {
     SmartHomeTheme(darkTheme = true) {
-        RegisterScreenTablet(
+        RegisterScreenTabletContent(
+            uiState = RegisterUiState(),
             onNavigateToLogin = {},
-            onRegisterSuccess = {},
+            onFullNameChange = {},
+            onEmailChange = {},
+            onPasswordChange = {},
+            onConfirmPasswordChange = {},
+            onNextStep = {},
+            onPreviousStep = {},
+            onRegister = {},
         )
     }
 }

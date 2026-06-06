@@ -1,0 +1,26 @@
+package com.grupo4.smarthome.core.di
+
+import android.content.Context
+import com.grupo4.smarthome.core.network.HttpClientProvider
+import com.grupo4.smarthome.data.local.SessionDataStore
+import com.grupo4.smarthome.data.local.SessionManager
+import com.grupo4.smarthome.data.remote.api.AuthApi
+import com.grupo4.smarthome.data.repository.AuthRepository
+import com.grupo4.smarthome.data.repository.AuthRepositoryImpl
+import io.ktor.client.HttpClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+
+class AppContainer(context: Context) {
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    private val sessionDataStore: SessionDataStore = SessionDataStore(context.applicationContext)
+    val sessionManager: SessionManager = SessionManager(sessionDataStore, applicationScope)
+
+    val httpClient: HttpClient = HttpClientProvider.create { sessionManager.currentToken() }
+
+    private val authApi: AuthApi = AuthApi(httpClient)
+
+    val authRepository: AuthRepository = AuthRepositoryImpl(authApi, sessionManager)
+}

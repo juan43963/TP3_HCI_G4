@@ -23,10 +23,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -42,18 +41,29 @@ import com.grupo4.smarthome.ui.auth.components.AuthBrandLogo
 import com.grupo4.smarthome.ui.auth.components.AuthRoundedField
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 
-private const val VERIFY_CODE_LENGTH = 16
-
 @Composable
 fun VerifyAccountScreen(
     email: String,
     onVerifySuccess: () -> Unit,
     onChangeEmail: () -> Unit,
     onBackToLogin: () -> Unit,
+    viewModel: VerifyAccountViewModel,
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(uiState.verified) {
+        if (uiState.verified) {
+            viewModel.consumeVerified()
+            onVerifySuccess()
+        }
+    }
+
     VerifyAccountContent(
+        uiState = uiState,
         email = email,
-        onVerifySuccess = onVerifySuccess,
+        onCodeChange = viewModel::onCodeChange,
+        onVerify = viewModel::verify,
+        onResend = { viewModel.resend(email) },
         onChangeEmail = onChangeEmail,
         onBackToLogin = onBackToLogin,
     )
@@ -61,15 +71,15 @@ fun VerifyAccountScreen(
 
 @Composable
 fun VerifyAccountContent(
+    uiState: VerifyAccountUiState,
     email: String,
-    onVerifySuccess: () -> Unit,
+    onCodeChange: (String) -> Unit,
+    onVerify: () -> Unit,
+    onResend: () -> Unit,
     onChangeEmail: () -> Unit,
     onBackToLogin: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var code by rememberSaveable { mutableStateOf("") }
-    val codeValid = code.length == VERIFY_CODE_LENGTH
-
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -130,8 +140,8 @@ fun VerifyAccountContent(
             Spacer(modifier = Modifier.height(20.dp))
 
             AuthRoundedField(
-                value = code,
-                onValueChange = { if (it.length <= VERIFY_CODE_LENGTH) code = it.trim() },
+                value = uiState.code,
+                onValueChange = onCodeChange,
                 placeholder = stringResource(R.string.verify_field_placeholder),
                 keyboardOptions = KeyboardOptions.Default,
             )
@@ -145,11 +155,22 @@ fun VerifyAccountContent(
                 textAlign = TextAlign.Center,
             )
 
+            if (uiState.errorMessage != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = uiState.errorMessage,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                )
+            }
+
             Spacer(modifier = Modifier.height(20.dp))
 
             Button(
-                onClick = onVerifySuccess,
-                enabled = codeValid,
+                onClick = onVerify,
+                enabled = uiState.canSubmit,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
@@ -163,14 +184,17 @@ fun VerifyAccountContent(
                 ),
             ) {
                 Text(
-                    text = stringResource(R.string.verify_cta_submit),
+                    text = stringResource(
+                        if (uiState.isLoading) R.string.verify_cta_submitting
+                        else R.string.verify_cta_submit
+                    ),
                     fontWeight = FontWeight.SemiBold,
                 )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            ResendFooter(onResendClick = { code = "" })
+            ResendFooter(onResendClick = onResend)
 
             TextButton(onClick = onBackToLogin) {
                 Text(
@@ -228,8 +252,11 @@ private fun ResendFooter(onResendClick: () -> Unit) {
 private fun VerifyAccountPreview() {
     SmartHomeTheme(darkTheme = false) {
         VerifyAccountContent(
+            uiState = VerifyAccountUiState(),
             email = "juanperez@gmail.com",
-            onVerifySuccess = {},
+            onCodeChange = {},
+            onVerify = {},
+            onResend = {},
             onChangeEmail = {},
             onBackToLogin = {},
         )
@@ -241,8 +268,11 @@ private fun VerifyAccountPreview() {
 private fun VerifyAccountDarkPreview() {
     SmartHomeTheme(darkTheme = true) {
         VerifyAccountContent(
+            uiState = VerifyAccountUiState(),
             email = "juanperez@gmail.com",
-            onVerifySuccess = {},
+            onCodeChange = {},
+            onVerify = {},
+            onResend = {},
             onChangeEmail = {},
             onBackToLogin = {},
         )

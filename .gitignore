@@ -40,3 +40,8 @@ release/
 *.temp
 
 docs/
+
+app/src/test/
+app/src/androidTest/
+**/src/test/
+**/src/androidTest/

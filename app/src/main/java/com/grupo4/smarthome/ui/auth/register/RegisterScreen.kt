@@ -30,10 +30,12 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -55,31 +57,48 @@ import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 @Composable
 fun RegisterScreen(
     onNavigateToLogin: () -> Unit,
-    onRegisterSuccess: () -> Unit,
+    onRegisterSuccess: (String) -> Unit,
+    viewModel: RegisterViewModel,
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(uiState.registrationCompleted, uiState.registeredEmail) {
+        val email = uiState.registeredEmail
+        if (uiState.registrationCompleted && email != null) {
+            viewModel.consumeRegistrationCompleted()
+            onRegisterSuccess(email)
+        }
+    }
+
     RegisterContent(
+        uiState = uiState,
         onNavigateToLogin = onNavigateToLogin,
-        onRegisterSuccess = onRegisterSuccess,
+        onFullNameChange = viewModel::onFullNameChange,
+        onEmailChange = viewModel::onEmailChange,
+        onPasswordChange = viewModel::onPasswordChange,
+        onConfirmPasswordChange = viewModel::onConfirmPasswordChange,
+        onNextStep = viewModel::onNextStep,
+        onPreviousStep = viewModel::onPreviousStep,
+        onRegister = viewModel::register,
         modifier = Modifier.fillMaxWidth(),
     )
 }
 
 @Composable
 fun RegisterContent(
+    uiState: RegisterUiState,
     onNavigateToLogin: () -> Unit,
-    onRegisterSuccess: () -> Unit,
+    onFullNameChange: (String) -> Unit,
+    onEmailChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onConfirmPasswordChange: (String) -> Unit,
+    onNextStep: () -> Unit,
+    onPreviousStep: () -> Unit,
+    onRegister: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var step by rememberSaveable { mutableStateOf(1) }
-    var fullName by rememberSaveable { mutableStateOf("") }
-    var email by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
-    var confirmPassword by rememberSaveable { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     var confirmPasswordVisible by rememberSaveable { mutableStateOf(false) }
-
-    val step1Valid = fullName.isNotBlank() && email.isNotBlank()
-    val step2Valid = password.isNotBlank() && password == confirmPassword
 
     Column(
         modifier = modifier
@@ -97,7 +116,7 @@ fun RegisterContent(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            StepIndicator(currentStep = step)
+            StepIndicator(currentStep = uiState.step)
 
             Spacer(modifier = Modifier.height(32.dp))
 
@@ -114,7 +133,7 @@ fun RegisterContent(
 
             Text(
                 text = stringResource(
-                    if (step == 1) R.string.register_subtitle_step1
+                    if (uiState.step == 1) R.string.register_subtitle_step1
                     else R.string.register_subtitle_step2
                 ),
                 style = MaterialTheme.typography.bodyMedium,
@@ -124,35 +143,39 @@ fun RegisterContent(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            if (step == 1) {
+            if (uiState.step == 1) {
                 StepOneForm(
-                    fullName = fullName,
-                    onFullNameChange = { fullName = it },
-                    email = email,
-                    onEmailChange = { email = it },
+                    fullName = uiState.fullName,
+                    onFullNameChange = onFullNameChange,
+                    email = uiState.email,
+                    onEmailChange = onEmailChange,
                 )
+
+                RegisterErrorText(errorMessage = uiState.errorMessage)
 
                 Spacer(modifier = Modifier.height(24.dp))
 
                 PrimaryButton(
                     text = stringResource(R.string.register_cta_continue),
-                    enabled = step1Valid,
-                    onClick = { step = 2 },
+                    enabled = uiState.step1Valid,
+                    onClick = onNextStep,
                     modifier = Modifier.fillMaxWidth(),
                 )
             } else {
                 StepTwoForm(
-                    password = password,
-                    onPasswordChange = { password = it },
+                    password = uiState.password,
+                    onPasswordChange = onPasswordChange,
                     passwordVisible = passwordVisible,
                     onTogglePasswordVisible = { passwordVisible = !passwordVisible },
-                    confirmPassword = confirmPassword,
-                    onConfirmPasswordChange = { confirmPassword = it },
+                    confirmPassword = uiState.confirmPassword,
+                    onConfirmPasswordChange = onConfirmPasswordChange,
                     confirmPasswordVisible = confirmPasswordVisible,
                     onToggleConfirmPasswordVisible = {
                         confirmPasswordVisible = !confirmPasswordVisible
                     },
                 )
+
+                RegisterErrorText(errorMessage = uiState.errorMessage)
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -162,13 +185,16 @@ fun RegisterContent(
                 ) {
                     SecondaryButton(
                         text = stringResource(R.string.register_cta_back),
-                        onClick = { step = 1 },
+                        onClick = onPreviousStep,
                         modifier = Modifier.weight(1f),
                     )
                     PrimaryButton(
-                        text = stringResource(R.string.register_cta_create),
-                        enabled = step2Valid,
-                        onClick = onRegisterSuccess,
+                        text = stringResource(
+                            if (uiState.isLoading) R.string.register_cta_creating
+                            else R.string.register_cta_create
+                        ),
+                        enabled = uiState.step2Valid,
+                        onClick = onRegister,
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -189,6 +215,19 @@ fun RegisterContent(
             textAlign = TextAlign.Center,
         )
     }
+}
+
+@Composable
+internal fun RegisterErrorText(errorMessage: String?) {
+    if (errorMessage == null) return
+    Spacer(modifier = Modifier.height(12.dp))
+    Text(
+        text = errorMessage,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.error,
+        modifier = Modifier.fillMaxWidth(),
+        textAlign = TextAlign.Center,
+    )
 }
 
 @Composable
@@ -435,7 +474,18 @@ private fun LoginFooter(onLoginClick: () -> Unit) {
 @Composable
 private fun RegisterStep1Preview() {
     SmartHomeTheme(darkTheme = false) {
-        RegisterContent(onNavigateToLogin = {}, onRegisterSuccess = {}, modifier = Modifier.fillMaxWidth())
+        RegisterContent(
+            uiState = RegisterUiState(),
+            onNavigateToLogin = {},
+            onFullNameChange = {},
+            onEmailChange = {},
+            onPasswordChange = {},
+            onConfirmPasswordChange = {},
+            onNextStep = {},
+            onPreviousStep = {},
+            onRegister = {},
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 
@@ -443,6 +493,17 @@ private fun RegisterStep1Preview() {
 @Composable
 private fun RegisterStep1DarkPreview() {
     SmartHomeTheme(darkTheme = true) {
-        RegisterContent(onNavigateToLogin = {}, onRegisterSuccess = {}, modifier = Modifier.fillMaxWidth())
+        RegisterContent(
+            uiState = RegisterUiState(),
+            onNavigateToLogin = {},
+            onFullNameChange = {},
+            onEmailChange = {},
+            onPasswordChange = {},
+            onConfirmPasswordChange = {},
+            onNextStep = {},
+            onPreviousStep = {},
+            onRegister = {},
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }

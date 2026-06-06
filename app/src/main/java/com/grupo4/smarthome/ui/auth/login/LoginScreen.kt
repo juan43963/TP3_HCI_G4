@@ -25,10 +25,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -53,26 +55,38 @@ fun LoginScreen(
     onNavigateToRegister: () -> Unit,
     onNavigateToForgotPassword: () -> Unit,
     onLoginSuccess: () -> Unit,
+    viewModel: LoginViewModel,
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(uiState.loggedIn) {
+        if (uiState.loggedIn) {
+            viewModel.consumeLoggedIn()
+            onLoginSuccess()
+        }
+    }
+
     LoginContent(
+        uiState = uiState,
+        onEmailChange = viewModel::onEmailChange,
+        onPasswordChange = viewModel::onPasswordChange,
+        onLogin = viewModel::login,
         onNavigateToRegister = onNavigateToRegister,
         onNavigateToForgotPassword = onNavigateToForgotPassword,
-        onLoginSuccess = onLoginSuccess,
     )
 }
 
 @Composable
 fun LoginContent(
+    uiState: LoginUiState,
+    onEmailChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onLogin: () -> Unit,
     onNavigateToRegister: () -> Unit,
     onNavigateToForgotPassword: () -> Unit,
-    onLoginSuccess: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var email by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
-
-    val canSubmit = email.isNotBlank() && password.isNotBlank()
 
     Column(
         modifier = modifier
@@ -107,8 +121,8 @@ fun LoginContent(
             AuthFieldLabel(text = stringResource(R.string.login_field_email_label))
             Spacer(modifier = Modifier.height(6.dp))
             AuthRoundedField(
-                value = email,
-                onValueChange = { email = it },
+                value = uiState.email,
+                onValueChange = onEmailChange,
                 placeholder = stringResource(R.string.login_field_email_placeholder),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             )
@@ -136,8 +150,8 @@ fun LoginContent(
             }
             Spacer(modifier = Modifier.height(6.dp))
             AuthRoundedField(
-                value = password,
-                onValueChange = { password = it },
+                value = uiState.password,
+                onValueChange = onPasswordChange,
                 placeholder = "",
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 visualTransformation = if (passwordVisible) VisualTransformation.None
@@ -154,11 +168,22 @@ fun LoginContent(
                 },
             )
 
+            if (uiState.errorMessage != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = uiState.errorMessage,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                )
+            }
+
             Spacer(modifier = Modifier.height(20.dp))
 
             Button(
-                onClick = onLoginSuccess,
-                enabled = canSubmit,
+                onClick = onLogin,
+                enabled = uiState.canSubmit,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
@@ -171,7 +196,10 @@ fun LoginContent(
                 ),
             ) {
                 Text(
-                    text = stringResource(R.string.login_cta_submit),
+                    text = stringResource(
+                        if (uiState.isLoading) R.string.login_cta_submitting
+                        else R.string.login_cta_submit
+                    ),
                     fontWeight = FontWeight.SemiBold,
                 )
             }
@@ -215,7 +243,14 @@ private fun RegisterLink(onClick: () -> Unit) {
 @Composable
 private fun LoginLightPreview() {
     SmartHomeTheme(darkTheme = false) {
-        LoginContent(onNavigateToRegister = {}, onNavigateToForgotPassword = {}, onLoginSuccess = {})
+        LoginContent(
+            uiState = LoginUiState(),
+            onEmailChange = {},
+            onPasswordChange = {},
+            onLogin = {},
+            onNavigateToRegister = {},
+            onNavigateToForgotPassword = {},
+        )
     }
 }
 
@@ -223,6 +258,13 @@ private fun LoginLightPreview() {
 @Composable
 private fun LoginDarkPreview() {
     SmartHomeTheme(darkTheme = true) {
-        LoginContent(onNavigateToRegister = {}, onNavigateToForgotPassword = {}, onLoginSuccess = {})
+        LoginContent(
+            uiState = LoginUiState(),
+            onEmailChange = {},
+            onPasswordChange = {},
+            onLogin = {},
+            onNavigateToRegister = {},
+            onNavigateToForgotPassword = {},
+        )
     }
 }

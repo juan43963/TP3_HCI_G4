@@ -4,7 +4,12 @@ sealed class AuthScreen(val route: String) {
     object Welcome : AuthScreen("welcome")
     object Login : AuthScreen("login")
     object Register : AuthScreen("register")
-    object VerifyAccount : AuthScreen("verify_account")
+    object VerifyAccount : AuthScreen("verify_account") {
+        const val emailArg = "email"
+        const val routeWithEmail = "verify_account?email={$emailArg}"
+
+        fun createRoute(email: String): String = "verify_account?email=$email"
+    }
     object RecoverPassword : AuthScreen("recover_password")
     object ChangePassword : AuthScreen("change_password")
 

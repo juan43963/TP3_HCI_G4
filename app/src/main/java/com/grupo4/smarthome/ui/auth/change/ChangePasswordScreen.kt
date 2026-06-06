@@ -1,7 +1,6 @@
 package com.grupo4.smarthome.ui.auth.change
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -26,10 +25,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -49,37 +50,46 @@ import com.grupo4.smarthome.ui.auth.components.AuthFieldLabel
 import com.grupo4.smarthome.ui.auth.components.AuthRoundedField
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 
-private const val MIN_PASSWORD_LENGTH = 8
-
 @Composable
 fun ChangePasswordScreen(
     email: String,
     onPasswordChanged: () -> Unit,
     onBackToLogin: () -> Unit,
+    viewModel: ChangePasswordViewModel,
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(uiState.passwordChanged) {
+        if (uiState.passwordChanged) {
+            viewModel.consumePasswordChanged()
+            onPasswordChanged()
+        }
+    }
+
     ChangePasswordContent(
+        uiState = uiState,
         email = email,
-        onPasswordChanged = onPasswordChanged,
+        onCodeChange = viewModel::onCodeChange,
+        onPasswordChange = viewModel::onPasswordChange,
+        onConfirmChange = viewModel::onConfirmChange,
+        onSubmit = viewModel::submit,
         onBackToLogin = onBackToLogin,
     )
 }
 
 @Composable
 fun ChangePasswordContent(
+    uiState: ChangePasswordUiState,
     email: String,
-    onPasswordChanged: () -> Unit,
+    onCodeChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onConfirmChange: (String) -> Unit,
+    onSubmit: () -> Unit,
     onBackToLogin: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var code by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
-    var confirm by rememberSaveable { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     var confirmVisible by rememberSaveable { mutableStateOf(false) }
-
-    val canSubmit = code.isNotBlank() &&
-        password.length >= MIN_PASSWORD_LENGTH &&
-        password == confirm
 
     Column(
         modifier = modifier
@@ -94,7 +104,7 @@ fun ChangePasswordContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
-            verticalArrangement = Arrangement.Center,
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             IconBadge()
@@ -139,8 +149,8 @@ fun ChangePasswordContent(
             AuthFieldLabel(text = stringResource(R.string.change_pwd_field_code_label))
             Spacer(modifier = Modifier.height(6.dp))
             AuthRoundedField(
-                value = code,
-                onValueChange = { code = it.trim() },
+                value = uiState.code,
+                onValueChange = onCodeChange,
                 placeholder = stringResource(R.string.change_pwd_field_code_placeholder),
             )
 
@@ -149,8 +159,8 @@ fun ChangePasswordContent(
             AuthFieldLabel(text = stringResource(R.string.change_pwd_field_new_label))
             Spacer(modifier = Modifier.height(6.dp))
             PasswordField(
-                value = password,
-                onValueChange = { password = it },
+                value = uiState.password,
+                onValueChange = onPasswordChange,
                 placeholder = stringResource(R.string.change_pwd_field_new_placeholder),
                 visible = passwordVisible,
                 onToggleVisible = { passwordVisible = !passwordVisible },
@@ -161,14 +171,14 @@ fun ChangePasswordContent(
             AuthFieldLabel(text = stringResource(R.string.change_pwd_field_confirm_label))
             Spacer(modifier = Modifier.height(6.dp))
             PasswordField(
-                value = confirm,
-                onValueChange = { confirm = it },
+                value = uiState.confirm,
+                onValueChange = onConfirmChange,
                 placeholder = stringResource(R.string.change_pwd_field_confirm_placeholder),
                 visible = confirmVisible,
                 onToggleVisible = { confirmVisible = !confirmVisible },
             )
 
-            if (confirm.isNotEmpty() && confirm != password) {
+            if (uiState.showMismatch) {
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = stringResource(R.string.change_pwd_mismatch),
@@ -177,11 +187,22 @@ fun ChangePasswordContent(
                 )
             }
 
+            if (uiState.errorMessage != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = uiState.errorMessage,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                )
+            }
+
             Spacer(modifier = Modifier.height(20.dp))
 
             Button(
-                onClick = onPasswordChanged,
-                enabled = canSubmit,
+                onClick = onSubmit,
+                enabled = uiState.canSubmit,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
@@ -195,7 +216,10 @@ fun ChangePasswordContent(
                 ),
             ) {
                 Text(
-                    text = stringResource(R.string.change_pwd_cta_submit),
+                    text = stringResource(
+                        if (uiState.isLoading) R.string.change_pwd_cta_submitting
+                        else R.string.change_pwd_cta_submit
+                    ),
                     fontWeight = FontWeight.SemiBold,
                 )
             }
@@ -264,8 +288,12 @@ private fun PasswordField(
 private fun ChangePasswordLightPreview() {
     SmartHomeTheme(darkTheme = false) {
         ChangePasswordContent(
+            uiState = ChangePasswordUiState(),
             email = "juanperez@itba.edu.ar",
-            onPasswordChanged = {},
+            onCodeChange = {},
+            onPasswordChange = {},
+            onConfirmChange = {},
+            onSubmit = {},
             onBackToLogin = {},
         )
     }
@@ -276,8 +304,12 @@ private fun ChangePasswordLightPreview() {
 private fun ChangePasswordDarkPreview() {
     SmartHomeTheme(darkTheme = true) {
         ChangePasswordContent(
+            uiState = ChangePasswordUiState(),
             email = "juanperez@itba.edu.ar",
-            onPasswordChanged = {},
+            onCodeChange = {},
+            onPasswordChange = {},
+            onConfirmChange = {},
+            onSubmit = {},
             onBackToLogin = {},
         )
     }

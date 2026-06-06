@@ -26,10 +26,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -49,7 +51,6 @@ import com.grupo4.smarthome.ui.auth.components.AuthFieldLabel
 import com.grupo4.smarthome.ui.auth.components.AuthRoundedField
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 
-private const val MIN_PASSWORD_LENGTH = 8
 private val TabletFormMaxWidth = 560.dp
 
 @Composable
@@ -57,16 +58,40 @@ fun ChangePasswordScreenTablet(
     email: String,
     onPasswordChanged: () -> Unit,
     onBackToLogin: () -> Unit,
+    viewModel: ChangePasswordViewModel,
 ) {
-    var code by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
-    var confirm by rememberSaveable { mutableStateOf("") }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(uiState.passwordChanged) {
+        if (uiState.passwordChanged) {
+            viewModel.consumePasswordChanged()
+            onPasswordChanged()
+        }
+    }
+
+    ChangePasswordTabletContent(
+        uiState = uiState,
+        email = email,
+        onCodeChange = viewModel::onCodeChange,
+        onPasswordChange = viewModel::onPasswordChange,
+        onConfirmChange = viewModel::onConfirmChange,
+        onSubmit = viewModel::submit,
+        onBackToLogin = onBackToLogin,
+    )
+}
+
+@Composable
+private fun ChangePasswordTabletContent(
+    uiState: ChangePasswordUiState,
+    email: String,
+    onCodeChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onConfirmChange: (String) -> Unit,
+    onSubmit: () -> Unit,
+    onBackToLogin: () -> Unit,
+) {
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     var confirmVisible by rememberSaveable { mutableStateOf(false) }
-
-    val canSubmit = code.isNotBlank() &&
-        password.length >= MIN_PASSWORD_LENGTH &&
-        password == confirm
 
     Box(
         modifier = Modifier
@@ -133,8 +158,8 @@ fun ChangePasswordScreenTablet(
             )
             Spacer(modifier = Modifier.height(8.dp))
             AuthRoundedField(
-                value = code,
-                onValueChange = { code = it.trim() },
+                value = uiState.code,
+                onValueChange = onCodeChange,
                 placeholder = stringResource(R.string.change_pwd_field_code_placeholder),
                 tablet = true,
             )
@@ -147,8 +172,8 @@ fun ChangePasswordScreenTablet(
             )
             Spacer(modifier = Modifier.height(8.dp))
             PasswordFieldTablet(
-                value = password,
-                onValueChange = { password = it },
+                value = uiState.password,
+                onValueChange = onPasswordChange,
                 placeholder = stringResource(R.string.change_pwd_field_new_placeholder),
                 visible = passwordVisible,
                 onToggleVisible = { passwordVisible = !passwordVisible },
@@ -162,14 +187,14 @@ fun ChangePasswordScreenTablet(
             )
             Spacer(modifier = Modifier.height(8.dp))
             PasswordFieldTablet(
-                value = confirm,
-                onValueChange = { confirm = it },
+                value = uiState.confirm,
+                onValueChange = onConfirmChange,
                 placeholder = stringResource(R.string.change_pwd_field_confirm_placeholder),
                 visible = confirmVisible,
                 onToggleVisible = { confirmVisible = !confirmVisible },
             )
 
-            if (confirm.isNotEmpty() && confirm != password) {
+            if (uiState.showMismatch) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = stringResource(R.string.change_pwd_mismatch),
@@ -178,11 +203,21 @@ fun ChangePasswordScreenTablet(
                 )
             }
 
+            if (uiState.errorMessage != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = uiState.errorMessage,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center,
+                )
+            }
+
             Spacer(modifier = Modifier.height(28.dp))
 
             Button(
-                onClick = onPasswordChanged,
-                enabled = canSubmit,
+                onClick = onSubmit,
+                enabled = uiState.canSubmit,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp),
@@ -196,7 +231,10 @@ fun ChangePasswordScreenTablet(
                 ),
             ) {
                 Text(
-                    text = stringResource(R.string.change_pwd_cta_submit),
+                    text = stringResource(
+                        if (uiState.isLoading) R.string.change_pwd_cta_submitting
+                        else R.string.change_pwd_cta_submit
+                    ),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -270,9 +308,13 @@ private fun PasswordFieldTablet(
 @Composable
 private fun ChangePasswordScreenTabletPreview() {
     SmartHomeTheme(darkTheme = false) {
-        ChangePasswordScreenTablet(
+        ChangePasswordTabletContent(
+            uiState = ChangePasswordUiState(),
             email = "juanperez@itba.edu.ar",
-            onPasswordChanged = {},
+            onCodeChange = {},
+            onPasswordChange = {},
+            onConfirmChange = {},
+            onSubmit = {},
             onBackToLogin = {},
         )
     }
@@ -286,9 +328,13 @@ private fun ChangePasswordScreenTabletPreview() {
 @Composable
 private fun ChangePasswordScreenTabletDarkPreview() {
     SmartHomeTheme(darkTheme = true) {
-        ChangePasswordScreenTablet(
+        ChangePasswordTabletContent(
+            uiState = ChangePasswordUiState(),
             email = "juanperez@itba.edu.ar",
-            onPasswordChanged = {},
+            onCodeChange = {},
+            onPasswordChange = {},
+            onConfirmChange = {},
+            onSubmit = {},
             onBackToLogin = {},
         )
     }
