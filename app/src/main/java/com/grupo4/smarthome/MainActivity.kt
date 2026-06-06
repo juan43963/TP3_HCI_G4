@@ -57,6 +57,7 @@ import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeScreen
 import com.grupo4.smarthome.ui.screens.selecthome.SelectableHome
 import com.grupo4.smarthome.ui.screens.profile.ProfileScreen
 import com.grupo4.smarthome.ui.screens.rooms.RoomsScreen
+import com.grupo4.smarthome.ui.screens.routines.AddRoutineTabletOverlay
 import com.grupo4.smarthome.ui.screens.routines.CreateRoutineOverlay
 import com.grupo4.smarthome.ui.screens.routines.RoutineDetailScreen
 import com.grupo4.smarthome.ui.screens.routines.RoutinesScreen
@@ -454,11 +455,18 @@ fun SmartHomeApp(
                 bottomBarPadding = if (showBottomBar) 80.dp else 0.dp,
             )
 
-            CreateRoutineOverlay(
-                visible = showCreateRoutine,
-                isTablet = isTablet,
-                onDismiss = { showCreateRoutine = false },
-            )
+            if (isTablet) {
+                AddRoutineTabletOverlay(
+                    visible = showCreateRoutine,
+                    onDismiss = { showCreateRoutine = false },
+                )
+            } else {
+                CreateRoutineOverlay(
+                    visible = showCreateRoutine,
+                    isTablet = false,
+                    onDismiss = { showCreateRoutine = false },
+                )
+            }
         }
     }
 }
