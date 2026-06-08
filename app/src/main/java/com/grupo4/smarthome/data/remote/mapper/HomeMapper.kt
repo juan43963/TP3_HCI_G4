@@ -2,7 +2,9 @@ package com.grupo4.smarthome.data.remote.mapper
 
 import com.grupo4.smarthome.data.model.Home
 import com.grupo4.smarthome.data.model.HomeType
+import com.grupo4.smarthome.data.model.SharedUser
 import com.grupo4.smarthome.data.remote.dto.home.HomeDto
+import com.grupo4.smarthome.data.remote.dto.home.SharedUserDto
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
@@ -21,8 +23,16 @@ fun HomeDto.toDomain(): Home =
         photoIndex = metadata.readPhotoIndex(),
     )
 
-// La API no modela tipo ni foto: van en metadata (ADR-0013). Se escribe con merge para no
-// pisar otras claves que la API u otros clientes pudieran haber dejado.
+fun SharedUserDto.toDomain(): SharedUser? {
+    val safeEmail = email?.takeIf { it.isNotBlank() } ?: return null
+    return SharedUser(
+        id = id.orEmpty(),
+        email = safeEmail,
+        name = name.orEmpty(),
+    )
+}
+
+
 fun buildHomeMetadata(
     type: HomeType,
     photoIndex: Int?,

@@ -48,6 +48,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.grupo4.smarthome.R
+import com.grupo4.smarthome.ui.components.LocalOpenDrawer
 import com.grupo4.smarthome.ui.screens.dashboard.DashboardCallbacks
 import com.grupo4.smarthome.ui.screens.dashboard.components.DashboardTopBar
 import com.grupo4.smarthome.ui.screens.dashboard.layout.DashboardScaffold
@@ -83,6 +84,7 @@ fun TabletSettingsLayout(
     onAddHome: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val openDrawer = LocalOpenDrawer.current
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val portraitLike = maxWidth < 900.dp
         val contentPadding = if (portraitLike) 24.dp else 32.dp
@@ -119,7 +121,7 @@ fun TabletSettingsLayout(
                 if (enteredFromHome) {
                     DashboardTopBar(
                         selectedHomeName = "Departamento",
-                        onHomeSelectorClick = {},
+                        onHomeSelectorClick = openDrawer,
                         onSearchClick = {},
                         onProfileClick = onProfileAvatarClick,
                         modifier = topBarModifier,

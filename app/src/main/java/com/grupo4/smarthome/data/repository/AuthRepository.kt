@@ -20,4 +20,6 @@ interface AuthRepository {
     suspend fun verifyAccount(code: String): AppResult<Unit>
 
     suspend fun sendVerification(email: String): AppResult<Unit>
+
+    suspend fun logout()
 }

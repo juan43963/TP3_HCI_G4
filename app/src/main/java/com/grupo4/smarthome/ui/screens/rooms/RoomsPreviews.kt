@@ -3,6 +3,8 @@ package com.grupo4.smarthome.ui.screens.rooms
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.grupo4.smarthome.data.model.DeviceType
+import com.grupo4.smarthome.data.model.HomeType
+import com.grupo4.smarthome.ui.screens.selecthome.SelectableHome
 import com.grupo4.smarthome.ui.screens.dashboard.DashboardCallbacks
 import com.grupo4.smarthome.ui.screens.dashboard.DashboardPreviewData
 import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneHomeDrawer
@@ -188,8 +190,17 @@ private fun RoomDetailPhoneEditDevicesPreview() {
 private fun RoomsPhoneDrawerPreview() {
     SmartHomeTheme(darkTheme = false) {
         PhoneHomeDrawer(
-            state = DashboardPreviewData.populated,
-            callbacks = DashboardCallbacks(),
+            userName = "Usuario",
+            homes = listOf(
+                SelectableHome("1", "Casa Principal", roomsCount = 3, devicesCount = 8, type = HomeType.CASA),
+                SelectableHome("2", "Departamento", roomsCount = 2, devicesCount = 4, type = HomeType.DEPARTAMENTO),
+            ),
+            activeHomeId = "1",
+            onHomeSelected = {},
+            onSeeMoreHomes = {},
+            onAddHome = {},
+            onSettings = {},
+            onLogout = {},
             onClose = {},
         )
     }

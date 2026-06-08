@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -31,6 +32,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.grupo4.smarthome.data.local.SessionState
+import kotlinx.coroutines.launch
 import androidx.navigation.NavType
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
@@ -67,8 +70,6 @@ import com.grupo4.smarthome.ui.navigation.AuthScreen
 import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeViewModel
 import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeViewModelFactory
 import com.grupo4.smarthome.ui.navigation.Screen
-import com.grupo4.smarthome.ui.screens.dashboard.DashboardCallbacks
-import com.grupo4.smarthome.ui.screens.dashboard.DashboardPreviewData
 import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneHomeDrawer
 import com.grupo4.smarthome.ui.screens.home.HomeScreen
 import com.grupo4.smarthome.ui.screens.selecthome.AddHomeOverlay
@@ -88,8 +89,13 @@ import androidx.compose.runtime.setValue
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+        // Mantener el splash hasta resolver si hay sesión guardada o no
+        val sessionManager = (application as SmartHomeApplication).appContainer.sessionManager
+        splashScreen.setKeepOnScreenCondition {
+            sessionManager.sessionState.value is SessionState.Loading
+        }
         enableEdgeToEdge()
         setContent {
             var themePreference by rememberSaveable { mutableStateOf(ThemePreference.SYSTEM) }
@@ -126,11 +132,29 @@ fun SmartHomeApp(
 
     // ViewModel de casas a nivel Activity: lo comparten SelectHome y el AddHomeOverlay (fuera del NavHost)
     val homesApplication = LocalContext.current.applicationContext as SmartHomeApplication
+
+    // La pantalla de arranque depende de si hay sesión guardada; mientras carga no componemos nada
+    val sessionState by homesApplication.appContainer.sessionManager.sessionState
+        .collectAsStateWithLifecycle()
+    if (sessionState is SessionState.Loading) {
+        Box(modifier = Modifier.fillMaxSize())
+        return
+    }
+    val startDestination = if (sessionState is SessionState.Authenticated) {
+        Screen.SELECT_HOME_ROUTE
+    } else {
+        AuthScreen.Welcome.route
+    }
+
+    val logoutScope = rememberCoroutineScope()
+    val authRepository = homesApplication.appContainer.authRepository
+
     val selectHomeViewModel: SelectHomeViewModel = viewModel(
         factory = remember(homesApplication) {
             SelectHomeViewModelFactory(
                 homesApplication.appContainer.homesRepository,
                 homesApplication.appContainer.sessionManager,
+                homesApplication.appContainer.preferencesDataStore,
             )
         },
     )
@@ -196,7 +220,7 @@ fun SmartHomeApp(
             ) { innerPadding ->
                 NavHost(
                     navController = navController,
-                    startDestination = AuthScreen.Welcome.route,
+                    startDestination = startDestination,
                     modifier = Modifier.padding(innerPadding)
                 ) {
             composable(AuthScreen.Welcome.route) {
@@ -387,7 +411,8 @@ fun SmartHomeApp(
                     isLoading = selectHomeUiState.isLoading,
                     errorMessage = selectHomeUiState.errorMessage,
                     onRetry = selectHomeViewModel::loadHomes,
-                    onHomeSelected = {
+                    onHomeSelected = { home ->
+                        selectHomeViewModel.selectHome(home.id)
                         navController.navigate(Screen.Home.route) {
                             popUpTo(Screen.SELECT_HOME_ROUTE) { inclusive = true }
                         }
@@ -398,6 +423,18 @@ fun SmartHomeApp(
                             launchSingleTop = true
                         }
                     },
+                    onShareHome = selectHomeViewModel::openShareDialog,
+                    onRenameHome = selectHomeViewModel::openRenameDialog,
+                    onDeleteHome = selectHomeViewModel::openDeleteDialog,
+                    dialog = selectHomeUiState.dialog,
+                    isProcessingAction = selectHomeUiState.isProcessingAction,
+                    actionError = selectHomeUiState.actionError,
+                    sharedUsers = selectHomeUiState.sharedUsers,
+                    isLoadingShared = selectHomeUiState.isLoadingShared,
+                    onDismissDialog = selectHomeViewModel::dismissDialog,
+                    onConfirmRename = selectHomeViewModel::renameHome,
+                    onConfirmDelete = selectHomeViewModel::deleteHome,
+                    onConfirmShare = selectHomeViewModel::shareHome,
                 )
             }
 
@@ -521,13 +558,31 @@ fun SmartHomeApp(
                     onClose = closeDrawer,
                 ) {
                     PhoneHomeDrawer(
-                        state = DashboardPreviewData.populated,
-                        callbacks = DashboardCallbacks(
-                            onAddHomeClick = {
-                                closeDrawer()
-                                showAddHome = true
-                            },
-                        ),
+                        userName = selectHomeUiState.userName,
+                        homes = selectHomeUiState.drawerHomes,
+                        activeHomeId = selectHomeUiState.activeHomeId,
+                        onHomeSelected = { homeId ->
+                            selectHomeViewModel.selectHome(homeId)
+                        },
+                        onSeeMoreHomes = {
+                            navController.navigate(Screen.SELECT_HOME_ROUTE) {
+                                launchSingleTop = true
+                            }
+                        },
+                        onAddHome = {
+                            showAddHome = true
+                        },
+                        onSettings = {
+                            navController.navigate(Screen.Profile.route) {
+                                launchSingleTop = true
+                            }
+                        },
+                        onLogout = {
+                            logoutScope.launch { authRepository.logout() }
+                            navController.navigate(AuthScreen.Welcome.route) {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        },
                         onClose = closeDrawer,
                     )
                 }
@@ -539,8 +594,8 @@ fun SmartHomeApp(
                 onDismiss = { showAddHome = false },
                 isCreating = selectHomeUiState.isCreating,
                 errorMessage = selectHomeUiState.createError,
-                onCreate = { name, typeIndex, photoIndex ->
-                    selectHomeViewModel.createHome(name, typeIndex, photoIndex)
+                onCreate = { name, typeIndex, photoIndex, shareEmail ->
+                    selectHomeViewModel.createHome(name, typeIndex, photoIndex, shareEmail)
                 },
             )
 

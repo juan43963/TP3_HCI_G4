@@ -136,6 +136,25 @@
     <string name="select_home_browse_files">or browse files</string>
     <string name="select_home_card_menu_content_description">Más opciones</string>
     <string name="select_home_add_home_content_description">Agregar hogar</string>
+    <string name="select_home_menu_share">Compartir</string>
+    <string name="select_home_menu_rename">Renombrar</string>
+    <string name="select_home_menu_delete">Eliminar</string>
+    <string name="select_home_rename_title">Renombrar hogar</string>
+    <string name="select_home_rename_subtitle">Modificá el nombre de tu hogar.</string>
+    <string name="select_home_rename_label">Nombre del hogar</string>
+    <string name="select_home_rename_confirm">Guardar cambios</string>
+    <string name="select_home_delete_title">Eliminar hogar</string>
+    <string name="select_home_delete_message">¿Seguro que querés eliminar el hogar «%1$s»? Esta acción no se puede deshacer.</string>
+    <string name="select_home_delete_confirm">Eliminar</string>
+    <string name="select_home_share_title">Compartir hogar</string>
+    <string name="select_home_share_subtitle">Invitá a otros usuarios a gestionar este hogar.</string>
+    <string name="select_home_share_label">Agregar por email</string>
+    <string name="select_home_share_placeholder">ejemplo@mail.com</string>
+    <string name="select_home_share_confirm">Compartir</string>
+    <string name="select_home_share_current">Compartido con (%1$d)</string>
+    <string name="select_home_share_empty">Todavía no compartiste este hogar.</string>
+    <string name="select_home_share_close">Cerrar</string>
+    <string name="select_home_dialog_cancel">Cancelar</string>
 
     <!-- Dashboard -->
     <string name="dashboard_title">Inicio</string>
@@ -189,6 +208,7 @@
     <string name="dashboard_home_main">Casa Principal</string>
     <string name="dashboard_home_apartment">Departamento</string>
     <string name="dashboard_home_office">Oficina</string>
+    <string name="dashboard_see_more_homes">Ver más hogares</string>
     <string name="dashboard_quick_access">Accesos rápidos</string>
     <string name="dashboard_add_home">Agregar nuevo hogar</string>
     <string name="dashboard_settings">Ajustes</string>

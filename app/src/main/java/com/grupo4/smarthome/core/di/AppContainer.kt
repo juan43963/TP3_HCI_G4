@@ -2,6 +2,7 @@ package com.grupo4.smarthome.core.di
 
 import android.content.Context
 import com.grupo4.smarthome.core.network.HttpClientProvider
+import com.grupo4.smarthome.data.local.PreferencesDataStore
 import com.grupo4.smarthome.data.local.SessionDataStore
 import com.grupo4.smarthome.data.local.SessionManager
 import com.grupo4.smarthome.data.remote.api.AuthApi
@@ -20,6 +21,8 @@ class AppContainer(context: Context) {
 
     private val sessionDataStore: SessionDataStore = SessionDataStore(context.applicationContext)
     val sessionManager: SessionManager = SessionManager(sessionDataStore, applicationScope)
+
+    val preferencesDataStore: PreferencesDataStore = PreferencesDataStore(context.applicationContext)
 
     val httpClient: HttpClient = HttpClientProvider.create { sessionManager.currentToken() }
 

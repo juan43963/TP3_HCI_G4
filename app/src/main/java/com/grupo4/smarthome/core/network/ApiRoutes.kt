@@ -13,6 +13,10 @@ object ApiRoutes {
 
     const val Homes = "homes"
 
+    fun homeById(homeId: String): String = "$Homes/$homeId"
+
+    fun homeShare(homeId: String): String = "$Homes/$homeId/share"
+
     fun resolve(path: String): String =
         "${ApiConstants.BaseUrl.trimEnd('/')}/${path.trimStart('/')}"
 }

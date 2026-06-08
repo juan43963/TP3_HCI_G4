@@ -80,6 +80,11 @@ class AuthRepositoryImpl(
     override suspend fun sendVerification(email: String): AppResult<Unit> =
         requestUnit { authApi.sendVerification(SendVerificationRequestDto(email.trim())) }
 
+    // Por ahora solo limpia la sesión local; el StateFlow emite Unauthenticated en cascada
+    override suspend fun logout() {
+        sessionManager.clearSession()
+    }
+
     // Llamadas que no necesitan parsear cuerpo: solo importa éxito o el error mapeado
     private suspend fun requestUnit(call: suspend () -> HttpResponse): AppResult<Unit> =
         runCatching {

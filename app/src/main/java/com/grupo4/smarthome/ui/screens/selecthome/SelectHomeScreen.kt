@@ -20,7 +20,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +34,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -40,6 +49,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
+import com.grupo4.smarthome.data.model.HomeType
 import com.grupo4.smarthome.ui.components.MainShellScaffold
 import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneQuickAddFab
 import com.grupo4.smarthome.ui.screens.selecthome.layout.TabletSelectHomeLayout
@@ -52,6 +62,7 @@ data class SelectableHome(
     val roomsCount: Int,
     val devicesCount: Int,
     val photoIndex: Int? = null,
+    val type: HomeType = HomeType.OTRO,
 )
 
 @Composable
@@ -66,6 +77,18 @@ fun SelectHomeScreen(
     isLoading: Boolean = false,
     errorMessage: String? = null,
     onRetry: () -> Unit = {},
+    onShareHome: (SelectableHome) -> Unit = {},
+    onRenameHome: (SelectableHome) -> Unit = {},
+    onDeleteHome: (SelectableHome) -> Unit = {},
+    dialog: HomeDialog? = null,
+    isProcessingAction: Boolean = false,
+    actionError: String? = null,
+    sharedUsers: List<com.grupo4.smarthome.data.model.SharedUser> = emptyList(),
+    isLoadingShared: Boolean = false,
+    onDismissDialog: () -> Unit = {},
+    onConfirmRename: (String) -> Unit = {},
+    onConfirmDelete: () -> Unit = {},
+    onConfirmShare: (String) -> Unit = {},
 ) {
     if (windowSize.widthSizeClass == WindowWidthSizeClass.Compact) {
         PhoneSelectHomeLayout(
@@ -77,6 +100,9 @@ fun SelectHomeScreen(
             isLoading = isLoading,
             errorMessage = errorMessage,
             onRetry = onRetry,
+            onShareHome = onShareHome,
+            onRenameHome = onRenameHome,
+            onDeleteHome = onDeleteHome,
             modifier = modifier,
         )
     } else {
@@ -89,9 +115,24 @@ fun SelectHomeScreen(
             isLoading = isLoading,
             errorMessage = errorMessage,
             onRetry = onRetry,
+            onShareHome = onShareHome,
+            onRenameHome = onRenameHome,
+            onDeleteHome = onDeleteHome,
             modifier = modifier,
         )
     }
+
+    HomeActionDialogs(
+        dialog = dialog,
+        isProcessing = isProcessingAction,
+        actionError = actionError,
+        sharedUsers = sharedUsers,
+        isLoadingShared = isLoadingShared,
+        onDismiss = onDismissDialog,
+        onConfirmRename = onConfirmRename,
+        onConfirmDelete = onConfirmDelete,
+        onConfirmShare = onConfirmShare,
+    )
 }
 
 @Composable
@@ -105,6 +146,9 @@ private fun PhoneSelectHomeLayout(
     errorMessage: String?,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
+    onShareHome: (SelectableHome) -> Unit = {},
+    onRenameHome: (SelectableHome) -> Unit = {},
+    onDeleteHome: (SelectableHome) -> Unit = {},
 ) {
     MainShellScaffold(
         title = null,
@@ -158,6 +202,9 @@ private fun PhoneSelectHomeLayout(
                     HomeCard(
                         home = home,
                         onClick = { onHomeSelected(home) },
+                        onShare = { onShareHome(home) },
+                        onRename = { onRenameHome(home) },
+                        onDelete = { onDeleteHome(home) },
                     )
                 }
             }
@@ -235,6 +282,9 @@ internal fun HomeCard(
     home: SelectableHome,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    onShare: () -> Unit = {},
+    onRename: () -> Unit = {},
+    onDelete: () -> Unit = {},
 ) {
     Surface(
         modifier = modifier
@@ -271,14 +321,46 @@ internal fun HomeCard(
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f),
                 )
-                IconButton(onClick = { /* per-home menu — not implemented yet */ }) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = stringResource(
-                            R.string.select_home_card_menu_content_description
-                        ),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                Box {
+                    var menuExpanded by remember { mutableStateOf(false) }
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = stringResource(
+                                R.string.select_home_card_menu_content_description
+                            ),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false },
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.select_home_menu_share)) },
+                            leadingIcon = { Icon(Icons.Outlined.Share, contentDescription = null) },
+                            onClick = {
+                                menuExpanded = false
+                                onShare()
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.select_home_menu_rename)) },
+                            leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null) },
+                            onClick = {
+                                menuExpanded = false
+                                onRename()
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.select_home_menu_delete)) },
+                            leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
+                            onClick = {
+                                menuExpanded = false
+                                onDelete()
+                            },
+                        )
+                    }
                 }
             }
             Row(

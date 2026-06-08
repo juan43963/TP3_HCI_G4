@@ -40,6 +40,9 @@ fun TabletSelectHomeLayout(
     errorMessage: String? = null,
     onRetry: () -> Unit = {},
     modifier: Modifier = Modifier,
+    onShareHome: (SelectableHome) -> Unit = {},
+    onRenameHome: (SelectableHome) -> Unit = {},
+    onDeleteHome: (SelectableHome) -> Unit = {},
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val portraitLike = maxWidth < 900.dp
@@ -112,6 +115,9 @@ fun TabletSelectHomeLayout(
                             HomeCard(
                                 home = home,
                                 onClick = { onHomeSelected(home) },
+                                onShare = { onShareHome(home) },
+                                onRename = { onRenameHome(home) },
+                                onDelete = { onDeleteHome(home) },
                             )
                         }
                     }

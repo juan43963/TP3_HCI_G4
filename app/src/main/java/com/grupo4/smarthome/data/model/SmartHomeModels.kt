@@ -15,6 +15,12 @@ enum class HomeType {
     OTRO,
 }
 
+data class SharedUser(
+    val id: String,
+    val email: String,
+    val name: String,
+)
+
 data class Room(
     val id: String,
     val name: String,

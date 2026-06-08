@@ -88,7 +88,7 @@ fun BoxScope.AddHomeOverlay(
     onDismiss: () -> Unit,
     isCreating: Boolean = false,
     errorMessage: String? = null,
-    onCreate: (name: String, typeIndex: Int, photoIndex: Int?) -> Unit = { _, _, _ -> },
+    onCreate: (name: String, typeIndex: Int, photoIndex: Int?, shareEmail: String?) -> Unit = { _, _, _, _ -> },
 ) {
     AnimatedVisibility(
         visible = visible && !isTablet,
@@ -133,12 +133,13 @@ private fun PhoneAddHomeScreen(
     onDismiss: () -> Unit,
     isCreating: Boolean,
     errorMessage: String?,
-    onCreate: (name: String, typeIndex: Int, photoIndex: Int?) -> Unit,
+    onCreate: (name: String, typeIndex: Int, photoIndex: Int?, shareEmail: String?) -> Unit,
 ) {
     var homeName by rememberSaveable { mutableStateOf("") }
     var nameError by rememberSaveable { mutableStateOf(false) }
     var selectedTypeIndex by rememberSaveable { mutableStateOf(0) }
     var selectedPhotoIndex by rememberSaveable { mutableStateOf<Int?>(null) }
+    var shareEmail by rememberSaveable { mutableStateOf("") }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -182,6 +183,12 @@ private fun PhoneAddHomeScreen(
                     )
                 }
                 AddHomeFormCard {
+                    AddHomeShareField(
+                        value = shareEmail,
+                        onValueChange = { shareEmail = it },
+                    )
+                }
+                AddHomeFormCard {
                     AddHomeSectionLabel(stringResource(R.string.add_home_fotos_section))
                     Spacer(modifier = Modifier.height(12.dp))
                     AddHomePhotoPicker(
@@ -194,7 +201,7 @@ private fun PhoneAddHomeScreen(
                     isCreating = isCreating,
                     onSubmit = {
                         if (homeName.isBlank()) nameError = true
-                        else onCreate(homeName, selectedTypeIndex, selectedPhotoIndex)
+                        else onCreate(homeName, selectedTypeIndex, selectedPhotoIndex, shareEmail.ifBlank { null })
                     },
                 )
             }
@@ -280,12 +287,13 @@ private fun TabletAddHomeDialogContent(
     onDismiss: () -> Unit,
     isCreating: Boolean,
     errorMessage: String?,
-    onCreate: (name: String, typeIndex: Int, photoIndex: Int?) -> Unit,
+    onCreate: (name: String, typeIndex: Int, photoIndex: Int?, shareEmail: String?) -> Unit,
 ) {
     var homeName by rememberSaveable { mutableStateOf("") }
     var nameError by rememberSaveable { mutableStateOf(false) }
     var selectedTypeIndex by rememberSaveable { mutableStateOf(0) }
     var selectedPhotoIndex by rememberSaveable { mutableStateOf<Int?>(null) }
+    var shareEmail by rememberSaveable { mutableStateOf("") }
 
     Surface(
         modifier = Modifier
@@ -356,6 +364,12 @@ private fun TabletAddHomeDialogContent(
                 )
             }
             AddHomeFormCard {
+                AddHomeShareField(
+                    value = shareEmail,
+                    onValueChange = { shareEmail = it },
+                )
+            }
+            AddHomeFormCard {
                 AddHomeSectionLabel(stringResource(R.string.add_home_fotos_section))
                 Spacer(modifier = Modifier.height(8.dp))
                 AddHomePhotoPicker(
@@ -369,7 +383,7 @@ private fun TabletAddHomeDialogContent(
                 isCreating = isCreating,
                 onSubmit = {
                     if (homeName.isBlank()) nameError = true
-                    else onCreate(homeName, selectedTypeIndex, selectedPhotoIndex)
+                    else onCreate(homeName, selectedTypeIndex, selectedPhotoIndex, shareEmail.ifBlank { null })
                 },
             )
         }
@@ -442,6 +456,35 @@ private fun HomeNameField(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun AddHomeShareField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        AddHomeSectionLabel(stringResource(R.string.add_home_share_section))
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = {
+                Text(
+                    text = stringResource(R.string.add_home_share_placeholder),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            },
+            singleLine = true,
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+            ),
+        )
     }
 }
 
@@ -592,7 +635,7 @@ private fun AddHomePhotoPicker(
 @Composable
 private fun AddHomePhoneLightPreview() {
     SmartHomeTheme(darkTheme = false) {
-        PhoneAddHomeScreen(onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _ -> })
+        PhoneAddHomeScreen(onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _, _ -> })
     }
 }
 
@@ -600,7 +643,7 @@ private fun AddHomePhoneLightPreview() {
 @Composable
 private fun AddHomePhoneDarkPreview() {
     SmartHomeTheme(darkTheme = true) {
-        PhoneAddHomeScreen(onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _ -> })
+        PhoneAddHomeScreen(onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _, _ -> })
     }
 }
 
@@ -609,7 +652,7 @@ private fun AddHomePhoneDarkPreview() {
 private fun AddHomeTabletLandscapePreview() {
     SmartHomeTheme(darkTheme = false) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            TabletAddHomeDialogContent(onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _ -> })
+            TabletAddHomeDialogContent(onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _, _ -> })
         }
     }
 }
@@ -619,7 +662,7 @@ private fun AddHomeTabletLandscapePreview() {
 private fun AddHomeTabletPortraitPreview() {
     SmartHomeTheme(darkTheme = true) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            TabletAddHomeDialogContent(onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _ -> })
+            TabletAddHomeDialogContent(onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _, _ -> })
         }
     }
 }

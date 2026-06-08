@@ -45,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
+import com.grupo4.smarthome.ui.components.LocalOpenDrawer
 import com.grupo4.smarthome.ui.screens.dashboard.DashboardCallbacks
 import com.grupo4.smarthome.ui.screens.dashboard.components.DashboardTopBar
 import com.grupo4.smarthome.ui.screens.dashboard.layout.DashboardScaffold
@@ -65,6 +66,7 @@ fun TabletRoutinesScreen(
     onRoutineClick: (String) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
+    val openDrawer = LocalOpenDrawer.current
     var selectedCategory by remember { mutableStateOf<RoutineCategory?>(null) }
     var selectedRoutineId by remember(routines) { mutableStateOf(routines.firstOrNull()?.id) }
     var quickAddMenuExpanded by remember { mutableStateOf(false) }
@@ -110,7 +112,7 @@ fun TabletRoutinesScreen(
             topBar = {
                 DashboardTopBar(
                     selectedHomeName = stringResource(R.string.dashboard_home_main),
-                    onHomeSelectorClick = {},
+                    onHomeSelectorClick = openDrawer,
                     onSearchClick = {},
                     onProfileClick = onProfileClick,
                     modifier = Modifier.padding(
