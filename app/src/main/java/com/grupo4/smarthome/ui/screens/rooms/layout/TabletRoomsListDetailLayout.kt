@@ -108,6 +108,8 @@ fun TabletRoomsListDetailLayout(
                     searchQuery = state.searchQuery,
                     onSearchChange = callbacks.onSearchChange,
                     onAvatarClick = callbacks.onAvatarClick,
+                    onNotificationsClick = callbacks.onNotificationsClick,
+                    notificationCount = state.unreadNotificationCount,
                     searchPlaceholder = stringResource(R.string.rooms_list_detail_search_placeholder),
                     modifier = Modifier.padding(
                         start = 28.dp,

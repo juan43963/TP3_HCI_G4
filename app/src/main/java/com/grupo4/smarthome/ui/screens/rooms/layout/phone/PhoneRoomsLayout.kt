@@ -102,6 +102,8 @@ fun PhoneRoomsLayout(
                         onMenuClick = openDrawer,
                         onSearchClick = { isSearchExpanded = true },
                         onProfileClick = callbacks.onAvatarClick,
+                        onNotificationsClick = callbacks.onNotificationsClick,
+                        notificationCount = state.unreadNotificationCount,
                     )
                 } else {
                     PhoneRoomDetailTopBar(

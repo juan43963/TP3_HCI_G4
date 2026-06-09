@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
+import com.grupo4.smarthome.ui.components.NotificationsBellButton
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
 @Composable
@@ -36,6 +37,8 @@ fun DashboardTopBar(
     onSearchClick: () -> Unit,
     onProfileClick: () -> Unit,
     modifier: Modifier = Modifier,
+    onNotificationsClick: (() -> Unit)? = null,
+    notificationCount: Int = 0,
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
         val compact = maxWidth < 560.dp
@@ -52,6 +55,12 @@ fun DashboardTopBar(
                         onClick = onHomeSelectorClick,
                         modifier = Modifier.weight(1f),
                     )
+                    if (onNotificationsClick != null) {
+                        NotificationsBellButton(
+                            unreadCount = notificationCount,
+                            onClick = onNotificationsClick,
+                        )
+                    }
                     DashboardAvatarButton(onClick = onProfileClick)
                 }
                 DashboardSearchBar(
@@ -73,6 +82,12 @@ fun DashboardTopBar(
                     onClick = onSearchClick,
                     modifier = Modifier.weight(1f),
                 )
+                if (onNotificationsClick != null) {
+                    NotificationsBellButton(
+                        unreadCount = notificationCount,
+                        onClick = onNotificationsClick,
+                    )
+                }
                 DashboardAvatarButton(onClick = onProfileClick)
             }
         }

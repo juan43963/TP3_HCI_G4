@@ -26,6 +26,8 @@ fun SmartHomeTopBar(
     onSearchClick: () -> Unit,
     onProfileClick: () -> Unit,
     modifier: Modifier = Modifier,
+    onNotificationsClick: (() -> Unit)? = null,
+    notificationCount: Int = 0,
 ) {
     Row(
         modifier = modifier
@@ -57,6 +59,12 @@ fun SmartHomeTopBar(
                 imageVector = SmartHomeIcons.Search,
                 contentDescription = stringResource(R.string.dashboard_search_content_description),
                 tint = MaterialTheme.colorScheme.onSurface,
+            )
+        }
+        if (onNotificationsClick != null) {
+            NotificationsBellButton(
+                unreadCount = notificationCount,
+                onClick = onNotificationsClick,
             )
         }
         DashboardAvatarButton(onClick = onProfileClick)

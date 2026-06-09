@@ -23,6 +23,8 @@ fun MainShellScaffold(
     onSearchClick: () -> Unit,
     onProfileClick: () -> Unit,
     modifier: Modifier = Modifier,
+    onNotificationsClick: (() -> Unit)? = null,
+    notificationCount: Int = 0,
     floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
 ) {
@@ -41,6 +43,8 @@ fun MainShellScaffold(
                 onMenuClick = openDrawer,
                 onSearchClick = onSearchClick,
                 onProfileClick = onProfileClick,
+                onNotificationsClick = onNotificationsClick,
+                notificationCount = notificationCount,
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(background)

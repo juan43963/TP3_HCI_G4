@@ -82,6 +82,8 @@ data class RoutineUi(
 fun RoutinesScreen(
     onProfileClick: () -> Unit = {},
     onAddRoutine: () -> Unit = {},
+    onNotificationsClick: () -> Unit = {},
+    unreadNotificationCount: Int = 0,
     routines: List<RoutineUi> = sampleRoutines,
 ) {
     var selectedCategory by remember { mutableStateOf<RoutineCategory?>(null) }
@@ -94,6 +96,8 @@ fun RoutinesScreen(
         title = stringResource(R.string.nav_routines),
         onSearchClick = {},
         onProfileClick = onProfileClick,
+        onNotificationsClick = onNotificationsClick,
+        notificationCount = unreadNotificationCount,
         floatingActionButton = {
             PhoneQuickAddFab(
                 onClick = onAddRoutine,

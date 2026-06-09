@@ -44,6 +44,8 @@ fun TabletDashboardLayout(
                     onHomeSelectorClick = callbacks.onHomeSelectorClick,
                     onSearchClick = callbacks.onSearchClick,
                     onProfileClick = callbacks.onProfileClick,
+                    onNotificationsClick = callbacks.onNotificationsClick,
+                    notificationCount = state.unreadNotificationCount,
                     modifier = Modifier.padding(
                         start = contentPadding,
                         top = 24.dp,

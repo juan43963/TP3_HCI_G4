@@ -82,6 +82,8 @@ fun TabletRoomDetailLayout(
                     searchQuery = state.searchQuery,
                     onSearchChange = callbacks.onSearchChange,
                     onAvatarClick = callbacks.onAvatarClick,
+                    onNotificationsClick = callbacks.onNotificationsClick,
+                    notificationCount = state.unreadNotificationCount,
                     searchPlaceholder = stringResource(R.string.rooms_devices_search_placeholder),
                     modifier = Modifier.padding(
                         start = contentPadding,

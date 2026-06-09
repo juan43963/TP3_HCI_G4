@@ -4,6 +4,7 @@ import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.grupo4.smarthome.ui.screens.dashboard.DashboardCallbacks
+import com.grupo4.smarthome.ui.screens.dashboard.DashboardPreviewData
 import com.grupo4.smarthome.ui.screens.dashboard.DashboardScreen
 
 @Composable
@@ -14,15 +15,21 @@ fun HomeScreen(
     onNavigateRoutines: () -> Unit = {},
     onNavigateProfile: () -> Unit = {},
     onNavigateHistory: () -> Unit = {},
+    onNavigateNotifications: () -> Unit = {},
+    unreadNotificationCount: Int = 0,
 ) {
     DashboardScreen(
         windowSize = windowSize,
         modifier = modifier,
+        state = DashboardPreviewData.populated.copy(
+            unreadNotificationCount = unreadNotificationCount,
+        ),
         callbacks = DashboardCallbacks(
             onNavigateRooms = onNavigateRooms,
             onNavigateRoutines = onNavigateRoutines,
             onProfileClick = onNavigateProfile,
             onHistoryClick = onNavigateHistory,
+            onNotificationsClick = onNavigateNotifications,
         ),
     )
 }

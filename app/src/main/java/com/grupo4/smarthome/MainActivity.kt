@@ -51,6 +51,11 @@ import com.grupo4.smarthome.ui.screens.dashboard.DashboardPreviewData
 import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneHomeDrawer
 import com.grupo4.smarthome.ui.screens.history.HistoryScreen
 import com.grupo4.smarthome.ui.screens.home.HomeScreen
+import com.grupo4.smarthome.ui.screens.notifications.NotificationPreferences
+import com.grupo4.smarthome.ui.screens.notifications.NotificationPreferencesSaver
+import com.grupo4.smarthome.ui.screens.notifications.NotificationSettingsScreen
+import com.grupo4.smarthome.ui.screens.notifications.NotificationsScreen
+import com.grupo4.smarthome.ui.screens.notifications.sampleNotifications
 import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeScreen
 import com.grupo4.smarthome.ui.screens.selecthome.SelectableHome
 import com.grupo4.smarthome.ui.screens.profile.ProfileScreen
@@ -105,6 +110,43 @@ fun SmartHomeApp(
     }
     val closeDrawer: () -> Unit = { isDrawerVisible = false }
 
+    // Estado de notificaciones in-app (badge en la campana + centro de notificaciones).
+    var notifications by remember { mutableStateOf(sampleNotifications) }
+    var notificationPreferences by rememberSaveable(stateSaver = NotificationPreferencesSaver) {
+        mutableStateOf(NotificationPreferences())
+    }
+    val unreadNotificationCount = notifications.count { !it.read }
+    val openNotifications: () -> Unit = {
+        navController.navigate(Screen.Notifications.route) { launchSingleTop = true }
+    }
+    val openNotificationSettings: () -> Unit = {
+        navController.navigate(Screen.NotificationSettings.route) { launchSingleTop = true }
+    }
+    val markAllNotificationsRead: () -> Unit = {
+        notifications = notifications.map { it.copy(read = true) }
+    }
+    val markNotificationRead: (String) -> Unit = { id ->
+        notifications = notifications.map { if (it.id == id) it.copy(read = true) else it }
+    }
+    val acceptInvitation: (String) -> Unit = { id ->
+        notifications = notifications.map { notification ->
+            if (notification.id == id && notification.invitationHome != null) {
+                notification.copy(
+                    title = "Te uniste al hogar",
+                    message = "Ahora formás parte de “${notification.invitationHome}”.",
+                    timeLabel = "ahora",
+                    invitationHome = null,
+                    read = true,
+                )
+            } else {
+                notification
+            }
+        }
+    }
+    val rejectInvitation: (String) -> Unit = { id ->
+        notifications = notifications.filterNot { it.id == id }
+    }
+
     val showBottomBar = currentBaseRoute != null &&
         currentBaseRoute !in AuthScreen.routes &&
         !isSelectHomeRoute &&
@@ -127,11 +169,8 @@ fun SmartHomeApp(
                                     selected = selected,
                                     onClick = {
                                         navController.navigate(screen.route) {
-                                            popUpTo(navController.graph[Screen.Home.route].id) {
-                                                saveState = true
-                                            }
+                                            popUpTo(navController.graph[Screen.Home.route].id)
                                             launchSingleTop = true
-                                            restoreState = true
                                         }
                                     },
                                     icon = { Icon(screen.icon, contentDescription = null) },
@@ -326,13 +365,12 @@ fun SmartHomeApp(
                     },
                     onNavigateHistory = {
                         navController.navigate(Screen.History.route) {
-                            popUpTo(navController.graph[Screen.Home.route].id) {
-                                saveState = true
-                            }
+                            popUpTo(navController.graph[Screen.Home.route].id)
                             launchSingleTop = true
-                            restoreState = true
                         }
                     },
+                    onNavigateNotifications = openNotifications,
+                    unreadNotificationCount = unreadNotificationCount,
                 )
             }
             composable(Screen.Rooms.route) {
@@ -361,10 +399,14 @@ fun SmartHomeApp(
                             restoreState = true
                         }
                     },
+                    onNotificationsClick = openNotifications,
+                    unreadNotificationCount = unreadNotificationCount,
                 )
             }
             composable(Screen.Routines.route) {
                 RoutinesScreen(
+                    onNotificationsClick = openNotifications,
+                    unreadNotificationCount = unreadNotificationCount,
                     onProfileClick = {
                         navController.navigate(Screen.Profile.route) {
                             launchSingleTop = true
@@ -380,6 +422,11 @@ fun SmartHomeApp(
                     windowSize = windowSize,
                     themePreference = themePreference,
                     onThemePreferenceChange = onThemePreferenceChange,
+                    onOpenNotificationSettings = openNotificationSettings,
+                    notificationPreferences = notificationPreferences,
+                    onNotificationPreferencesChange = { notificationPreferences = it },
+                    onNotificationsClick = openNotifications,
+                    unreadNotificationCount = unreadNotificationCount,
                     enteredFromHome = enteredFromHome,
                     onNavigateHome = {
                         navController.navigate(Screen.Home.route) {
@@ -433,6 +480,83 @@ fun SmartHomeApp(
                             restoreState = true
                         }
                     },
+                    onNotificationsClick = openNotifications,
+                    unreadNotificationCount = unreadNotificationCount,
+                )
+            }
+            composable(Screen.Notifications.route) {
+                NotificationsScreen(
+                    windowSize = windowSize,
+                    notifications = notifications,
+                    onNotificationClick = markNotificationRead,
+                    onMarkAllRead = markAllNotificationsRead,
+                    onAcceptInvitation = acceptInvitation,
+                    onRejectInvitation = rejectInvitation,
+                    onProfileClick = {
+                        navController.navigate(Screen.Profile.route) {
+                            launchSingleTop = true
+                        }
+                    },
+                    onNavigateHome = {
+                        navController.navigate(Screen.Home.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onNavigateRoutines = {
+                        navController.navigate(Screen.Routines.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onNavigateRooms = {
+                        navController.navigate(Screen.Rooms.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onNavigateHistory = {
+                        navController.navigate(Screen.History.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                )
+            }
+            composable(Screen.NotificationSettings.route) {
+                NotificationSettingsScreen(
+                    windowSize = windowSize,
+                    preferences = notificationPreferences,
+                    onPreferencesChange = { notificationPreferences = it },
+                    onProfileClick = {
+                        navController.navigate(Screen.Profile.route) {
+                            launchSingleTop = true
+                        }
+                    },
+                    onNavigateHome = {
+                        navController.navigate(Screen.Home.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onNavigateRoutines = {
+                        navController.navigate(Screen.Routines.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onNavigateRooms = {
+                        navController.navigate(Screen.Rooms.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onNavigateHistory = {
+                        navController.navigate(Screen.History.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                 )
             }
         }
@@ -448,11 +572,8 @@ fun SmartHomeApp(
                         callbacks = DashboardCallbacks(
                             onHistoryClick = {
                                 navController.navigate(Screen.History.route) {
-                                    popUpTo(navController.graph[Screen.Home.route].id) {
-                                        saveState = true
-                                    }
+                                    popUpTo(navController.graph[Screen.Home.route].id)
                                     launchSingleTop = true
-                                    restoreState = true
                                 }
                             },
                         ),

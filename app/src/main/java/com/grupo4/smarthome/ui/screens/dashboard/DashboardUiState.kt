@@ -9,6 +9,7 @@ data class DashboardUiState(
     val routines: List<DashboardRoutinePreview>,
     val isLoadingRooms: Boolean = false,
     val isLoadingRoutines: Boolean = false,
+    val unreadNotificationCount: Int = 0,
 )
 
 data class DashboardRoomPreview(

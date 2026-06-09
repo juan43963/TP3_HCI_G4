@@ -52,13 +52,15 @@ import com.grupo4.smarthome.ui.screens.dashboard.DashboardCallbacks
 import com.grupo4.smarthome.ui.screens.dashboard.components.DashboardTopBar
 import com.grupo4.smarthome.ui.screens.dashboard.layout.DashboardScaffold
 import com.grupo4.smarthome.ui.screens.dashboard.layout.TabletSidebar
+import com.grupo4.smarthome.ui.screens.notifications.NotificationPreferenceSections
+import com.grupo4.smarthome.ui.screens.notifications.NotificationPreferences
 import com.grupo4.smarthome.ui.screens.selecthome.layout.SelectHomeSidebar
 import com.grupo4.smarthome.ui.screens.selecthome.layout.SelectHomeTopBar
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 import com.grupo4.smarthome.ui.theme.ThemePreference
 
-private enum class SettingsSection { PROFILE, SECURITY, ACCESSIBILITY }
+private enum class SettingsSection { PROFILE, SECURITY, NOTIFICATIONS, ACCESSIBILITY }
 
 /**
  * Tablet settings (Configuración) screen.
@@ -76,6 +78,10 @@ fun TabletSettingsLayout(
     onThemePreferenceChange: (ThemePreference) -> Unit,
     onChangePassword: () -> Unit,
     onProfileAvatarClick: () -> Unit,
+    notificationPreferences: NotificationPreferences = NotificationPreferences(),
+    onNotificationPreferencesChange: (NotificationPreferences) -> Unit = {},
+    onNotificationsClick: () -> Unit = {},
+    unreadNotificationCount: Int = 0,
     enteredFromHome: Boolean,
     onNavigateHome: () -> Unit,
     onNavigateRooms: () -> Unit,
@@ -123,6 +129,8 @@ fun TabletSettingsLayout(
                         onHomeSelectorClick = {},
                         onSearchClick = {},
                         onProfileClick = onProfileAvatarClick,
+                        onNotificationsClick = onNotificationsClick,
+                        notificationCount = unreadNotificationCount,
                         modifier = topBarModifier,
                     )
                 } else {
@@ -139,6 +147,8 @@ fun TabletSettingsLayout(
                     themePreference = themePreference,
                     onThemePreferenceChange = onThemePreferenceChange,
                     onChangePassword = onChangePassword,
+                    notificationPreferences = notificationPreferences,
+                    onNotificationPreferencesChange = onNotificationPreferencesChange,
                     contentPadding = contentPadding,
                     twoPane = !portraitLike,
                 )
@@ -154,6 +164,8 @@ private fun SettingsContent(
     themePreference: ThemePreference,
     onThemePreferenceChange: (ThemePreference) -> Unit,
     onChangePassword: () -> Unit,
+    notificationPreferences: NotificationPreferences,
+    onNotificationPreferencesChange: (NotificationPreferences) -> Unit,
     contentPadding: androidx.compose.ui.unit.Dp,
     twoPane: Boolean,
 ) {
@@ -193,6 +205,8 @@ private fun SettingsContent(
                     themePreference = themePreference,
                     onThemePreferenceChange = onThemePreferenceChange,
                     onChangePassword = onChangePassword,
+                    notificationPreferences = notificationPreferences,
+                    onNotificationPreferencesChange = onNotificationPreferencesChange,
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -211,6 +225,8 @@ private fun SettingsContent(
                 themePreference = themePreference,
                 onThemePreferenceChange = onThemePreferenceChange,
                 onChangePassword = onChangePassword,
+                notificationPreferences = notificationPreferences,
+                onNotificationPreferencesChange = onNotificationPreferencesChange,
                 modifier = Modifier.fillMaxWidth(),
             )
         }
@@ -246,6 +262,13 @@ private fun SettingsNavList(
                 subtitle = stringResource(R.string.settings_security_subtitle),
                 selected = selectedSection == SettingsSection.SECURITY,
                 onClick = { onSectionSelected(SettingsSection.SECURITY) },
+            )
+            SettingsNavItem(
+                icon = SmartHomeIcons.Notifications,
+                title = stringResource(R.string.notification_settings_title),
+                subtitle = stringResource(R.string.notification_settings_section_settings_subtitle),
+                selected = selectedSection == SettingsSection.NOTIFICATIONS,
+                onClick = { onSectionSelected(SettingsSection.NOTIFICATIONS) },
             )
             SettingsNavItem(
                 icon = Icons.Outlined.Contrast,
@@ -330,6 +353,8 @@ private fun SettingsDetailPane(
     themePreference: ThemePreference,
     onThemePreferenceChange: (ThemePreference) -> Unit,
     onChangePassword: () -> Unit,
+    notificationPreferences: NotificationPreferences,
+    onNotificationPreferencesChange: (NotificationPreferences) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val (titleRes, subtitleRes) = when (selectedSection) {
@@ -337,6 +362,8 @@ private fun SettingsDetailPane(
             R.string.settings_section_profile to R.string.settings_profile_subtitle
         SettingsSection.SECURITY ->
             R.string.settings_section_security to R.string.settings_security_subtitle
+        SettingsSection.NOTIFICATIONS ->
+            R.string.notification_settings_title to R.string.notification_settings_subtitle
         SettingsSection.ACCESSIBILITY ->
             R.string.settings_section_accessibility to R.string.settings_section_accessibility_description
     }
@@ -360,6 +387,10 @@ private fun SettingsDetailPane(
         when (selectedSection) {
             SettingsSection.PROFILE -> ProfileDetailCard(userName = userName, userEmail = userEmail)
             SettingsSection.SECURITY -> SecurityDetailCard(onChangePassword = onChangePassword)
+            SettingsSection.NOTIFICATIONS -> NotificationPreferenceSections(
+                preferences = notificationPreferences,
+                onPreferencesChange = onNotificationPreferencesChange,
+            )
             SettingsSection.ACCESSIBILITY -> ThemeDetailCard(
                 themePreference = themePreference,
                 onThemePreferenceChange = onThemePreferenceChange,

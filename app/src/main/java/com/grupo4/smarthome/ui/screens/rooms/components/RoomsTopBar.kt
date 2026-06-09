@@ -24,6 +24,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
+import com.grupo4.smarthome.ui.components.NotificationsBellButton
 import com.grupo4.smarthome.ui.screens.dashboard.components.DashboardAvatarButton
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
@@ -34,6 +35,8 @@ fun RoomsTopBar(
     onAvatarClick: () -> Unit,
     searchPlaceholder: String,
     modifier: Modifier = Modifier,
+    onNotificationsClick: (() -> Unit)? = null,
+    notificationCount: Int = 0,
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -48,6 +51,12 @@ fun RoomsTopBar(
                 .weight(1f)
                 .widthIn(max = 620.dp),
         )
+        if (onNotificationsClick != null) {
+            NotificationsBellButton(
+                unreadCount = notificationCount,
+                onClick = onNotificationsClick,
+            )
+        }
         DashboardAvatarButton(onClick = onAvatarClick)
     }
 }

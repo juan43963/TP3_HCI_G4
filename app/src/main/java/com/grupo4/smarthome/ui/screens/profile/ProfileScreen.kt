@@ -45,6 +45,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.components.MainShellScaffold
+import com.grupo4.smarthome.ui.screens.notifications.NotificationPreferences
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 import com.grupo4.smarthome.ui.theme.ThemePreference
@@ -58,6 +59,11 @@ fun ProfileScreen(
     onThemePreferenceChange: (ThemePreference) -> Unit = {},
     onChangePassword: () -> Unit = {},
     onProfileAvatarClick: () -> Unit = {},
+    onOpenNotificationSettings: () -> Unit = {},
+    notificationPreferences: NotificationPreferences = NotificationPreferences(),
+    onNotificationPreferencesChange: (NotificationPreferences) -> Unit = {},
+    onNotificationsClick: () -> Unit = {},
+    unreadNotificationCount: Int = 0,
     enteredFromHome: Boolean = false,
     onNavigateHome: () -> Unit = {},
     onNavigateRooms: () -> Unit = {},
@@ -74,6 +80,10 @@ fun ProfileScreen(
             onThemePreferenceChange = onThemePreferenceChange,
             onChangePassword = onChangePassword,
             onProfileAvatarClick = onProfileAvatarClick,
+            notificationPreferences = notificationPreferences,
+            onNotificationPreferencesChange = onNotificationPreferencesChange,
+            onNotificationsClick = onNotificationsClick,
+            unreadNotificationCount = unreadNotificationCount,
             enteredFromHome = enteredFromHome,
             onNavigateHome = onNavigateHome,
             onNavigateRooms = onNavigateRooms,
@@ -91,6 +101,9 @@ fun ProfileScreen(
         onThemePreferenceChange = onThemePreferenceChange,
         onChangePassword = onChangePassword,
         onProfileAvatarClick = onProfileAvatarClick,
+        onOpenNotificationSettings = onOpenNotificationSettings,
+        onNotificationsClick = onNotificationsClick,
+        unreadNotificationCount = unreadNotificationCount,
         modifier = modifier,
     )
 }
@@ -103,12 +116,17 @@ private fun PhoneProfileLayout(
     onThemePreferenceChange: (ThemePreference) -> Unit,
     onChangePassword: () -> Unit,
     onProfileAvatarClick: () -> Unit,
+    onOpenNotificationSettings: () -> Unit = {},
+    onNotificationsClick: () -> Unit = {},
+    unreadNotificationCount: Int = 0,
     modifier: Modifier = Modifier,
 ) {
     MainShellScaffold(
         title = stringResource(R.string.settings_title),
         onSearchClick = {},
         onProfileClick = onProfileAvatarClick,
+        onNotificationsClick = onNotificationsClick,
+        notificationCount = unreadNotificationCount,
         modifier = modifier,
     ) { innerPadding ->
         Column(
@@ -123,6 +141,7 @@ private fun PhoneProfileLayout(
             Header()
             ProfileSection(userName = userName, userEmail = userEmail)
             SecuritySection(onChangePassword = onChangePassword)
+            NotificationsSection(onOpenNotificationSettings = onOpenNotificationSettings)
             AccessibilitySection(
                 themePreference = themePreference,
                 onThemePreferenceChange = onThemePreferenceChange,
@@ -240,6 +259,18 @@ private fun SecuritySection(onChangePassword: () -> Unit) {
             title = stringResource(R.string.settings_change_password),
             description = stringResource(R.string.settings_change_password_description),
             onClick = onChangePassword,
+        )
+    }
+}
+
+@Composable
+private fun NotificationsSection(onOpenNotificationSettings: () -> Unit) {
+    SectionCard(title = stringResource(R.string.notification_settings_title)) {
+        SettingRow(
+            icon = SmartHomeIcons.Notifications,
+            title = stringResource(R.string.notification_settings_title),
+            description = stringResource(R.string.notification_settings_subtitle),
+            onClick = onOpenNotificationSettings,
         )
     }
 }

@@ -24,4 +24,5 @@ data class RoomsCallbacks(
     val onNavigateHome: () -> Unit = {},
     val onNavigateRoutines: () -> Unit = {},
     val onNavigateHistory: () -> Unit = {},
+    val onNotificationsClick: () -> Unit = {},
 )

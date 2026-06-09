@@ -37,6 +37,7 @@ enum class TabletSidebarDestination {
     Routines,
     Rooms,
     History,
+    Notifications,
 }
 
 @Composable

@@ -33,6 +33,8 @@ fun RoomsScreen(
     onNavigateHome: () -> Unit = {},
     onNavigateRoutines: () -> Unit = {},
     onNavigateHistory: () -> Unit = {},
+    onNotificationsClick: () -> Unit = {},
+    unreadNotificationCount: Int = 0,
 ) {
     var rooms by remember { mutableStateOf(RoomsPreviewData.populated.rooms) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
@@ -58,6 +60,7 @@ fun RoomsScreen(
         selectedRoomId = selectedRoomId,
         editRoomsMode = editRoomsMode,
         editDevicesMode = editDevicesMode,
+        unreadNotificationCount = unreadNotificationCount,
     )
 
     RoomsContent(
@@ -124,6 +127,7 @@ fun RoomsScreen(
             onNavigateHome = onNavigateHome,
             onNavigateRoutines = onNavigateRoutines,
             onNavigateHistory = onNavigateHistory,
+            onNotificationsClick = onNotificationsClick,
         ),
         modifier = modifier,
     )

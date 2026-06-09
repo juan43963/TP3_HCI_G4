@@ -81,6 +81,8 @@ fun HistoryScreen(
     onHomeSelectorClick: () -> Unit = {},
     onSearchClick: () -> Unit = {},
     onQuickAddClick: () -> Unit = {},
+    onNotificationsClick: () -> Unit = {},
+    unreadNotificationCount: Int = 0,
     selectedHomeName: String = "Casa Principal",
     entries: List<HistoryEntryUi> = sampleHistory,
     modifier: Modifier = Modifier,
@@ -108,6 +110,8 @@ fun HistoryScreen(
             onSearchClick = onSearchClick,
             onProfileClick = onProfileClick,
             onQuickAddClick = onQuickAddClick,
+            onNotificationsClick = onNotificationsClick,
+            unreadNotificationCount = unreadNotificationCount,
             modifier = modifier,
         )
     } else {
@@ -115,6 +119,8 @@ fun HistoryScreen(
             title = null,
             onSearchClick = onSearchClick,
             onProfileClick = onProfileClick,
+            onNotificationsClick = onNotificationsClick,
+            notificationCount = unreadNotificationCount,
             modifier = modifier,
         ) { innerPadding ->
             HistoryFeed(
@@ -150,6 +156,8 @@ private fun TabletHistoryLayout(
     onSearchClick: () -> Unit,
     onProfileClick: () -> Unit,
     onQuickAddClick: () -> Unit,
+    onNotificationsClick: () -> Unit,
+    unreadNotificationCount: Int,
     modifier: Modifier = Modifier,
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
@@ -174,6 +182,8 @@ private fun TabletHistoryLayout(
                     onHomeSelectorClick = onHomeSelectorClick,
                     onSearchClick = onSearchClick,
                     onProfileClick = onProfileClick,
+                    onNotificationsClick = onNotificationsClick,
+                    notificationCount = unreadNotificationCount,
                     modifier = Modifier.padding(
                         start = contentPadding,
                         top = 24.dp,

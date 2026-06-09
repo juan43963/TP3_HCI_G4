@@ -75,6 +75,8 @@ fun PhoneDashboardLayout(
                         callbacks.onSearchClick()
                     },
                     onProfileClick = callbacks.onProfileClick,
+                    onNotificationsClick = callbacks.onNotificationsClick,
+                    notificationCount = state.unreadNotificationCount,
                 )
                 AnimatedVisibility(
                     visible = isSearchExpanded,
