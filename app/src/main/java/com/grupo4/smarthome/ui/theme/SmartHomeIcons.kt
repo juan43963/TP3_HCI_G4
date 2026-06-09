@@ -33,7 +33,9 @@ import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.MeetingRoom
 import androidx.compose.material.icons.outlined.Microwave
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.NotificationsActive
+import androidx.compose.material.icons.outlined.NotificationsOff
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material.icons.outlined.Schedule
@@ -73,6 +75,9 @@ object SmartHomeIcons {
     val CustomRoutine = Icons.Outlined.Settings
     val Settings = Icons.Outlined.Settings
     val History = Icons.Outlined.History
+    val Notifications = Icons.Outlined.Notifications
+    val NotificationsActive = Icons.Outlined.NotificationsActive
+    val NotificationsOff = Icons.Outlined.NotificationsOff
     val Refresh = Icons.Outlined.Refresh
     val Logout = Icons.AutoMirrored.Filled.Logout
     val Apartment = Icons.Outlined.Apartment
