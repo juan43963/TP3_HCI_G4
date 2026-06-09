@@ -98,6 +98,7 @@
     <string name="create_routine_temperature_description"> — temperature in centigrades</string>
     <string name="create_routine_back_description">Back</string>
     <string name="create_routine_close_description">Close</string>
+    <string name="rooms_retry">Retry</string>
     <string-array name="routines_day_initials">
         <item>M</item>
         <item>T</item>

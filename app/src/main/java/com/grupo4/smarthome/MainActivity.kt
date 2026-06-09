@@ -465,6 +465,7 @@ fun SmartHomeApp(
             }
             composable(Screen.Rooms.route) {
                 RoomsScreen(
+                    activeHomeId = selectHomeUiState.activeHomeId,
                     windowSize = windowSize,
                     onProfileClick = {
                         navController.navigate(Screen.Profile.route) {

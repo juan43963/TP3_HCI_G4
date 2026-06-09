@@ -357,6 +357,7 @@
     <string name="rooms_device_type_door">Puerta</string>
     <string name="rooms_device_type_alarm">Alarma</string>
     <string name="rooms_device_type_fridge">Heladera</string>
+    <string name="rooms_retry">Reintentar</string>
 
     <!-- Routines -->
     <string name="routines_header_title">Rutinas Automatizadas</string>
