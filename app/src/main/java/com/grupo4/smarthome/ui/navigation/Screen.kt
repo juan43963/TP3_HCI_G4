@@ -20,5 +20,6 @@ sealed class Screen(
     companion object {
         val items: List<Screen> by lazy { listOf(Home, Routines, Rooms) }
         const val SELECT_HOME_ROUTE = "select_home"
+        const val ROUTINE_DETAIL_ROUTE = "routine_detail"
     }
 }

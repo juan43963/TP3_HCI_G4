@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
@@ -29,15 +30,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
-import com.grupo4.smarthome.ui.screens.dashboard.DashboardCallbacks
-import com.grupo4.smarthome.ui.screens.dashboard.DashboardUiState
+import com.grupo4.smarthome.data.model.HomeType
+import com.grupo4.smarthome.ui.screens.selecthome.SelectableHome
 import com.grupo4.smarthome.ui.theme.ErrorRed
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
 @Composable
 fun PhoneHomeDrawer(
-    state: DashboardUiState,
-    callbacks: DashboardCallbacks,
+    userName: String,
+    homes: List<SelectableHome>,
+    activeHomeId: String?,
+    onHomeSelected: (String) -> Unit,
+    onSeeMoreHomes: () -> Unit,
+    onAddHome: () -> Unit,
+    onSettings: () -> Unit,
+    onHistory: () -> Unit,
+    onLogout: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -48,8 +56,15 @@ fun PhoneHomeDrawer(
         drawerContainerColor = MaterialTheme.colorScheme.surface,
     ) {
         PhoneHomeDrawerContent(
-            state = state,
-            callbacks = callbacks,
+            userName = userName,
+            homes = homes,
+            activeHomeId = activeHomeId,
+            onHomeSelected = onHomeSelected,
+            onSeeMoreHomes = onSeeMoreHomes,
+            onAddHome = onAddHome,
+            onSettings = onSettings,
+            onHistory = onHistory,
+            onLogout = onLogout,
             onClose = onClose,
         )
     }
@@ -57,32 +72,24 @@ fun PhoneHomeDrawer(
 
 @Composable
 fun PhoneHomeDrawerContent(
-    state: DashboardUiState,
-    callbacks: DashboardCallbacks,
+    userName: String,
+    homes: List<SelectableHome>,
+    activeHomeId: String?,
+    onHomeSelected: (String) -> Unit,
+    onSeeMoreHomes: () -> Unit,
+    onAddHome: () -> Unit,
+    onSettings: () -> Unit,
+    onHistory: () -> Unit,
+    onLogout: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val homes = listOf(
-        DrawerHomeItem(
-            name = stringResource(R.string.dashboard_home_main),
-            icon = SmartHomeIcons.Home,
-        ),
-        DrawerHomeItem(
-            name = stringResource(R.string.dashboard_home_apartment),
-            icon = SmartHomeIcons.Apartment,
-        ),
-        DrawerHomeItem(
-            name = stringResource(R.string.dashboard_home_office),
-            icon = SmartHomeIcons.Office,
-        ),
-    )
-
     Column(
         modifier = modifier
             .fillMaxHeight()
             .padding(horizontal = 24.dp, vertical = 28.dp),
     ) {
-        DrawerUserHeader(userName = state.userName)
+        DrawerUserHeader(userName = userName)
 
         Spacer(modifier = Modifier.height(30.dp))
 
@@ -93,17 +100,32 @@ fun PhoneHomeDrawerContent(
             homes.forEach { home ->
                 DrawerActionRow(
                     label = home.name,
-                    icon = home.icon,
-                    selected = home.name == state.selectedHomeName,
+                    icon = home.type.toDrawerIcon(),
+                    selected = home.id == activeHomeId,
                     onClick = {
-                        callbacks.onHomeSelected(home.name)
+                        onHomeSelected(home.id)
                         onClose()
                     },
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(28.dp))
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // "Ver más hogares" lleva a la vista de hogares (último ítem del bloque de casas)
+        DrawerActionRow(
+            label = stringResource(R.string.dashboard_see_more_homes),
+            icon = SmartHomeIcons.ChevronRight,
+            selected = false,
+            onClick = {
+                onSeeMoreHomes()
+                onClose()
+            },
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        Spacer(modifier = Modifier.height(20.dp))
 
         DrawerSectionLabel(text = stringResource(R.string.dashboard_quick_access))
         Spacer(modifier = Modifier.height(10.dp))
@@ -114,7 +136,7 @@ fun PhoneHomeDrawerContent(
                 icon = SmartHomeIcons.Add,
                 selected = false,
                 onClick = {
-                    callbacks.onAddHomeClick()
+                    onAddHome()
                     onClose()
                 },
             )
@@ -123,7 +145,7 @@ fun PhoneHomeDrawerContent(
                 icon = SmartHomeIcons.Settings,
                 selected = false,
                 onClick = {
-                    callbacks.onSettingsClick()
+                    onSettings()
                     onClose()
                 },
             )
@@ -132,7 +154,7 @@ fun PhoneHomeDrawerContent(
                 icon = SmartHomeIcons.History,
                 selected = false,
                 onClick = {
-                    callbacks.onHistoryClick()
+                    onHistory()
                     onClose()
                 },
             )
@@ -145,7 +167,7 @@ fun PhoneHomeDrawerContent(
             icon = SmartHomeIcons.Logout,
             selected = false,
             onClick = {
-                callbacks.onLogoutClick()
+                onLogout()
                 onClose()
             },
             contentColor = ErrorRed,
@@ -153,6 +175,14 @@ fun PhoneHomeDrawerContent(
         )
     }
 }
+
+private fun HomeType.toDrawerIcon(): ImageVector =
+    when (this) {
+        HomeType.CASA -> SmartHomeIcons.Home
+        HomeType.DEPARTAMENTO -> SmartHomeIcons.Apartment
+        HomeType.OFICINA -> SmartHomeIcons.Office
+        HomeType.OTRO -> SmartHomeIcons.Home
+    }
 
 @Composable
 private fun DrawerUserHeader(userName: String) {
@@ -249,8 +279,3 @@ private fun DrawerActionRow(
         }
     }
 }
-
-private data class DrawerHomeItem(
-    val name: String,
-    val icon: ImageVector,
-)

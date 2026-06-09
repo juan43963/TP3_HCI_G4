@@ -116,7 +116,12 @@ fun PhoneDashboardLayout(
             }
         },
         floatingActionButton = {
-            PhoneQuickAddFab(onClick = callbacks.onQuickAddClick)
+            if (callbacks.showQuickAddFab) {
+                PhoneQuickAddFab(
+                    onClick = callbacks.onQuickAddClick,
+                    contentDescriptionRes = R.string.quick_add_fab_open,
+                )
+            }
         },
     ) { innerPadding ->
         LazyColumn(

@@ -84,8 +84,25 @@ fun RoutinesScreen(
     onAddRoutine: () -> Unit = {},
     onNotificationsClick: () -> Unit = {},
     unreadNotificationCount: Int = 0,
+    onRoutineClick: (String) -> Unit = {},
+    showQuickAddFab: Boolean = true,
+    isTablet: Boolean = false,
+    onNavigateHome: () -> Unit = {},
+    onNavigateRooms: () -> Unit = {},
     routines: List<RoutineUi> = sampleRoutines,
 ) {
+    if (isTablet) {
+        TabletRoutinesScreen(
+            routines = routines,
+            onProfileClick = onProfileClick,
+            onAddRoutine = onAddRoutine,
+            onNavigateHome = onNavigateHome,
+            onNavigateRooms = onNavigateRooms,
+            onRoutineClick = onRoutineClick,
+        )
+        return
+    }
+
     var selectedCategory by remember { mutableStateOf<RoutineCategory?>(null) }
     val visibleRoutines = remember(selectedCategory, routines) {
         if (selectedCategory == null) routines
@@ -99,10 +116,13 @@ fun RoutinesScreen(
         onNotificationsClick = onNotificationsClick,
         notificationCount = unreadNotificationCount,
         floatingActionButton = {
-            PhoneQuickAddFab(
-                onClick = onAddRoutine,
-                modifier = Modifier.navigationBarsPadding(),
-            )
+            if (showQuickAddFab) {
+                PhoneQuickAddFab(
+                    onClick = onAddRoutine,
+                    modifier = Modifier.navigationBarsPadding(),
+                    contentDescriptionRes = R.string.quick_add_fab_open,
+                )
+            }
         },
     ) { innerPadding ->
         LazyColumn(
@@ -142,15 +162,49 @@ fun RoutinesScreen(
                     onCategorySelected = { selectedCategory = it },
                 )
             }
-            items(items = visibleRoutines, key = { it.id }) { routine ->
-                RoutineCard(routine = routine)
+            if (routines.isEmpty()) {
+                item {
+                    RoutinesEmptyStateCard(
+                        onCreateRoutineClick = onAddRoutine,
+                        compact = true,
+                    )
+                }
+            } else {
+                items(items = visibleRoutines, key = { it.id }) { routine ->
+                    RoutineCard(
+                        routine = routine,
+                        onClick = { onRoutineClick(routine.id) },
+                    )
+                }
             }
         }
     }
 }
 
+@Preview(name = "Routines Phone - Sin rutinas", showBackground = true, showSystemUi = true)
 @Composable
-private fun CategoryFilter(
+private fun RoutinesScreenEmptyPreview() {
+    SmartHomeTheme(darkTheme = false) {
+        RoutinesScreen(
+            routines = emptyList(),
+            showQuickAddFab = true,
+        )
+    }
+}
+
+@Preview(name = "Routines Tablet - Sin rutinas", showBackground = true, widthDp = 1280, heightDp = 800)
+@Composable
+private fun RoutinesScreenTabletEmptyPreview() {
+    SmartHomeTheme(darkTheme = false) {
+        RoutinesScreen(
+            routines = emptyList(),
+            isTablet = true,
+        )
+    }
+}
+
+@Composable
+internal fun CategoryFilter(
     routines: List<RoutineUi>,
     selectedCategory: RoutineCategory?,
     onCategorySelected: (RoutineCategory?) -> Unit,
@@ -241,9 +295,12 @@ private fun FilterChip(
 }
 
 @Composable
-private fun RoutineCard(routine: RoutineUi) {
+internal fun RoutineCard(routine: RoutineUi, onClick: () -> Unit = {}) {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 1.dp,
@@ -427,7 +484,7 @@ private fun PlayButton(onClick: () -> Unit) {
     }
 }
 
-private val sampleRoutines = listOf(
+internal val sampleRoutines = listOf(
     RoutineUi(
         id = "night",
         name = "Buenas noches",
@@ -473,5 +530,21 @@ private fun RoutinesScreenLightPreview() {
 private fun RoutinesScreenDarkPreview() {
     SmartHomeTheme(darkTheme = true) {
         RoutinesScreen()
+    }
+}
+
+@Preview(name = "Tablet landscape", showBackground = true, widthDp = 1280, heightDp = 800)
+@Composable
+private fun RoutinesScreenTabletPreview() {
+    SmartHomeTheme(darkTheme = false) {
+        RoutinesScreen(isTablet = true)
+    }
+}
+
+@Preview(name = "Tablet portrait", showBackground = true, widthDp = 834, heightDp = 1194)
+@Composable
+private fun RoutinesScreenTabletPortraitPreview() {
+    SmartHomeTheme(darkTheme = false) {
+        RoutinesScreen(isTablet = true)
     }
 }

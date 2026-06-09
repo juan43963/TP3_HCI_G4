@@ -49,6 +49,7 @@
     <string name="login_field_password_label">Contraseña</string>
     <string name="login_forgot_password">¿Olvidaste tu contraseña?</string>
     <string name="login_cta_submit">Ingresar</string>
+    <string name="login_cta_submitting">Ingresando...</string>
 
     <!-- Register -->
     <string name="register_step_personal">Datos personales</string>
@@ -63,6 +64,7 @@
     <string name="register_cta_continue">Continuar</string>
     <string name="register_cta_back">Volver</string>
     <string name="register_cta_create">Crear cuenta</string>
+    <string name="register_cta_creating">Creando...</string>
     <string name="register_footer_question">¿Ya tenés cuenta?</string>
     <string name="register_footer_login">Iniciá sesión</string>
     <string name="register_tagline">Controlá luces, clima, persianas y rutinas</string>
@@ -76,6 +78,7 @@
     <string name="verify_field_placeholder">ej: 935cebef22f50c5</string>
     <string name="verify_field_helper">Ingresá el código de 16 caracteres que recibiste por email</string>
     <string name="verify_cta_submit">Verificar cuenta</string>
+    <string name="verify_cta_submitting">Verificando...</string>
     <string name="verify_resend_question">¿No recibiste el código?</string>
     <string name="verify_resend_link">Reenviar</string>
     <string name="verify_back_to_login">Volver a iniciar sesión</string>
@@ -111,6 +114,7 @@
     <string name="recover_field_email_label">Email</string>
     <string name="recover_field_email_placeholder">tu@email.com</string>
     <string name="recover_cta_send_link">Enviar enlace de recuperación</string>
+    <string name="recover_cta_sending">Enviando...</string>
     <string name="recover_back_to_login">Volver a iniciar sesión</string>
     <string name="recover_sent_title">Revisá tu email</string>
     <string name="recover_sent_body_prefix">Te enviamos un enlace de recuperación a</string>
@@ -131,6 +135,7 @@
     <string name="change_pwd_field_confirm_placeholder">Repetí la contraseña</string>
     <string name="change_pwd_mismatch">Las contraseñas no coinciden</string>
     <string name="change_pwd_cta_submit">Crear nueva contraseña</string>
+    <string name="change_pwd_cta_submitting">Creando...</string>
     <string name="change_pwd_back_to_login">Volver a iniciar sesión</string>
 
     <!-- Select Home -->
@@ -138,12 +143,34 @@
     <string name="select_home_welcome_title">¡Bienvenido,\n%1$s!</string>
     <string name="select_home_welcome_title_inline">¡Bienvenido, %1$s!</string>
     <string name="select_home_subtitle">Seleccioná el entorno que querés gestionar hoy.</string>
+    <string name="select_home_empty_title">Todavía no tenés hogares</string>
+    <string name="select_home_empty_body">Creá tu primer hogar para empezar a gestionarlo.</string>
+    <string name="select_home_retry">Reintentar</string>
     <string name="select_home_rooms_count">%1$d habitaciones</string>
     <string name="select_home_devices_count">%1$d dispositivos</string>
     <string name="select_home_photo_placeholder">Foto · %1$s</string>
     <string name="select_home_browse_files">or browse files</string>
     <string name="select_home_card_menu_content_description">Más opciones</string>
     <string name="select_home_add_home_content_description">Agregar hogar</string>
+    <string name="select_home_menu_share">Compartir</string>
+    <string name="select_home_menu_rename">Renombrar</string>
+    <string name="select_home_menu_delete">Eliminar</string>
+    <string name="select_home_rename_title">Renombrar hogar</string>
+    <string name="select_home_rename_subtitle">Modificá el nombre de tu hogar.</string>
+    <string name="select_home_rename_label">Nombre del hogar</string>
+    <string name="select_home_rename_confirm">Guardar cambios</string>
+    <string name="select_home_delete_title">Eliminar hogar</string>
+    <string name="select_home_delete_message">¿Seguro que querés eliminar el hogar «%1$s»? Esta acción no se puede deshacer.</string>
+    <string name="select_home_delete_confirm">Eliminar</string>
+    <string name="select_home_share_title">Compartir hogar</string>
+    <string name="select_home_share_subtitle">Invitá a otros usuarios a gestionar este hogar.</string>
+    <string name="select_home_share_label">Agregar por email</string>
+    <string name="select_home_share_placeholder">ejemplo@mail.com</string>
+    <string name="select_home_share_confirm">Compartir</string>
+    <string name="select_home_share_current">Compartido con (%1$d)</string>
+    <string name="select_home_share_empty">Todavía no compartiste este hogar.</string>
+    <string name="select_home_share_close">Cerrar</string>
+    <string name="select_home_dialog_cancel">Cancelar</string>
 
     <!-- Dashboard -->
     <string name="dashboard_title">Inicio</string>
@@ -165,12 +192,18 @@
     <string name="dashboard_empty_home_title">Empezá organizando tu hogar</string>
     <string name="dashboard_empty_home_description">Creá tu primera habitación para agrupar tus dispositivos por espacios y empezar a controlar tu casa de forma más ordenada.</string>
     <string name="dashboard_empty_home_note">Más adelante vas a poder crear rutinas para automatizar acciones frecuentes.</string>
-    <string name="dashboard_empty_favorite_rooms">Marcá tus habitaciones más usadas con la estrella desde Habitaciones para tenerlas siempre a mano.</string>
+    <string name="dashboard_empty_favorite_rooms_prefix">Marcá tus habitaciones más usadas con la estrella desde</string>
+    <string name="dashboard_empty_favorite_rooms_target">Habitaciones</string>
+    <string name="dashboard_empty_favorite_rooms_suffix">para tenerlas siempre a mano.</string>
+    <string name="dashboard_go_to_rooms">Ir a Habitaciones</string>
     <string name="dashboard_empty_routines_title">Todavía no creaste ninguna rutina</string>
     <string name="dashboard_empty_routines_description">Automatizá acciones frecuentes para ahorrar tiempo y hacer tu hogar más cómodo.</string>
     <string name="dashboard_empty_routines_example">Ejemplo: encender luces al atardecer</string>
     <string name="dashboard_empty_routines_help">Usá el botón “Crear rutina” para empezar.</string>
-    <string name="dashboard_empty_favorite_routines">Marcá tus rutinas favoritas con la estrella desde Rutinas para tenerlas a un click.</string>
+    <string name="dashboard_empty_favorite_routines_prefix">Marcá tus rutinas favoritas con la estrella desde</string>
+    <string name="dashboard_empty_favorite_routines_target">Rutinas</string>
+    <string name="dashboard_empty_favorite_routines_suffix">para tenerlas a un click.</string>
+    <string name="dashboard_go_to_routines">Ir a Rutinas</string>
     <string name="dashboard_room_placeholder_label">Habitación favorita</string>
     <string name="dashboard_routine_placeholder_label">Rutina favorita</string>
     <string name="dashboard_placeholder_status">Lista para completar</string>
@@ -179,14 +212,52 @@
     <string name="dashboard_search_content_description">Abrir búsqueda</string>
     <string name="dashboard_search_close_content_description">Cerrar búsqueda</string>
     <string name="dashboard_fab_content_description">Agregar</string>
+
+    <!-- Quick Actions FAB -->
+    <string name="quick_add_fab_open">Abrir acciones rápidas</string>
+    <string name="quick_add_fab_close">Cerrar acciones rápidas</string>
+    <string name="quick_add_close_short">Cerrar</string>
+    <string name="quick_add_room">Agregar habitación</string>
+    <string name="quick_add_device">Agregar dispositivo</string>
+    <string name="quick_add_routine">Agregar rutina</string>
     <string name="dashboard_my_homes">Mis hogares</string>
     <string name="dashboard_home_main">Casa Principal</string>
     <string name="dashboard_home_apartment">Departamento</string>
     <string name="dashboard_home_office">Oficina</string>
+    <string name="dashboard_see_more_homes">Ver más hogares</string>
     <string name="dashboard_quick_access">Accesos rápidos</string>
     <string name="dashboard_add_home">Agregar nuevo hogar</string>
     <string name="dashboard_settings">Ajustes</string>
     <string name="dashboard_logout">Cerrar sesión</string>
+
+    <!-- Add Home -->
+    <string name="add_home_title">Agregar nuevo hogar</string>
+    <string name="add_home_step">Paso 1 de 1</string>
+    <string name="add_home_subtitle">Definí los datos básicos. Podrás editarlos cuando quieras.</string>
+    <string name="add_home_photo_section">Elegí una foto</string>
+    <string name="add_home_upload_photo">Subir foto</string>
+    <string name="add_home_upload_drag">Subir foto o arrastrar</string>
+    <string name="add_home_upload_hint">JPG o PNG, máx. 5MB</string>
+    <string name="add_home_name_label">Nombre *</string>
+    <string name="add_home_name_placeholder">Ej: Casa de la sierra</string>
+    <string name="add_home_name_error">El nombre es obligatorio.</string>
+    <string name="add_home_type_section">Tipo</string>
+    <string name="add_home_type_casa">Casa</string>
+    <string name="add_home_type_departamento">Departamento</string>
+    <string name="add_home_type_oficina">Oficina</string>
+    <string name="add_home_type_otro">Otro</string>
+    <string name="add_home_share_section">Compartir (opcional)</string>
+    <string name="add_home_share_placeholder">ejemplo@mail.com</string>
+    <string name="add_home_share_add_button">Agregar</string>
+    <string name="add_home_cta">Crear hogar</string>
+    <string name="add_home_creating">Creando...</string>
+    <string name="add_home_back_description">Volver</string>
+    <string name="add_home_close_description">Cerrar</string>
+    <string name="add_home_photo_content_description">Foto de hogar %1$d</string>
+    <string name="add_home_name_placeholder_mobile">Ej.: Cabaña en la montaña</string>
+    <string name="add_home_fotos_section">Fotos</string>
+    <string name="add_home_photo_label">Foto</string>
+    <string name="add_home_gallery_button">Subir desde galería</string>
 
     <!-- Rooms -->
     <string name="rooms_search_placeholder">Buscar habitaciones...</string>
@@ -215,7 +286,14 @@
     <string name="rooms_active_fraction">%1$d/%2$d</string>
     <string name="rooms_empty_title">Sin habitaciones</string>
     <string name="rooms_empty_description">Aún no hay habitaciones en este hogar.</string>
-    <string name="rooms_empty_cta">Agregar primera habitación</string>
+    <string name="rooms_empty_cta">Crear habitación</string>
+    <string name="rooms_empty_home_title">Sin habitaciones todavía</string>
+    <string name="rooms_empty_home_description">Creá tu primera habitación para empezar a organizar tus dispositivos.</string>
+    <string name="rooms_empty_home_help">Ver cómo funciona</string>
+    <string name="rooms_empty_detail_title">Cuando crees o selecciones una habitación,</string>
+    <string name="rooms_empty_detail_description">acá vas a ver sus dispositivos y controles.</string>
+    <string name="rooms_empty_detail_example">Explorar ejemplo</string>
+    <string name="rooms_empty_detail_or">ó</string>
     <string name="rooms_no_results_title">Sin resultados</string>
     <string name="rooms_no_results_description">No se encontraron habitaciones que coincidan con tu búsqueda.</string>
     <string name="rooms_clear_search">Limpiar búsqueda</string>
@@ -295,12 +373,14 @@
     <string name="rooms_device_type_door">Puerta</string>
     <string name="rooms_device_type_alarm">Alarma</string>
     <string name="rooms_device_type_fridge">Heladera</string>
+    <string name="rooms_retry">Reintentar</string>
 
     <!-- Routines -->
     <string name="routines_header_title">Rutinas Automatizadas</string>
     <string name="routines_header_subtitle">Creá y gestioná rutinas para automatizar tu hogar.</string>
     <string name="routines_filter_label">Filtrar por categoría</string>
     <string name="routines_filter_all">Todas</string>
+    <string name="routines_search_placeholder">Buscar rutinas...</string>
     <string name="routines_category_morning">Mañana</string>
     <string name="routines_category_night">Noche</string>
     <string name="routines_category_comfort">Confort</string>
@@ -309,6 +389,113 @@
     <string name="routines_favorite_content_description">Marcar como favorita</string>
     <string name="routines_play_content_description">Ejecutar rutina</string>
     <string name="routines_add_content_description">Crear rutina</string>
+    <string name="routines_empty_title">Sin rutinas</string>
+    <string name="routines_empty_description">Todavía no hay rutinas para mostrar.</string>
+    <string name="routines_empty_create_first">Crear primera rutina</string>
+    <string name="routines_empty_detail_title">Detalle de la rutina</string>
+    <string name="routines_empty_detail_description">Cuando selecciones o crees una rutina, acá vas a ver su configuración, horario y acciones.</string>
+    <string name="routines_empty_detail_action">Seleccioná o crea una rutina</string>
+
+    <!-- Create routine flow -->
+    <string name="create_routine_step_one_label">NUEVA RUTINA · PASO 1 DE 2</string>
+    <string name="create_routine_step_two_label">NUEVA RUTINA · PASO 2 DE 2</string>
+    <string name="create_routine_details_title">Detalles y programación</string>
+    <string name="create_routine_details_subtitle">Configurá nombre, categoría y cuándo se ejecuta</string>
+    <string name="create_routine_actions_title">Acciones de la rutina</string>
+    <string name="create_routine_actions_subtitle">Agregá las acciones que ejecutará tu rutina</string>
+    <string name="create_routine_step_details">Detalles</string>
+    <string name="create_routine_step_actions">Acciones</string>
+    <string name="create_routine_name_label">Nombre</string>
+    <string name="create_routine_name_placeholder">Ej: Buenos Días</string>
+    <string name="create_routine_description_label">Descripción (opcional)</string>
+    <string name="create_routine_description_placeholder">Ej: Despierta con el ambiente perfecto</string>
+    <string name="create_routine_category_label">Categoría</string>
+    <string name="create_routine_category_morning">Mañana</string>
+    <string name="create_routine_category_night">Noche</string>
+    <string name="create_routine_category_comfort">Confort</string>
+    <string name="create_routine_category_security">Seguridad</string>
+    <string name="create_routine_category_custom">Personalizada</string>
+    <string name="create_routine_activation_label">Activación</string>
+    <string name="create_routine_activation_schedule">Por horario</string>
+    <string name="create_routine_activation_manual">Manual</string>
+    <string name="create_routine_time_label">Hora</string>
+    <string name="create_routine_time_value">07:00 a.m.</string>
+    <string name="create_routine_repeat_label">Repetición</string>
+    <string name="create_routine_next">Siguiente</string>
+    <string name="create_routine_back">Atrás</string>
+    <string name="create_routine_create">Crear rutina</string>
+    <string name="create_routine_add_action">Añadir acción</string>
+    <string name="create_routine_add_action_subtitle">Elegí dispositivo, acción y valor</string>
+    <string name="create_routine_add_action_cta">Agregar acción</string>
+    <string name="create_routine_summary_temperature">Cambiar temperatura: 4</string>
+    <string name="create_routine_device_step_label">PASO 1 DE 3 — ELEGÍ EL DISPOSITIVO</string>
+    <string name="create_routine_search_placeholder">Buscar por nombre o habitación...</string>
+    <string name="create_routine_devices_title">Dispositivos disponibles</string>
+    <string name="create_routine_devices_subtitle">Tocá uno para seleccionarlo</string>
+    <string name="create_routine_device_fridge">Heladera</string>
+    <string name="create_routine_device_fridge_room">hhh</string>
+    <string name="create_routine_device_living_light">Luz del living</string>
+    <string name="create_routine_device_living_room">Living</string>
+    <string name="create_routine_device_ac">Aire acondicionado</string>
+    <string name="create_routine_device_bedroom">Dormitorio</string>
+    <string name="create_routine_action_step_label">PASO 2 DE 3 — ELEGÍ LA ACCIÓN</string>
+    <string name="create_routine_action_question">¿Qué acción querés ejecutar en %1$s?</string>
+    <string name="create_routine_action_freezer_temperature">Cambiar temperatura del freezer</string>
+    <string name="create_routine_action_temperature">Cambiar temperatura</string>
+    <string name="create_routine_action_mode">Cambiar modo</string>
+    <string name="create_routine_parameters_step_label">PASO 3 DE 3 — COMPLETÁ LOS PARÁMETROS</string>
+    <string name="create_routine_parameter_prompt">Completá los parámetros para %1$s.</string>
+    <string name="create_routine_temperature_label">temperature</string>
+    <string name="create_routine_temperature_description"> — temperature in centigrades</string>
+    <string name="create_routine_back_description">Volver</string>
+    <string name="create_routine_close_description">Cerrar</string>
+
+    <!-- Routine detail -->
+    <string name="routine_detail_title">Detalle de rutina</string>
+    <string name="routine_detail_back">Volver</string>
+    <string name="routine_detail_more_options">Más opciones</string>
+    <string name="routine_detail_rename">Renombrar rutina</string>
+    <string name="routine_detail_delete">Eliminar rutina</string>
+    <string name="routine_detail_automated">Rutina automatizada</string>
+    <string name="routine_detail_enabled">Activar rutina</string>
+    <string name="routine_detail_summary_actions">%1$d acciones</string>
+    <string name="routine_detail_schedule_title">Horario</string>
+    <string name="routine_detail_days_title">Días</string>
+    <string name="routine_detail_actions_title">Acciones</string>
+    <string name="routine_detail_add_action">Añadir acción</string>
+    <string name="routine_detail_save">Guardar cambios</string>
+    <string name="routine_detail_reorder">Reordenar acción</string>
+    <string name="action_cancel">Cancelar</string>
+    <!-- Rename dialog -->
+    <string name="routine_rename_title">Renombrar rutina</string>
+    <string name="routine_rename_label">Nombre de la rutina</string>
+    <string name="routine_rename_placeholder">Ej: Buenos días</string>
+    <string name="routine_rename_confirm">Guardar</string>
+    <!-- Delete dialog -->
+    <string name="routine_delete_title">Eliminar rutina</string>
+    <string name="routine_delete_message">¿Seguro que querés eliminar “%1$s”? Esta acción no se puede deshacer.</string>
+    <string name="routine_delete_confirm">Eliminar</string>
+    <!-- Schedule dialog -->
+    <string name="routine_schedule_title">Editar horario</string>
+    <string name="routine_schedule_subtitle">Elegí la hora en la que se ejecuta la rutina.</string>
+    <string name="routine_schedule_confirm">Guardar</string>
+    <!-- Days dialog -->
+    <string name="routine_days_title">Editar días</string>
+    <string name="routine_days_subtitle">Seleccioná los días en los que se repite la rutina.</string>
+    <string name="routine_days_confirm">Guardar</string>
+    <string name="routine_days_empty">Sin días</string>
+    <string name="routine_days_everyday">Todos los días</string>
+    <string name="routine_days_weekdays">Lun a Vie</string>
+    <string name="routine_days_weekend">Fin de semana</string>
+    <string-array name="routines_day_names">
+        <item>Lunes</item>
+        <item>Martes</item>
+        <item>Miércoles</item>
+        <item>Jueves</item>
+        <item>Viernes</item>
+        <item>Sábado</item>
+        <item>Domingo</item>
+    </string-array>
     <string-array name="routines_day_initials">
         <item>L</item>
         <item>M</item>

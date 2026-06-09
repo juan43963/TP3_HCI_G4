@@ -4,6 +4,21 @@ data class Home(
     val id: String,
     val name: String,
     val rooms: List<Room>,
+    val type: HomeType = HomeType.OTRO,
+    val photoIndex: Int? = null,
+)
+
+enum class HomeType {
+    CASA,
+    DEPARTAMENTO,
+    OFICINA,
+    OTRO,
+}
+
+data class SharedUser(
+    val id: String,
+    val email: String,
+    val name: String,
 )
 
 data class Room(

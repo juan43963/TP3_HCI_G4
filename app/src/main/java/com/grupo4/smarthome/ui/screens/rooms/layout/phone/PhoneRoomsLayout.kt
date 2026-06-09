@@ -65,6 +65,7 @@ import com.grupo4.smarthome.ui.screens.rooms.components.RoomCard
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomCardVariant
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsEditIconButton
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsFilterChips
+import com.grupo4.smarthome.ui.screens.rooms.components.RoomsHomeEmptyState
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsSummaryMetrics
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsSoftBorder
 import com.grupo4.smarthome.ui.theme.BrandIndigoDark
@@ -213,11 +214,10 @@ private fun PhoneRoomsList(
         when {
             presentation.isEmptyHome -> {
                 item {
-                    PhoneRoomsEmptyState(
-                        title = stringResource(R.string.rooms_phone_empty_home_title),
-                        description = stringResource(R.string.rooms_phone_empty_home_description),
+                    RoomsHomeEmptyState(
                         buttonLabel = stringResource(R.string.rooms_empty_cta),
-                        onButtonClick = callbacks.onCreateRoomClick,
+                        onCreateRoomClick = callbacks.onCreateRoomClick,
+                        compact = true,
                     )
                 }
             }

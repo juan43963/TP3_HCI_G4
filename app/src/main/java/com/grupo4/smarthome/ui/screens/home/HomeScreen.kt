@@ -17,6 +17,9 @@ fun HomeScreen(
     onNavigateHistory: () -> Unit = {},
     onNavigateNotifications: () -> Unit = {},
     unreadNotificationCount: Int = 0,
+    onQuickActionsOpen: () -> Unit = {},
+    onCreateRoutine: () -> Unit = {},
+    showQuickAddFab: Boolean = true,
 ) {
     DashboardScreen(
         windowSize = windowSize,
@@ -30,6 +33,9 @@ fun HomeScreen(
             onProfileClick = onNavigateProfile,
             onHistoryClick = onNavigateHistory,
             onNotificationsClick = onNavigateNotifications,
+            onCreateRoutine = onCreateRoutine,
+            onQuickAddClick = onQuickActionsOpen,
+            showQuickAddFab = showQuickAddFab,
         ),
     )
 }

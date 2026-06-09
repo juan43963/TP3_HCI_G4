@@ -5,6 +5,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.grupo4.smarthome.ui.screens.dashboard.layout.TabletDashboardLayout
 import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneDashboardLayout
 import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneHomeDrawerContent
+import com.grupo4.smarthome.data.model.HomeType
+import com.grupo4.smarthome.ui.screens.selecthome.SelectableHome
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 
 @Preview(
@@ -144,8 +146,19 @@ private fun DashboardPhoneNoRoutineFavoritesPreview() {
 private fun DashboardPhoneDrawerPreview() {
     SmartHomeTheme(darkTheme = false) {
         PhoneHomeDrawerContent(
-            state = DashboardPreviewData.populated,
-            callbacks = DashboardCallbacks(),
+            userName = "Usuario",
+            homes = listOf(
+                SelectableHome("1", "Casa Principal", roomsCount = 3, devicesCount = 8, type = HomeType.CASA),
+                SelectableHome("2", "Departamento", roomsCount = 2, devicesCount = 4, type = HomeType.DEPARTAMENTO),
+                SelectableHome("3", "Oficina", roomsCount = 1, devicesCount = 2, type = HomeType.OFICINA),
+            ),
+            activeHomeId = "1",
+            onHomeSelected = {},
+            onSeeMoreHomes = {},
+            onAddHome = {},
+            onSettings = {},
+            onHistory = {},
+            onLogout = {},
             onClose = {},
         )
     }

@@ -27,10 +27,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -57,12 +59,37 @@ fun LoginScreenTablet(
     onNavigateToRegister: () -> Unit,
     onNavigateToForgotPassword: () -> Unit,
     onLoginSuccess: () -> Unit,
+    viewModel: LoginViewModel,
 ) {
-    var email by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
-    var passwordVisible by rememberSaveable { mutableStateOf(false) }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val canSubmit = email.isNotBlank() && password.isNotBlank()
+    LaunchedEffect(uiState.loggedIn) {
+        if (uiState.loggedIn) {
+            viewModel.consumeLoggedIn()
+            onLoginSuccess()
+        }
+    }
+
+    LoginTabletContent(
+        uiState = uiState,
+        onEmailChange = viewModel::onEmailChange,
+        onPasswordChange = viewModel::onPasswordChange,
+        onLogin = viewModel::login,
+        onNavigateToRegister = onNavigateToRegister,
+        onNavigateToForgotPassword = onNavigateToForgotPassword,
+    )
+}
+
+@Composable
+private fun LoginTabletContent(
+    uiState: LoginUiState,
+    onEmailChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onLogin: () -> Unit,
+    onNavigateToRegister: () -> Unit,
+    onNavigateToForgotPassword: () -> Unit,
+) {
+    var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -106,8 +133,8 @@ fun LoginScreenTablet(
             )
             Spacer(modifier = Modifier.height(8.dp))
             AuthRoundedField(
-                value = email,
-                onValueChange = { email = it },
+                value = uiState.email,
+                onValueChange = onEmailChange,
                 placeholder = stringResource(R.string.login_field_email_placeholder),
                 tablet = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
@@ -136,8 +163,8 @@ fun LoginScreenTablet(
             }
             Spacer(modifier = Modifier.height(8.dp))
             AuthRoundedField(
-                value = password,
-                onValueChange = { password = it },
+                value = uiState.password,
+                onValueChange = onPasswordChange,
                 placeholder = "",
                 tablet = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -155,11 +182,21 @@ fun LoginScreenTablet(
                 },
             )
 
+            if (uiState.errorMessage != null) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = uiState.errorMessage,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center,
+                )
+            }
+
             Spacer(modifier = Modifier.height(28.dp))
 
             Button(
-                onClick = onLoginSuccess,
-                enabled = canSubmit,
+                onClick = onLogin,
+                enabled = uiState.canSubmit,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp),
@@ -173,7 +210,10 @@ fun LoginScreenTablet(
                 ),
             ) {
                 Text(
-                    text = stringResource(R.string.login_cta_submit),
+                    text = stringResource(
+                        if (uiState.isLoading) R.string.login_cta_submitting
+                        else R.string.login_cta_submit
+                    ),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -220,10 +260,13 @@ private fun RegisterLinkTablet(onClick: () -> Unit) {
 @Composable
 private fun LoginScreenTabletPreview() {
     SmartHomeTheme(darkTheme = false) {
-        LoginScreenTablet(
+        LoginTabletContent(
+            uiState = LoginUiState(),
+            onEmailChange = {},
+            onPasswordChange = {},
+            onLogin = {},
             onNavigateToRegister = {},
             onNavigateToForgotPassword = {},
-            onLoginSuccess = {},
         )
     }
 }
@@ -236,10 +279,13 @@ private fun LoginScreenTabletPreview() {
 @Composable
 private fun LoginScreenTabletDarkPreview() {
     SmartHomeTheme(darkTheme = true) {
-        LoginScreenTablet(
+        LoginTabletContent(
+            uiState = LoginUiState(),
+            onEmailChange = {},
+            onPasswordChange = {},
+            onLogin = {},
             onNavigateToRegister = {},
             onNavigateToForgotPassword = {},
-            onLoginSuccess = {},
         )
     }
 }

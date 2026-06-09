@@ -26,9 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -52,11 +50,28 @@ private val TabletFormMaxWidth = 560.dp
 fun RecoverPasswordScreenTablet(
     onLinkSent: (String) -> Unit,
     onBackToLogin: () -> Unit,
+    viewModel: RecoverPasswordViewModel,
 ) {
-    var email by rememberSaveable { mutableStateOf("") }
-    var linkSent by rememberSaveable { mutableStateOf(false) }
-    val canSubmit = email.isNotBlank() && email.contains("@")
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    RecoverPasswordTabletContent(
+        uiState = uiState,
+        onEmailChange = viewModel::onEmailChange,
+        onSendCode = viewModel::sendCode,
+        onResend = viewModel::onResend,
+        onLinkSent = onLinkSent,
+        onBackToLogin = onBackToLogin,
+    )
+}
 
+@Composable
+private fun RecoverPasswordTabletContent(
+    uiState: RecoverPasswordUiState,
+    onEmailChange: (String) -> Unit,
+    onSendCode: () -> Unit,
+    onResend: () -> Unit,
+    onLinkSent: (String) -> Unit,
+    onBackToLogin: () -> Unit,
+) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -78,7 +93,7 @@ fun RecoverPasswordScreenTablet(
                 .padding(horizontal = 40.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            if (!linkSent) {
+            if (!uiState.codeSent) {
                 IconBadgeTablet(icon = Icons.Outlined.Lock)
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -108,19 +123,32 @@ fun RecoverPasswordScreenTablet(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 AuthRoundedField(
-                    value = email,
-                    onValueChange = { email = it },
+                    value = uiState.email,
+                    onValueChange = onEmailChange,
                     placeholder = stringResource(R.string.recover_field_email_placeholder),
                     tablet = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 )
 
+                if (uiState.errorMessage != null) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = uiState.errorMessage,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.error,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(28.dp))
 
                 PrimaryButtonTablet(
-                    text = stringResource(R.string.recover_cta_send_link),
-                    enabled = canSubmit,
-                    onClick = { linkSent = true },
+                    text = stringResource(
+                        if (uiState.isLoading) R.string.recover_cta_sending
+                        else R.string.recover_cta_send_link
+                    ),
+                    enabled = uiState.canSubmit,
+                    onClick = onSendCode,
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -156,7 +184,7 @@ fun RecoverPasswordScreenTablet(
                             append(" ")
                         }
                         withStyle(SpanStyle(color = strong, fontWeight = FontWeight.SemiBold)) {
-                            append(email)
+                            append(uiState.email)
                         }
                         append(". ")
                         withStyle(SpanStyle(color = muted)) {
@@ -172,7 +200,7 @@ fun RecoverPasswordScreenTablet(
                 PrimaryButtonTablet(
                     text = stringResource(R.string.recover_cta_enter_code),
                     enabled = true,
-                    onClick = { onLinkSent(email) },
+                    onClick = { onLinkSent(uiState.email) },
                 )
 
                 Spacer(modifier = Modifier.height(14.dp))
@@ -184,7 +212,7 @@ fun RecoverPasswordScreenTablet(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                ResendFooterTablet(onResendClick = { linkSent = false })
+                ResendFooterTablet(onResendClick = onResend)
             }
         }
     }
@@ -291,7 +319,14 @@ private fun ResendFooterTablet(onResendClick: () -> Unit) {
 @Composable
 private fun RecoverPasswordScreenTabletPreview() {
     SmartHomeTheme(darkTheme = false) {
-        RecoverPasswordScreenTablet(onLinkSent = {}, onBackToLogin = {})
+        RecoverPasswordTabletContent(
+            uiState = RecoverPasswordUiState(),
+            onEmailChange = {},
+            onSendCode = {},
+            onResend = {},
+            onLinkSent = {},
+            onBackToLogin = {},
+        )
     }
 }
 
@@ -303,6 +338,13 @@ private fun RecoverPasswordScreenTabletPreview() {
 @Composable
 private fun RecoverPasswordScreenTabletDarkPreview() {
     SmartHomeTheme(darkTheme = true) {
-        RecoverPasswordScreenTablet(onLinkSent = {}, onBackToLogin = {})
+        RecoverPasswordTabletContent(
+            uiState = RecoverPasswordUiState(codeSent = true, email = "juanperez@gmail.com"),
+            onEmailChange = {},
+            onSendCode = {},
+            onResend = {},
+            onLinkSent = {},
+            onBackToLogin = {},
+        )
     }
 }

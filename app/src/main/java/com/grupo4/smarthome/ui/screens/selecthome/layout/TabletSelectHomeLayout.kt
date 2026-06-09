@@ -23,6 +23,9 @@ import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.screens.dashboard.layout.DashboardScaffold
 import com.grupo4.smarthome.ui.screens.selecthome.HomeCard
+import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeEmpty
+import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeError
+import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeLoading
 import com.grupo4.smarthome.ui.screens.selecthome.SelectableHome
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 
@@ -33,7 +36,13 @@ fun TabletSelectHomeLayout(
     onHomeSelected: (SelectableHome) -> Unit,
     onAddHome: () -> Unit,
     onProfileClick: () -> Unit,
+    isLoading: Boolean = false,
+    errorMessage: String? = null,
+    onRetry: () -> Unit = {},
     modifier: Modifier = Modifier,
+    onShareHome: (SelectableHome) -> Unit = {},
+    onRenameHome: (SelectableHome) -> Unit = {},
+    onDeleteHome: (SelectableHome) -> Unit = {},
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val portraitLike = maxWidth < 900.dp
@@ -92,11 +101,25 @@ fun TabletSelectHomeLayout(
                             )
                         }
                     }
-                    items(items = homes, key = { it.id }) { home ->
-                        HomeCard(
-                            home = home,
-                            onClick = { onHomeSelected(home) },
-                        )
+                    when {
+                        isLoading && homes.isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) {
+                            SelectHomeLoading()
+                        }
+                        errorMessage != null && homes.isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) {
+                            SelectHomeError(message = errorMessage, onRetry = onRetry)
+                        }
+                        homes.isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) {
+                            SelectHomeEmpty()
+                        }
+                        else -> items(items = homes, key = { it.id }) { home ->
+                            HomeCard(
+                                home = home,
+                                onClick = { onHomeSelected(home) },
+                                onShare = { onShareHome(home) },
+                                onRename = { onRenameHome(home) },
+                                onDelete = { onDeleteHome(home) },
+                            )
+                        }
                     }
                 }
             },

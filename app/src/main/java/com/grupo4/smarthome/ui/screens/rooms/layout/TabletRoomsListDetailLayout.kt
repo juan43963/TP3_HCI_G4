@@ -48,9 +48,11 @@ import com.grupo4.smarthome.ui.screens.rooms.components.DeviceCard
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomCard
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomCardVariant
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsEditIconButton
+import com.grupo4.smarthome.ui.screens.rooms.components.RoomsEmptyDetailPlaceholder
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsEmptyState
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsFilterChips
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsHeader
+import com.grupo4.smarthome.ui.screens.rooms.components.RoomsHomeEmptyState
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsTopBar
 import com.grupo4.smarthome.ui.theme.BrandIndigoDark
 import com.grupo4.smarthome.ui.theme.BorderDefault
@@ -183,12 +185,12 @@ private fun RoomsListPanel(
             )
             when {
                 presentation.isEmptyHome -> {
-                    RoomsEmptyState(
-                        title = stringResource(R.string.rooms_empty_title),
-                        description = stringResource(R.string.rooms_empty_description),
+                    RoomsHomeEmptyState(
                         buttonLabel = stringResource(R.string.rooms_empty_cta),
-                        onButtonClick = callbacks.onCreateRoomClick,
-                        modifier = Modifier.fillMaxWidth(),
+                        onCreateRoomClick = callbacks.onCreateRoomClick,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
                     )
                 }
                 presentation.hasNoResults -> {
@@ -239,11 +241,15 @@ private fun RoomDetailPanel(
 
     ListDetailPanelSurface(modifier = modifier) {
         if (room == null) {
-            NoRoomSelectedState(
-                isEmptyHome = presentation.isEmptyHome,
-                onCreateRoomClick = callbacks.onCreateRoomClick,
-                modifier = Modifier.fillMaxSize(),
-            )
+            if (presentation.isEmptyHome) {
+                RoomsEmptyDetailPlaceholder(modifier = Modifier.fillMaxSize())
+            } else {
+                NoRoomSelectedState(
+                    isEmptyHome = false,
+                    onCreateRoomClick = callbacks.onCreateRoomClick,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
             return@ListDetailPanelSurface
         }
 

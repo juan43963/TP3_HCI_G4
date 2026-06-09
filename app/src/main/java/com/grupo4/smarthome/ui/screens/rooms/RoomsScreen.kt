@@ -1,14 +1,35 @@
 package com.grupo4.smarthome.ui.screens.rooms
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.grupo4.smarthome.data.model.RoomType
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.grupo4.smarthome.R
+import com.grupo4.smarthome.SmartHomeApplication
 import com.grupo4.smarthome.ui.screens.rooms.dialogs.AddDevicesToRoomDialog
 import com.grupo4.smarthome.ui.screens.rooms.dialogs.AddEditRoomDialog
 import com.grupo4.smarthome.ui.screens.rooms.dialogs.DeleteDeviceDialog
@@ -27,6 +48,7 @@ private enum class RoomsDialogKind {
 
 @Composable
 fun RoomsScreen(
+    activeHomeId: String?,
     windowSize: WindowSizeClass? = null,
     modifier: Modifier = Modifier,
     onProfileClick: () -> Unit = {},
@@ -36,101 +58,120 @@ fun RoomsScreen(
     onNotificationsClick: () -> Unit = {},
     unreadNotificationCount: Int = 0,
 ) {
-    var rooms by remember { mutableStateOf(RoomsPreviewData.populated.rooms) }
-    var searchQuery by rememberSaveable { mutableStateOf("") }
-    var selectedRoomTypeName by rememberSaveable { mutableStateOf<String?>(null) }
-    var selectedRoomId by rememberSaveable { mutableStateOf<String?>(null) }
-    var editRoomsMode by rememberSaveable { mutableStateOf(false) }
-    var editDevicesMode by rememberSaveable { mutableStateOf(false) }
+    val application = LocalContext.current.applicationContext as SmartHomeApplication
+    val factory = remember(application) {
+        RoomsViewModelFactory(application.appContainer.roomsRepository)
+    }
+    val viewModel: RoomsViewModel = viewModel(factory = factory)
+    val baseState by viewModel.uiState.collectAsStateWithLifecycle()
+    val state = baseState.copy(unreadNotificationCount = unreadNotificationCount)
+
+    // Cargar/recargar cuando cambia el hogar activo (desde SelectHome / Preferences)
+    LaunchedEffect(activeHomeId) { viewModel.onHomeChanged(activeHomeId) }
+
+    // Estado de los diálogos: efímero y propio de la UI, vive en la screen
     var dialogKindName by rememberSaveable { mutableStateOf(RoomsDialogKind.None.name) }
     var dialogRoomId by rememberSaveable { mutableStateOf<String?>(null) }
     var dialogDeviceId by rememberSaveable { mutableStateOf<String?>(null) }
 
-    val selectedRoomType = selectedRoomTypeName?.let(RoomType::valueOf)
     val dialogKind = RoomsDialogKind.valueOf(dialogKindName)
-    val dialogRoom = dialogRoomId?.let { id -> rooms.firstOrNull { it.id == id } }
+    val dialogRoom = dialogRoomId?.let { id -> state.rooms.firstOrNull { it.id == id } }
     val dialogDevice = dialogDeviceId?.let { id ->
-        rooms.flatMap { it.devices }.firstOrNull { it.id == id }
+        state.rooms.flatMap { it.devices }.firstOrNull { it.id == id }
     }
-    val state = RoomsUiState(
-        rooms = rooms,
-        availableDeviceTypes = RoomsPreviewData.availableDeviceTypes,
-        searchQuery = searchQuery,
-        selectedRoomType = selectedRoomType,
-        selectedRoomId = selectedRoomId,
-        editRoomsMode = editRoomsMode,
-        editDevicesMode = editDevicesMode,
-        unreadNotificationCount = unreadNotificationCount,
+
+    val callbacks = RoomsCallbacks(
+        onBackToRooms = viewModel::onBackToRooms,
+        onRoomClick = viewModel::onRoomClick,
+        onSelectedRoomChange = viewModel::onSelectedRoomChange,
+        onToggleRoomFavorite = viewModel::toggleRoomFavorite,
+        onCreateRoomClick = {
+            dialogRoomId = null
+            dialogKindName = RoomsDialogKind.AddRoom.name
+        },
+        onEditRoomsToggle = viewModel::onEditRoomsToggle,
+        onEditRoom = { roomId ->
+            dialogRoomId = roomId
+            dialogKindName = RoomsDialogKind.EditRoom.name
+        },
+        onDeleteRoom = { roomId ->
+            dialogRoomId = roomId
+            dialogKindName = RoomsDialogKind.DeleteRoom.name
+        },
+        onFilterSelected = viewModel::onFilterSelected,
+        onSearchChange = viewModel::onSearchChange,
+        onAddDeviceClick = { roomId ->
+            dialogRoomId = roomId
+            dialogDeviceId = null
+            dialogKindName = RoomsDialogKind.AddDevices.name
+        },
+        onEditDevicesToggle = viewModel::onEditDevicesToggle,
+        onEditDevice = { deviceId ->
+            dialogDeviceId = deviceId
+            dialogKindName = RoomsDialogKind.EditDevice.name
+        },
+        onDeleteDevice = { deviceId ->
+            dialogDeviceId = deviceId
+            dialogKindName = RoomsDialogKind.DeleteDevice.name
+        },
+        onToggleDevice = viewModel::onToggleDevice,
+        onDeviceValueChange = viewModel::onDeviceValueChange,
+        onAvatarClick = onProfileClick,
+        onAddClick = {
+            dialogRoomId = state.selectedRoomId
+            dialogKindName = if (state.selectedRoomId == null) {
+                RoomsDialogKind.AddRoom.name
+            } else {
+                RoomsDialogKind.AddDevices.name
+            }
+        },
+        onNavigateHome = onNavigateHome,
+        onNavigateRoutines = onNavigateRoutines,
+        onNavigateHistory = onNavigateHistory,
+        onNotificationsClick = onNotificationsClick,
     )
 
-    RoomsContent(
-        windowSize = windowSize,
-        state = state,
-        callbacks = RoomsCallbacks(
-            onBackToRooms = {
-                selectedRoomId = null
-                editDevicesMode = false
-            },
-            onRoomClick = { roomId ->
-                selectedRoomId = roomId
-                searchQuery = ""
-            },
-            onSelectedRoomChange = { roomId ->
-                selectedRoomId = roomId
-                if (roomId == null) {
-                    editDevicesMode = false
+    Box(modifier = modifier.fillMaxSize()) {
+        val errorMessage = state.errorMessage
+        when {
+            // Sin contenido + error (incluye "no hay hogar activo"): estado de error accionable
+            state.rooms.isEmpty() && errorMessage != null -> {
+                RoomsErrorState(
+                    message = errorMessage,
+                    onRetry = viewModel::loadRooms,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+            // Carga inicial sin contenido todavía: loader simple
+            state.rooms.isEmpty() && state.isLoading -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
-            },
-            onToggleRoomFavorite = { roomId ->
-                rooms = rooms.withRoomFavoriteToggled(roomId)
-            },
-            onCreateRoomClick = {
-                dialogRoomId = null
-                dialogKindName = RoomsDialogKind.AddRoom.name
-            },
-            onEditRoomsToggle = { editRoomsMode = !editRoomsMode },
-            onEditRoom = { roomId ->
-                dialogRoomId = roomId
-                dialogKindName = RoomsDialogKind.EditRoom.name
-            },
-            onDeleteRoom = { roomId ->
-                dialogRoomId = roomId
-                dialogKindName = RoomsDialogKind.DeleteRoom.name
-            },
-            onFilterSelected = { type -> selectedRoomTypeName = type?.name },
-            onSearchChange = { searchQuery = it },
-            onAddDeviceClick = { roomId ->
-                dialogRoomId = roomId
-                dialogDeviceId = null
-                dialogKindName = RoomsDialogKind.AddDevices.name
-            },
-            onEditDevicesToggle = { editDevicesMode = !editDevicesMode },
-            onEditDevice = { deviceId ->
-                dialogDeviceId = deviceId
-                dialogKindName = RoomsDialogKind.EditDevice.name
-            },
-            onDeleteDevice = { deviceId ->
-                dialogDeviceId = deviceId
-                dialogKindName = RoomsDialogKind.DeleteDevice.name
-            },
-            onToggleDevice = { deviceId -> rooms = rooms.withDeviceToggled(deviceId) },
-            onDeviceValueChange = { deviceId, value -> rooms = rooms.withDeviceValueChanged(deviceId, value) },
-            onAvatarClick = onProfileClick,
-            onAddClick = {
-                dialogRoomId = selectedRoomId
-                dialogKindName = if (selectedRoomId == null) {
-                    RoomsDialogKind.AddRoom.name
-                } else {
-                    RoomsDialogKind.AddDevices.name
+            }
+            else -> {
+                RoomsContent(
+                    windowSize = windowSize,
+                    state = state,
+                    callbacks = callbacks,
+                    modifier = Modifier.fillMaxSize(),
+                )
+                // Errores no bloqueantes (fallos en mutaciones con contenido ya visible)
+                val snackbarHostState = remember { SnackbarHostState() }
+                LaunchedEffect(errorMessage) {
+                    if (errorMessage != null) {
+                        snackbarHostState.showSnackbar(errorMessage)
+                        viewModel.dismissError()
+                    }
                 }
-            },
-            onNavigateHome = onNavigateHome,
-            onNavigateRoutines = onNavigateRoutines,
-            onNavigateHistory = onNavigateHistory,
-            onNotificationsClick = onNotificationsClick,
-        ),
-        modifier = modifier,
-    )
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .navigationBarsPadding(),
+                )
+            }
+        }
+    }
 
     when (dialogKind) {
         RoomsDialogKind.None -> Unit
@@ -139,7 +180,7 @@ fun RoomsScreen(
                 room = null,
                 onDismiss = { dialogKindName = RoomsDialogKind.None.name },
                 onConfirm = { name, type ->
-                    rooms = rooms.withCreatedRoom(name, type)
+                    viewModel.createRoom(name, type)
                     dialogKindName = RoomsDialogKind.None.name
                 },
             )
@@ -150,7 +191,7 @@ fun RoomsScreen(
                     room = room,
                     onDismiss = { dialogKindName = RoomsDialogKind.None.name },
                     onConfirm = { name, type ->
-                        rooms = rooms.withEditedRoom(room.id, name, type)
+                        viewModel.renameRoom(room.id, name, type)
                         dialogKindName = RoomsDialogKind.None.name
                     },
                 )
@@ -162,10 +203,7 @@ fun RoomsScreen(
                     roomName = room.name,
                     onDismiss = { dialogKindName = RoomsDialogKind.None.name },
                     onConfirm = {
-                        rooms = rooms.withoutRoom(room.id)
-                        if (selectedRoomId == room.id) {
-                            selectedRoomId = null
-                        }
+                        viewModel.deleteRoom(room.id)
                         dialogKindName = RoomsDialogKind.None.name
                     },
                 )
@@ -178,7 +216,7 @@ fun RoomsScreen(
                     availableDeviceTypes = RoomsPreviewData.availableDeviceTypes,
                     onDismiss = { dialogKindName = RoomsDialogKind.None.name },
                     onConfirm = { pendingDevices ->
-                        rooms = rooms.withAddedDevices(room.id, pendingDevices)
+                        viewModel.addDevices(room.id, pendingDevices)
                         dialogKindName = RoomsDialogKind.None.name
                     },
                 )
@@ -190,7 +228,7 @@ fun RoomsScreen(
                     device = device,
                     onDismiss = { dialogKindName = RoomsDialogKind.None.name },
                     onConfirm = { name ->
-                        rooms = rooms.withEditedDevice(device.id, name)
+                        viewModel.editDevice(device.id, name)
                         dialogKindName = RoomsDialogKind.None.name
                     },
                 )
@@ -202,10 +240,38 @@ fun RoomsScreen(
                     deviceName = device.name,
                     onDismiss = { dialogKindName = RoomsDialogKind.None.name },
                     onConfirm = {
-                        rooms = rooms.withoutDevice(device.id)
+                        viewModel.deleteDevice(device.id)
                         dialogKindName = RoomsDialogKind.None.name
                     },
                 )
+            }
+        }
+    }
+}
+
+// Estado de error mínimo y accionable, compatible con el resto de la pantalla
+@Composable
+private fun RoomsErrorState(
+    message: String,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier.padding(24.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+            Button(onClick = onRetry) {
+                Text(text = stringResource(R.string.rooms_retry))
             }
         }
     }

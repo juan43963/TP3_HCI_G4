@@ -26,9 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -50,8 +48,14 @@ import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 fun RecoverPasswordScreen(
     onLinkSent: (String) -> Unit,
     onBackToLogin: () -> Unit,
+    viewModel: RecoverPasswordViewModel,
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     RecoverPasswordContent(
+        uiState = uiState,
+        onEmailChange = viewModel::onEmailChange,
+        onSendCode = viewModel::sendCode,
+        onResend = viewModel::onResend,
         onLinkSent = onLinkSent,
         onBackToLogin = onBackToLogin,
     )
@@ -59,14 +63,14 @@ fun RecoverPasswordScreen(
 
 @Composable
 fun RecoverPasswordContent(
+    uiState: RecoverPasswordUiState,
+    onEmailChange: (String) -> Unit,
+    onSendCode: () -> Unit,
+    onResend: () -> Unit,
     onLinkSent: (String) -> Unit,
     onBackToLogin: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var email by rememberSaveable { mutableStateOf("") }
-    var linkSent by rememberSaveable { mutableStateOf(false) }
-    val canSubmit = email.isNotBlank() && email.contains("@")
-
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -83,7 +87,7 @@ fun RecoverPasswordContent(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            if (!linkSent) {
+            if (!uiState.codeSent) {
                 IconBadge(icon = Icons.Outlined.Lock)
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -111,18 +115,23 @@ fun RecoverPasswordContent(
                 AuthFieldLabel(text = stringResource(R.string.recover_field_email_label))
                 Spacer(modifier = Modifier.height(6.dp))
                 AuthRoundedField(
-                    value = email,
-                    onValueChange = { email = it },
+                    value = uiState.email,
+                    onValueChange = onEmailChange,
                     placeholder = stringResource(R.string.recover_field_email_placeholder),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 )
 
+                RecoverErrorText(errorMessage = uiState.errorMessage)
+
                 Spacer(modifier = Modifier.height(20.dp))
 
                 PrimaryButton(
-                    text = stringResource(R.string.recover_cta_send_link),
-                    enabled = canSubmit,
-                    onClick = { linkSent = true },
+                    text = stringResource(
+                        if (uiState.isLoading) R.string.recover_cta_sending
+                        else R.string.recover_cta_send_link
+                    ),
+                    enabled = uiState.canSubmit,
+                    onClick = onSendCode,
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -159,7 +168,7 @@ fun RecoverPasswordContent(
                             append(" ")
                         }
                         withStyle(SpanStyle(color = strong, fontWeight = FontWeight.SemiBold)) {
-                            append(email)
+                            append(uiState.email)
                         }
                         append(". ")
                         withStyle(SpanStyle(color = muted)) {
@@ -175,7 +184,7 @@ fun RecoverPasswordContent(
                 PrimaryButton(
                     text = stringResource(R.string.recover_cta_enter_code),
                     enabled = true,
-                    onClick = { onLinkSent(email) },
+                    onClick = { onLinkSent(uiState.email) },
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -187,10 +196,23 @@ fun RecoverPasswordContent(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                ResendFooter(onResendClick = { linkSent = false })
+                ResendFooter(onResendClick = onResend)
             }
         }
     }
+}
+
+@Composable
+internal fun RecoverErrorText(errorMessage: String?) {
+    if (errorMessage == null) return
+    Spacer(modifier = Modifier.height(12.dp))
+    Text(
+        text = errorMessage,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.error,
+        modifier = Modifier.fillMaxWidth(),
+        textAlign = TextAlign.Center,
+    )
 }
 
 @Composable
@@ -282,7 +304,14 @@ private fun ResendFooter(onResendClick: () -> Unit) {
 @Composable
 private fun RecoverPasswordLightPreview() {
     SmartHomeTheme(darkTheme = false) {
-        RecoverPasswordContent(onLinkSent = {}, onBackToLogin = {})
+        RecoverPasswordContent(
+            uiState = RecoverPasswordUiState(),
+            onEmailChange = {},
+            onSendCode = {},
+            onResend = {},
+            onLinkSent = {},
+            onBackToLogin = {},
+        )
     }
 }
 
@@ -290,6 +319,13 @@ private fun RecoverPasswordLightPreview() {
 @Composable
 private fun RecoverPasswordDarkPreview() {
     SmartHomeTheme(darkTheme = true) {
-        RecoverPasswordContent(onLinkSent = {}, onBackToLogin = {})
+        RecoverPasswordContent(
+            uiState = RecoverPasswordUiState(codeSent = true, email = "juanperez@gmail.com"),
+            onEmailChange = {},
+            onSendCode = {},
+            onResend = {},
+            onLinkSent = {},
+            onBackToLogin = {},
+        )
     }
 }

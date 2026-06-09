@@ -9,8 +9,10 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Devices
+import androidx.compose.material.icons.filled.DragIndicator
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
@@ -19,9 +21,11 @@ import androidx.compose.material.icons.outlined.Apartment
 import androidx.compose.material.icons.outlined.Bathtub
 import androidx.compose.material.icons.outlined.Bed
 import androidx.compose.material.icons.outlined.Bolt
+import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.CleaningServices
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.DriveFileRenameOutline
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Home
@@ -45,6 +49,7 @@ import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Shower
 import androidx.compose.material.icons.outlined.Speaker
 import androidx.compose.material.icons.outlined.StarBorder
+import androidx.compose.material.icons.outlined.Thermostat
 import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material.icons.outlined.WaterDrop
@@ -109,6 +114,14 @@ object SmartHomeIcons {
     val Faucet = Icons.Outlined.WaterDrop
     val Locked = Icons.Outlined.Lock
     val Unlocked = Icons.Outlined.LockOpen
+
+    // Routine detail
+    val MoreOptions = Icons.Default.MoreVert
+    val Rename = Icons.Outlined.DriveFileRenameOutline
+    val DragHandle = Icons.Default.DragIndicator
+    val Calendar = Icons.Outlined.CalendarMonth
+    val Lightbulb = Icons.Outlined.Lightbulb
+    val Thermostat = Icons.Outlined.Thermostat
 
     // Fallback for future security-specific UI if the checked variant is not desired.
     val Shield = Icons.Outlined.Shield

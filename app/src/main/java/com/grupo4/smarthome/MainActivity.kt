@@ -1,5 +1,6 @@
 package com.grupo4.smarthome
 
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -21,45 +22,69 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.grupo4.smarthome.data.local.SessionState
+import kotlinx.coroutines.launch
+import androidx.navigation.NavType
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import androidx.navigation.get
 import com.grupo4.smarthome.ui.auth.change.ChangePasswordScreen
 import com.grupo4.smarthome.ui.auth.change.ChangePasswordScreenTablet
+import com.grupo4.smarthome.ui.auth.change.ChangePasswordViewModel
+import com.grupo4.smarthome.ui.auth.change.ChangePasswordViewModelFactory
 import com.grupo4.smarthome.ui.auth.login.LoginScreen
 import com.grupo4.smarthome.ui.auth.login.LoginScreenTablet
+import com.grupo4.smarthome.ui.auth.login.LoginViewModel
+import com.grupo4.smarthome.ui.auth.login.LoginViewModelFactory
 import com.grupo4.smarthome.ui.auth.recover.RecoverPasswordScreen
 import com.grupo4.smarthome.ui.auth.recover.RecoverPasswordScreenTablet
+import com.grupo4.smarthome.ui.auth.recover.RecoverPasswordViewModel
+import com.grupo4.smarthome.ui.auth.recover.RecoverPasswordViewModelFactory
 import com.grupo4.smarthome.ui.auth.register.RegisterScreen
 import com.grupo4.smarthome.ui.auth.register.RegisterScreenTablet
+import com.grupo4.smarthome.ui.auth.register.RegisterViewModel
+import com.grupo4.smarthome.ui.auth.register.RegisterViewModelFactory
 import com.grupo4.smarthome.ui.auth.verify.VerifyAccountScreen
+import com.grupo4.smarthome.ui.auth.verify.VerifyAccountViewModel
+import com.grupo4.smarthome.ui.auth.verify.VerifyAccountViewModelFactory
 import com.grupo4.smarthome.ui.auth.welcome.WelcomeScreen
 import com.grupo4.smarthome.ui.auth.welcome.WelcomeScreenTablet
 import com.grupo4.smarthome.ui.components.AppDrawerOverlay
 import com.grupo4.smarthome.ui.components.LocalOpenDrawer
+import com.grupo4.smarthome.ui.components.QuickActionsOverlay
 import com.grupo4.smarthome.ui.navigation.AuthScreen
+import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeViewModel
+import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeViewModelFactory
 import com.grupo4.smarthome.ui.navigation.Screen
-import com.grupo4.smarthome.ui.screens.dashboard.DashboardCallbacks
-import com.grupo4.smarthome.ui.screens.dashboard.DashboardPreviewData
 import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneHomeDrawer
 import com.grupo4.smarthome.ui.screens.history.HistoryScreen
 import com.grupo4.smarthome.ui.screens.home.HomeScreen
+import com.grupo4.smarthome.ui.screens.selecthome.AddHomeOverlay
 import com.grupo4.smarthome.ui.screens.notifications.NotificationPreferences
 import com.grupo4.smarthome.ui.screens.notifications.NotificationPreferencesSaver
 import com.grupo4.smarthome.ui.screens.notifications.NotificationSettingsScreen
 import com.grupo4.smarthome.ui.screens.notifications.NotificationsScreen
 import com.grupo4.smarthome.ui.screens.notifications.sampleNotifications
 import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeScreen
-import com.grupo4.smarthome.ui.screens.selecthome.SelectableHome
 import com.grupo4.smarthome.ui.screens.profile.ProfileScreen
 import com.grupo4.smarthome.ui.screens.rooms.RoomsScreen
+import com.grupo4.smarthome.ui.screens.routines.AddRoutineTabletOverlay
+import com.grupo4.smarthome.ui.screens.routines.CreateRoutineOverlay
+import com.grupo4.smarthome.ui.screens.routines.RoutineDetailScreen
 import com.grupo4.smarthome.ui.screens.routines.RoutinesScreen
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 import com.grupo4.smarthome.ui.theme.ThemePreference
@@ -70,8 +95,13 @@ import androidx.compose.runtime.setValue
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+        // Mantener el splash hasta resolver si hay sesión guardada o no
+        val sessionManager = (application as SmartHomeApplication).appContainer.sessionManager
+        splashScreen.setKeepOnScreenCondition {
+            sessionManager.sessionState.value is SessionState.Loading
+        }
         enableEdgeToEdge()
         setContent {
             var themePreference by rememberSaveable { mutableStateOf(ThemePreference.SYSTEM) }
@@ -100,9 +130,55 @@ fun SmartHomeApp(
     val currentRoute = currentDestination?.route
     val currentBaseRoute = currentRoute?.substringBefore('?')
     val isSelectHomeRoute = currentBaseRoute == Screen.SELECT_HOME_ROUTE
+    val isRoutineDetailRoute = currentBaseRoute?.startsWith(Screen.ROUTINE_DETAIL_ROUTE) == true
     val isMainRoute = currentBaseRoute != null && currentBaseRoute !in AuthScreen.routes
 
     var isDrawerVisible by remember(currentBaseRoute) { mutableStateOf(false) }
+    var showAddHome by rememberSaveable { mutableStateOf(false) }
+
+    // ViewModel de casas a nivel Activity: lo comparten SelectHome y el AddHomeOverlay (fuera del NavHost)
+    val homesApplication = LocalContext.current.applicationContext as SmartHomeApplication
+
+    // La pantalla de arranque depende de si hay sesión guardada; mientras carga no componemos nada
+    val sessionState by homesApplication.appContainer.sessionManager.sessionState
+        .collectAsStateWithLifecycle()
+    if (sessionState is SessionState.Loading) {
+        Box(modifier = Modifier.fillMaxSize())
+        return
+    }
+    val startDestination = if (sessionState is SessionState.Authenticated) {
+        Screen.SELECT_HOME_ROUTE
+    } else {
+        AuthScreen.Welcome.route
+    }
+
+    val logoutScope = rememberCoroutineScope()
+    val authRepository = homesApplication.appContainer.authRepository
+
+    val selectHomeViewModel: SelectHomeViewModel = viewModel(
+        factory = remember(homesApplication) {
+            SelectHomeViewModelFactory(
+                homesApplication.appContainer.homesRepository,
+                homesApplication.appContainer.sessionManager,
+                homesApplication.appContainer.preferencesDataStore,
+            )
+        },
+    )
+    val selectHomeUiState by selectHomeViewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(selectHomeUiState.homeJustCreated) {
+        if (selectHomeUiState.homeJustCreated) {
+            selectHomeViewModel.consumeHomeCreated()
+            showAddHome = false
+        }
+    }
+    var showQuickActions by rememberSaveable { mutableStateOf(false) }
+    var showCreateRoutine by rememberSaveable { mutableStateOf(false) }
+    val openQuickActions: () -> Unit = { showQuickActions = true }
+    val openCreateRoutine: () -> Unit = {
+        showQuickActions = false
+        showCreateRoutine = true
+    }
     val openDrawer: () -> Unit = {
         if (isMainRoute) {
             isDrawerVisible = true
@@ -150,6 +226,7 @@ fun SmartHomeApp(
     val showBottomBar = currentBaseRoute != null &&
         currentBaseRoute !in AuthScreen.routes &&
         !isSelectHomeRoute &&
+        !isRoutineDetailRoute &&
         !isDrawerVisible &&
         !isTablet
 
@@ -183,7 +260,7 @@ fun SmartHomeApp(
             ) { innerPadding ->
                 NavHost(
                     navController = navController,
-                    startDestination = AuthScreen.Welcome.route,
+                    startDestination = startDestination,
                     modifier = Modifier.padding(innerPadding)
                 ) {
             composable(AuthScreen.Welcome.route) {
@@ -202,6 +279,11 @@ fun SmartHomeApp(
                 }
             }
             composable(AuthScreen.Login.route) {
+                val application = LocalContext.current.applicationContext as SmartHomeApplication
+                val loginFactory = remember(application) {
+                    LoginViewModelFactory(application.appContainer.authRepository)
+                }
+                val loginViewModel: LoginViewModel = viewModel(factory = loginFactory)
                 val onNavigateToRegister = {
                     navController.navigate(AuthScreen.Register.route) {
                         popUpTo(AuthScreen.Login.route) { inclusive = true }
@@ -223,43 +305,68 @@ fun SmartHomeApp(
                         onNavigateToRegister = onNavigateToRegister,
                         onNavigateToForgotPassword = onNavigateToForgotPassword,
                         onLoginSuccess = onLoginSuccess,
+                        viewModel = loginViewModel,
                     )
                 } else {
                     LoginScreen(
                         onNavigateToRegister = onNavigateToRegister,
                         onNavigateToForgotPassword = onNavigateToForgotPassword,
                         onLoginSuccess = onLoginSuccess,
+                        viewModel = loginViewModel,
                     )
                 }
             }
             composable(AuthScreen.Register.route) {
+                val application = LocalContext.current.applicationContext as SmartHomeApplication
+                val registerFactory = remember(application) {
+                    RegisterViewModelFactory(application.appContainer.authRepository)
+                }
+                val registerViewModel: RegisterViewModel = viewModel(factory = registerFactory)
                 val onNavigateToLogin = {
                     navController.navigate(AuthScreen.Login.route) {
                         popUpTo(AuthScreen.Register.route) { inclusive = true }
                     }
                     Unit
                 }
-                val onRegisterSuccess = {
-                    navController.navigate(AuthScreen.VerifyAccount.route)
+                val onRegisterSuccess: (String) -> Unit = { email ->
+                    navController.navigate(AuthScreen.VerifyAccount.createRoute(Uri.encode(email)))
                     Unit
                 }
                 if (isTablet) {
                     RegisterScreenTablet(
                         onNavigateToLogin = onNavigateToLogin,
                         onRegisterSuccess = onRegisterSuccess,
+                        viewModel = registerViewModel,
                     )
                 } else {
                     RegisterScreen(
                         onNavigateToLogin = onNavigateToLogin,
                         onRegisterSuccess = onRegisterSuccess,
+                        viewModel = registerViewModel,
                     )
                 }
             }
-            composable(AuthScreen.VerifyAccount.route) {
+            composable(
+                route = AuthScreen.VerifyAccount.routeWithEmail,
+                arguments = listOf(
+                    navArgument(AuthScreen.VerifyAccount.emailArg) {
+                        type = NavType.StringType
+                        defaultValue = ""
+                    }
+                ),
+            ) { backStackEntry ->
+                val email = backStackEntry.arguments
+                    ?.getString(AuthScreen.VerifyAccount.emailArg)
+                    .orEmpty()
+                val application = LocalContext.current.applicationContext as SmartHomeApplication
+                val verifyFactory = remember(application) {
+                    VerifyAccountViewModelFactory(application.appContainer.authRepository)
+                }
+                val verifyViewModel: VerifyAccountViewModel = viewModel(factory = verifyFactory)
                 VerifyAccountScreen(
-                    email = "juanperez@gmail.com",
+                    email = email,
                     onVerifySuccess = {
-                        navController.navigate(Screen.SELECT_HOME_ROUTE) {
+                        navController.navigate(AuthScreen.Login.route) {
                             popUpTo(AuthScreen.Welcome.route) { inclusive = true }
                         }
                     },
@@ -269,12 +376,18 @@ fun SmartHomeApp(
                             popUpTo(AuthScreen.Welcome.route)
                         }
                     },
+                    viewModel = verifyViewModel,
                 )
             }
             composable(AuthScreen.RecoverPassword.route) {
+                val application = LocalContext.current.applicationContext as SmartHomeApplication
+                val recoverFactory = remember(application) {
+                    RecoverPasswordViewModelFactory(application.appContainer.authRepository)
+                }
+                val recoverViewModel: RecoverPasswordViewModel = viewModel(factory = recoverFactory)
                 val onLinkSent: (String) -> Unit = { email ->
                     navController.navigate(
-                        "${AuthScreen.ChangePassword.route}?email=$email"
+                        "${AuthScreen.ChangePassword.route}?email=${Uri.encode(email)}"
                     )
                 }
                 val onBackToLogin: () -> Unit = {
@@ -286,16 +399,23 @@ fun SmartHomeApp(
                     RecoverPasswordScreenTablet(
                         onLinkSent = onLinkSent,
                         onBackToLogin = onBackToLogin,
+                        viewModel = recoverViewModel,
                     )
                 } else {
                     RecoverPasswordScreen(
                         onLinkSent = onLinkSent,
                         onBackToLogin = onBackToLogin,
+                        viewModel = recoverViewModel,
                     )
                 }
             }
             composable("${AuthScreen.ChangePassword.route}?email={email}") { backStackEntry ->
                 val email = backStackEntry.arguments?.getString("email").orEmpty()
+                val application = LocalContext.current.applicationContext as SmartHomeApplication
+                val changeFactory = remember(application) {
+                    ChangePasswordViewModelFactory(application.appContainer.authRepository)
+                }
+                val changeViewModel: ChangePasswordViewModel = viewModel(factory = changeFactory)
                 val onPasswordChanged: () -> Unit = {
                     navController.navigate(AuthScreen.Login.route) {
                         popUpTo(AuthScreen.Welcome.route)
@@ -311,12 +431,14 @@ fun SmartHomeApp(
                         email = email,
                         onPasswordChanged = onPasswordChanged,
                         onBackToLogin = onBackToLogin,
+                        viewModel = changeViewModel,
                     )
                 } else {
                     ChangePasswordScreen(
                         email = email,
                         onPasswordChanged = onPasswordChanged,
                         onBackToLogin = onBackToLogin,
+                        viewModel = changeViewModel,
                     )
                 }
             }
@@ -324,22 +446,35 @@ fun SmartHomeApp(
             composable(Screen.SELECT_HOME_ROUTE) {
                 SelectHomeScreen(
                     windowSize = windowSize,
-                    userName = "Juan",
-                    homes = listOf(
-                        SelectableHome("apartment", "Departamento", roomsCount = 8, devicesCount = 22),
-                        SelectableHome("office", "Oficina", roomsCount = 0, devicesCount = 0),
-                    ),
-                    onHomeSelected = {
+                    userName = selectHomeUiState.userName,
+                    homes = selectHomeUiState.homes,
+                    isLoading = selectHomeUiState.isLoading,
+                    errorMessage = selectHomeUiState.errorMessage,
+                    onRetry = selectHomeViewModel::loadHomes,
+                    onHomeSelected = { home ->
+                        selectHomeViewModel.selectHome(home.id)
                         navController.navigate(Screen.Home.route) {
                             popUpTo(Screen.SELECT_HOME_ROUTE) { inclusive = true }
                         }
                     },
-                    onAddHome = { /* TODO: add-home flow */ },
+                    onAddHome = { showAddHome = true },
                     onProfileClick = {
                         navController.navigate(Screen.Profile.route) {
                             launchSingleTop = true
                         }
                     },
+                    onShareHome = selectHomeViewModel::openShareDialog,
+                    onRenameHome = selectHomeViewModel::openRenameDialog,
+                    onDeleteHome = selectHomeViewModel::openDeleteDialog,
+                    dialog = selectHomeUiState.dialog,
+                    isProcessingAction = selectHomeUiState.isProcessingAction,
+                    actionError = selectHomeUiState.actionError,
+                    sharedUsers = selectHomeUiState.sharedUsers,
+                    isLoadingShared = selectHomeUiState.isLoadingShared,
+                    onDismissDialog = selectHomeViewModel::dismissDialog,
+                    onConfirmRename = selectHomeViewModel::renameHome,
+                    onConfirmDelete = selectHomeViewModel::deleteHome,
+                    onConfirmShare = selectHomeViewModel::shareHome,
                 )
             }
 
@@ -371,10 +506,14 @@ fun SmartHomeApp(
                     },
                     onNavigateNotifications = openNotifications,
                     unreadNotificationCount = unreadNotificationCount,
+                    onQuickActionsOpen = openQuickActions,
+                    onCreateRoutine = openCreateRoutine,
+                    showQuickAddFab = !isTablet && !showQuickActions && !showCreateRoutine,
                 )
             }
             composable(Screen.Rooms.route) {
                 RoomsScreen(
+                    activeHomeId = selectHomeUiState.activeHomeId,
                     windowSize = windowSize,
                     onProfileClick = {
                         navController.navigate(Screen.Profile.route) {
@@ -412,6 +551,32 @@ fun SmartHomeApp(
                             launchSingleTop = true
                         }
                     },
+                    onAddRoutine = if (isTablet) openCreateRoutine else openQuickActions,
+                    showQuickAddFab = !isTablet && !showQuickActions && !showCreateRoutine,
+                    isTablet = isTablet,
+                    onNavigateHome = {
+                        navController.navigate(Screen.Home.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onNavigateRooms = {
+                        navController.navigate(Screen.Rooms.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onRoutineClick = { routineId ->
+                        if (!isTablet) {
+                            navController.navigate("${Screen.ROUTINE_DETAIL_ROUTE}/$routineId")
+                        }
+                    },
+                )
+            }
+            composable("${Screen.ROUTINE_DETAIL_ROUTE}/{routineId}") {
+                RoutineDetailScreen(
+                    onBack = { navController.popBackStack() },
+                    onDelete = { navController.popBackStack() },
                 )
             }
             composable(Screen.Profile.route) {
@@ -568,18 +733,73 @@ fun SmartHomeApp(
                     onClose = closeDrawer,
                 ) {
                     PhoneHomeDrawer(
-                        state = DashboardPreviewData.populated,
-                        callbacks = DashboardCallbacks(
-                            onHistoryClick = {
-                                navController.navigate(Screen.History.route) {
-                                    popUpTo(navController.graph[Screen.Home.route].id)
-                                    launchSingleTop = true
-                                }
-                            },
-                        ),
+                        userName = selectHomeUiState.userName,
+                        homes = selectHomeUiState.drawerHomes,
+                        activeHomeId = selectHomeUiState.activeHomeId,
+                        onHomeSelected = { homeId ->
+                            selectHomeViewModel.selectHome(homeId)
+                        },
+                        onSeeMoreHomes = {
+                            navController.navigate(Screen.SELECT_HOME_ROUTE) {
+                                launchSingleTop = true
+                            }
+                        },
+                        onAddHome = {
+                            showAddHome = true
+                        },
+                        onSettings = {
+                            navController.navigate(Screen.Profile.route) {
+                                launchSingleTop = true
+                            }
+                        },
+                        onHistory = {
+                            navController.navigate(Screen.History.route) {
+                                popUpTo(navController.graph[Screen.Home.route].id)
+                                launchSingleTop = true
+                            }
+                        },
+                        onLogout = {
+                            logoutScope.launch { authRepository.logout() }
+                            navController.navigate(AuthScreen.Welcome.route) {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        },
                         onClose = closeDrawer,
                     )
                 }
+            }
+
+            AddHomeOverlay(
+                visible = showAddHome,
+                isTablet = isTablet,
+                onDismiss = { showAddHome = false },
+                isCreating = selectHomeUiState.isCreating,
+                errorMessage = selectHomeUiState.createError,
+                onCreate = { name, typeIndex, photoIndex, shareEmail ->
+                    selectHomeViewModel.createHome(name, typeIndex, photoIndex, shareEmail)
+                },
+            )
+
+            QuickActionsOverlay(
+                visible = showQuickActions,
+                onDismiss = { showQuickActions = false },
+                onAddRoutine = openCreateRoutine,
+                // Lift the overlay above the bottom NavigationBar (M3 default height
+                // 80.dp) so its close FAB stays where the "+" FAB was.
+                bottomBarPadding = if (showBottomBar) 80.dp else 0.dp,
+            )
+
+            if (isTablet) {
+                AddRoutineTabletOverlay(
+                    visible = showCreateRoutine,
+                    onDismiss = { showCreateRoutine = false },
+                )
+            } else {
+                CreateRoutineOverlay(
+                    visible = showCreateRoutine,
+                    isTablet = false,
+                    onDismiss = { showCreateRoutine = false },
+                )
             }
         }
     }
