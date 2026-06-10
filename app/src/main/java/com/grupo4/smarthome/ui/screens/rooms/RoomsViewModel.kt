@@ -8,6 +8,7 @@ import com.grupo4.smarthome.core.result.ApiError
 import com.grupo4.smarthome.core.result.AppResult
 import com.grupo4.smarthome.core.result.toMessageRes
 import com.grupo4.smarthome.data.model.Device
+import com.grupo4.smarthome.data.model.DeviceType
 import com.grupo4.smarthome.data.model.RoomType
 import com.grupo4.smarthome.data.repository.DevicesRepository
 import com.grupo4.smarthome.data.repository.RoomsRepository
@@ -27,7 +28,7 @@ class RoomsViewModel(
     private val _uiState = MutableStateFlow(
         RoomsUiState(
             rooms = emptyList(),
-            availableDeviceTypes = RoomsPreviewData.availableDeviceTypes,
+            availableDeviceTypes = DeviceType.entries,
         )
     )
     val uiState: StateFlow<RoomsUiState> = _uiState.asStateFlow()

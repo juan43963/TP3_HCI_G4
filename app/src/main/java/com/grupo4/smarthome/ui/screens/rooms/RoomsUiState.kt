@@ -161,7 +161,7 @@ fun List<Room>.withDeviceValueChanged(deviceId: String, value: Int): List<Room> 
                 when (device.type) {
                     DeviceType.LIGHT -> device.copy(brightness = value.coerceIn(0, 100))
                     DeviceType.AC -> device.copy(temperature = value.coerceIn(16, 30))
-                    DeviceType.SPEAKER -> device.copy(volume = value.coerceIn(0, 100))
+                    DeviceType.SPEAKER -> device.copy(volume = value.coerceIn(0, 10))
                     else -> device
                 }
             } else {
@@ -198,7 +198,7 @@ fun List<Room>.withAddedDevices(roomId: String, devices: List<PendingDevice>): L
                     brightness = if (pending.type == DeviceType.LIGHT) 70 else null,
                     temperature = if (pending.type == DeviceType.AC) 22 else null,
                     locked = if (pending.type == DeviceType.DOOR) true else null,
-                    volume = if (pending.type == DeviceType.SPEAKER) 45 else null,
+                    volume = if (pending.type == DeviceType.SPEAKER) 5 else null,
                 )
             },
         )

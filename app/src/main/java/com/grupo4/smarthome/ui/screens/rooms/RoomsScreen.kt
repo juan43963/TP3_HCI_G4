@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.grupo4.smarthome.R
+import com.grupo4.smarthome.data.model.DeviceType
 import com.grupo4.smarthome.ui.screens.rooms.dialogs.AddDevicesToRoomDialog
 import com.grupo4.smarthome.ui.screens.rooms.dialogs.AddEditRoomDialog
 import com.grupo4.smarthome.ui.screens.rooms.dialogs.DeleteDeviceDialog
@@ -202,7 +203,7 @@ fun RoomsScreen(
             dialogRoom?.let { room ->
                 AddDevicesToRoomDialog(
                     roomName = room.name,
-                    availableDeviceTypes = RoomsPreviewData.availableDeviceTypes,
+                    availableDeviceTypes = DeviceType.entries,
                     onDismiss = { dialogKindName = RoomsDialogKind.None.name },
                     onConfirm = { pendingDevices ->
                         viewModel.addDevices(room.id, pendingDevices)

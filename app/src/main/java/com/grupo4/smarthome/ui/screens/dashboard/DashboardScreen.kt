@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 fun DashboardScreen(
     windowSize: WindowSizeClass,
     modifier: Modifier = Modifier,
-    state: DashboardUiState = DashboardPreviewData.populated,
+    state: DashboardUiState,
     callbacks: DashboardCallbacks = DashboardCallbacks(),
 ) {
     DashboardContent(

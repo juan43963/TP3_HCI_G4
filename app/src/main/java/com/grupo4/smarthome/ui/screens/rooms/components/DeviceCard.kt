@@ -483,8 +483,8 @@ private fun SpeakerControl(
     if (!device.isOn) {
         return
     }
-    val volume = device.volume ?: 60
-    val volumeSteps = (volume / 10).coerceIn(0, 10)
+    val volume = device.volume ?: 5
+    val volumeSteps = volume.coerceIn(0, 10)
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -496,7 +496,7 @@ private fun SpeakerControl(
         RoomsGradientSlider(
             value = volume.toFloat(),
             onValueChange = { onValueChange(it.toInt()) },
-            valueRange = 0f..100f,
+            valueRange = 0f..10f,
         )
     }
 }
