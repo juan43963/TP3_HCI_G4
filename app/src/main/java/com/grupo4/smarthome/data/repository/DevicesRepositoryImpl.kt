@@ -8,10 +8,12 @@ import com.grupo4.smarthome.core.result.ErrorMapper
 import com.grupo4.smarthome.data.model.Device
 import com.grupo4.smarthome.data.model.DeviceActionInfo
 import com.grupo4.smarthome.data.model.DeviceActionParamInfo
+import com.grupo4.smarthome.data.model.DeviceLog
 import com.grupo4.smarthome.data.model.DeviceType
 import com.grupo4.smarthome.data.remote.api.DevicesApi
 import com.grupo4.smarthome.data.remote.dto.device.DeviceCreateDto
 import com.grupo4.smarthome.data.remote.dto.device.DeviceDto
+import com.grupo4.smarthome.data.remote.dto.device.DeviceLogDto
 import com.grupo4.smarthome.data.remote.dto.device.DeviceTypeDto
 import com.grupo4.smarthome.data.remote.dto.device.DeviceUpdateDto
 import com.grupo4.smarthome.data.remote.dto.room.EntityRefDto
@@ -30,6 +32,20 @@ class DevicesRepositoryImpl(
     // Catálogo de tipos cacheado en memoria: lo necesitamos tanto para resolver el deviceTypeId al
     // crear como para mapear type.id -> enum local y para saber qué acciones admite cada tipo.
     private var deviceTypesCache: List<DeviceTypeDto>? = null
+
+    override suspend fun getLogs(limit: Int, offset: Int): AppResult<List<DeviceLog>> =
+        runCatching {
+            val response = devicesApi.getLogs(limit, offset)
+            val body = response.bodyAsText()
+            if (response.status.isSuccess()) {
+                val dtos = ApiJson.Instance.decodeFromString(ListSerializer(DeviceLogDto.serializer()), body)
+                AppResult.Success(dtos.mapNotNull { it.toDomain() })
+            } else {
+                AppResult.Error(ErrorMapper.fromHttp(response.status, body))
+            }
+        }.getOrElse { throwable ->
+            AppResult.Error(ErrorMapper.fromThrowable(throwable))
+        }
 
     override suspend fun getRoomDevices(roomId: String): AppResult<List<Device>> =
         runCatching {

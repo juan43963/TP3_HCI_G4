@@ -1,8 +1,10 @@
 package com.grupo4.smarthome.data.remote.mapper
 
 import com.grupo4.smarthome.data.model.Device
+import com.grupo4.smarthome.data.model.DeviceLog
 import com.grupo4.smarthome.data.model.DeviceType
 import com.grupo4.smarthome.data.remote.dto.device.DeviceDto
+import com.grupo4.smarthome.data.remote.dto.device.DeviceLogDto
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.intOrNull
@@ -66,4 +68,15 @@ private fun JsonObject?.readIsOn(): Boolean {
 private fun JsonObject?.readLocked(): Boolean? {
     val lock = readString("lock")?.lowercase() ?: return null
     return lock == "locked"
+}
+
+// Descartamos logs sin id (no se pueden identificar como entrada de la lista)
+fun DeviceLogDto.toDomain(): DeviceLog? {
+    val logId = id ?: return null
+    return DeviceLog(
+        id = logId,
+        timestamp = timestamp.orEmpty(),
+        deviceId = deviceId.orEmpty(),
+        actionName = actionName.orEmpty(),
+    )
 }

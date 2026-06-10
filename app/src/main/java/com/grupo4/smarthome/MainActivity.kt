@@ -77,6 +77,9 @@ import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeViewModelFactory
 import com.grupo4.smarthome.ui.navigation.Screen
 import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneHomeDrawer
 import com.grupo4.smarthome.ui.screens.history.HistoryScreen
+import com.grupo4.smarthome.ui.screens.history.HistoryViewModel
+import com.grupo4.smarthome.ui.screens.history.HistoryViewModelFactory
+import com.grupo4.smarthome.ui.screens.history.toHistoryEntries
 import com.grupo4.smarthome.ui.screens.home.HomeScreen
 import com.grupo4.smarthome.ui.screens.home.HomeViewModel
 import com.grupo4.smarthome.ui.screens.home.HomeViewModelFactory
@@ -830,8 +833,28 @@ fun SmartHomeApp(
                 }
             }
             composable(Screen.History.route) {
+                val context = LocalContext.current
+                val historyFactory = remember(homesApplication) {
+                    HistoryViewModelFactory(homesApplication.appContainer.devicesRepository)
+                }
+                val historyViewModel: HistoryViewModel = viewModel(factory = historyFactory)
+                val historyUiState by historyViewModel.uiState.collectAsStateWithLifecycle()
+                // Cruzamos los logs con el catálogo de dispositivos del hogar activo para mostrar
+                // nombre/habitación/icono en vez del deviceId crudo.
+                val historyEntries = remember(historyUiState.logs, roomsUiState.rooms) {
+                    historyUiState.logs.toHistoryEntries(context, roomsUiState.rooms)
+                }
                 HistoryScreen(
                     windowSize = windowSize,
+                    entries = historyEntries,
+                    isLoading = historyUiState.isLoading,
+                    isLoadingMore = historyUiState.isLoadingMore,
+                    canLoadMore = historyUiState.canLoadMore,
+                    onLoadMore = historyViewModel::loadMore,
+                    errorMessage = historyUiState.errorMessage?.let { stringResource(it) },
+                    onRefresh = historyViewModel::load,
+                    onRetry = historyViewModel::load,
+                    selectedHomeName = activeHomeName,
                     onProfileClick = {
                         navController.navigate(Screen.Profile.route) {
                             launchSingleTop = true

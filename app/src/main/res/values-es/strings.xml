@@ -22,6 +22,26 @@
     <string name="history_device_metadata">%1$s · %2$s</string>
     <string name="history_empty_title">Sin actividad</string>
     <string name="history_empty_description">Todavía no se registraron acciones para este dispositivo.</string>
+    <!-- Historial — RF13 (logs reales de dispositivos) -->
+    <string name="history_loading">Cargando historial...</string>
+    <string name="history_retry">Reintentar</string>
+    <string name="history_unknown_device">Dispositivo</string>
+    <string name="history_unknown_room">Habitación desconocida</string>
+    <string name="history_action_turn_on">Encendido</string>
+    <string name="history_action_turn_off">Apagado</string>
+    <string name="history_action_open">Abierto</string>
+    <string name="history_action_close">Cerrado</string>
+    <string name="history_action_lock">Bloqueado</string>
+    <string name="history_action_unlock">Desbloqueado</string>
+    <string name="history_action_play">Reproduciendo</string>
+    <string name="history_action_pause">Pausado</string>
+    <string name="history_action_stop">Detenido</string>
+    <string name="history_action_start">Iniciado</string>
+    <string name="history_action_set_brightness">Brillo ajustado</string>
+    <string name="history_action_set_color">Color cambiado</string>
+    <string name="history_action_set_temperature">Temperatura ajustada</string>
+    <string name="history_action_set_volume">Volumen ajustado</string>
+    <string name="history_action_set_mode">Modo cambiado</string>
 
     <!-- Welcome -->
     <string name="welcome_brand_smart">Smart</string>

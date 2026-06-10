@@ -46,6 +46,9 @@ object ApiRoutes {
     // GET del estado actual de un dispositivo
     fun deviceState(deviceId: String): String = "$Devices/$deviceId/state"
 
+    // GET del historial de acciones de todos los dispositivos (paginado)
+    fun deviceLogs(limit: Int, offset: Int): String = "$Devices/logs/limit/$limit/offset/$offset"
+
     // PATCH para ejecutar una acción (turnOn, setBrightness, etc.) sobre un dispositivo
     fun deviceAction(deviceId: String, actionName: String): String = "$Devices/$deviceId/$actionName"
 

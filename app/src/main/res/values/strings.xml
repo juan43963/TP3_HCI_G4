@@ -23,6 +23,25 @@
     <string name="history_device_metadata">%1$s · %2$s</string>
     <string name="history_empty_title">No activity</string>
     <string name="history_empty_description">No actions have been recorded for this device yet.</string>
+    <string name="history_loading">Loading history...</string>
+    <string name="history_retry">Retry</string>
+    <string name="history_unknown_device">Device</string>
+    <string name="history_unknown_room">Unknown room</string>
+    <string name="history_action_turn_on">Turned on</string>
+    <string name="history_action_turn_off">Turned off</string>
+    <string name="history_action_open">Opened</string>
+    <string name="history_action_close">Closed</string>
+    <string name="history_action_lock">Locked</string>
+    <string name="history_action_unlock">Unlocked</string>
+    <string name="history_action_play">Playing</string>
+    <string name="history_action_pause">Paused</string>
+    <string name="history_action_stop">Stopped</string>
+    <string name="history_action_start">Started</string>
+    <string name="history_action_set_brightness">Brightness changed</string>
+    <string name="history_action_set_color">Color changed</string>
+    <string name="history_action_set_temperature">Temperature changed</string>
+    <string name="history_action_set_volume">Volume changed</string>
+    <string name="history_action_set_mode">Mode changed</string>
 
     <!-- Welcome -->
     <string name="welcome_brand_smart">Smart</string>

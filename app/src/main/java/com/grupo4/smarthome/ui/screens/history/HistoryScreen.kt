@@ -17,7 +17,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -29,10 +32,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,7 +57,6 @@ import com.grupo4.smarthome.ui.screens.dashboard.layout.DashboardScaffold
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 
-/** Device families shown in the history feed, each with its own icon. */
 enum class HistoryDeviceType(val icon: ImageVector) {
     VACUUM(SmartHomeIcons.Vacuum),
     BLINDS(SmartHomeIcons.Blinds),
@@ -59,6 +64,11 @@ enum class HistoryDeviceType(val icon: ImageVector) {
     AC(SmartHomeIcons.AirConditioner),
     SPEAKER(SmartHomeIcons.Speaker),
     DOOR(SmartHomeIcons.Door),
+    FAUCET(SmartHomeIcons.Faucet),
+    OVEN(SmartHomeIcons.Oven),
+    ALARM(SmartHomeIcons.Alarm),
+    FRIDGE(SmartHomeIcons.Fridge),
+    OTHER(SmartHomeIcons.Devices),
 }
 
 data class HistoryEntryUi(
@@ -85,6 +95,12 @@ fun HistoryScreen(
     unreadNotificationCount: Int = 0,
     selectedHomeName: String = "Casa Principal",
     entries: List<HistoryEntryUi> = sampleHistory,
+    isLoading: Boolean = false,
+    isLoadingMore: Boolean = false,
+    canLoadMore: Boolean = false,
+    onLoadMore: () -> Unit = {},
+    errorMessage: String? = null,
+    onRetry: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val isTablet = windowSize.widthSizeClass != WindowWidthSizeClass.Compact
@@ -102,6 +118,12 @@ fun HistoryScreen(
             selectedDevice = selectedDevice,
             onDeviceSelected = { selectedDevice = it },
             onRefresh = onRefresh,
+            isLoading = isLoading,
+            isLoadingMore = isLoadingMore,
+            canLoadMore = canLoadMore,
+            onLoadMore = onLoadMore,
+            errorMessage = errorMessage,
+            onRetry = onRetry,
             selectedHomeName = selectedHomeName,
             onNavigateHome = onNavigateHome,
             onNavigateRoutines = onNavigateRoutines,
@@ -129,6 +151,12 @@ fun HistoryScreen(
                 selectedDevice = selectedDevice,
                 onDeviceSelected = { selectedDevice = it },
                 onRefresh = onRefresh,
+                isLoading = isLoading,
+                isLoadingMore = isLoadingMore,
+                canLoadMore = canLoadMore,
+                onLoadMore = onLoadMore,
+                errorMessage = errorMessage,
+                onRetry = onRetry,
                 contentPadding = PaddingValues(
                     start = 16.dp,
                     end = 16.dp,
@@ -148,6 +176,12 @@ private fun TabletHistoryLayout(
     selectedDevice: String?,
     onDeviceSelected: (String?) -> Unit,
     onRefresh: () -> Unit,
+    isLoading: Boolean,
+    isLoadingMore: Boolean,
+    canLoadMore: Boolean,
+    onLoadMore: () -> Unit,
+    errorMessage: String?,
+    onRetry: () -> Unit,
     selectedHomeName: String,
     onNavigateHome: () -> Unit,
     onNavigateRoutines: () -> Unit,
@@ -199,6 +233,12 @@ private fun TabletHistoryLayout(
                     selectedDevice = selectedDevice,
                     onDeviceSelected = onDeviceSelected,
                     onRefresh = onRefresh,
+                    isLoading = isLoading,
+                    isLoadingMore = isLoadingMore,
+                    canLoadMore = canLoadMore,
+                    onLoadMore = onLoadMore,
+                    errorMessage = errorMessage,
+                    onRetry = onRetry,
                     contentPadding = PaddingValues(
                         start = contentPadding,
                         end = contentPadding,
@@ -219,11 +259,33 @@ private fun HistoryFeed(
     selectedDevice: String?,
     onDeviceSelected: (String?) -> Unit,
     onRefresh: () -> Unit,
+    isLoading: Boolean,
+    isLoadingMore: Boolean,
+    canLoadMore: Boolean,
+    onLoadMore: () -> Unit,
+    errorMessage: String?,
+    onRetry: () -> Unit,
     contentPadding: PaddingValues,
     modifier: Modifier = Modifier,
     itemModifier: Modifier = Modifier,
 ) {
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(listState, canLoadMore) {
+        snapshotFlow {
+            val layout = listState.layoutInfo
+            (layout.visibleItemsInfo.lastOrNull()?.index ?: -1) to layout.totalItemsCount
+        }
+            .distinctUntilChanged()
+            .collect { (lastVisible, total) ->
+                if (canLoadMore && total > 0 && lastVisible >= total - 1) {
+                    onLoadMore()
+                }
+            }
+    }
+
     LazyColumn(
+        state = listState,
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
@@ -246,13 +308,28 @@ private fun HistoryFeed(
             )
         }
         item {
-            if (visibleEntries.isEmpty()) {
-                EmptyHistory(modifier = itemModifier)
-            } else {
-                HistoryList(
-                    entries = visibleEntries,
-                    modifier = itemModifier,
-                )
+            when {
+                isLoading && visibleEntries.isEmpty() -> LoadingHistory(modifier = itemModifier)
+                errorMessage != null && visibleEntries.isEmpty() ->
+                    ErrorHistory(message = errorMessage, onRetry = onRetry, modifier = itemModifier)
+                visibleEntries.isEmpty() -> EmptyHistory(modifier = itemModifier)
+                else -> HistoryList(entries = visibleEntries, modifier = itemModifier)
+            }
+        }
+        if (isLoadingMore) {
+            item {
+                Box(
+                    modifier = itemModifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(
+                        strokeWidth = 2.dp,
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
             }
         }
     }
@@ -440,6 +517,58 @@ private fun HistoryRow(entry: HistoryEntryUi) {
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+    }
+}
+
+@Composable
+private fun LoadingHistory(modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 1.dp,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            Text(
+                text = stringResource(R.string.history_loading),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ErrorHistory(message: String, onRetry: () -> Unit, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 1.dp,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Button(onClick = onRetry) {
+                Text(stringResource(R.string.history_retry))
+            }
+        }
     }
 }
 

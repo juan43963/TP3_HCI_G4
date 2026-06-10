@@ -3,11 +3,15 @@ package com.grupo4.smarthome.data.repository
 import com.grupo4.smarthome.core.result.AppResult
 import com.grupo4.smarthome.data.model.Device
 import com.grupo4.smarthome.data.model.DeviceActionInfo
+import com.grupo4.smarthome.data.model.DeviceLog
 import com.grupo4.smarthome.data.model.DeviceType
 
 interface DevicesRepository {
     // Lista los dispositivos de una habitación, ya mapeados al modelo de dominio
     suspend fun getRoomDevices(roomId: String): AppResult<List<Device>>
+
+    // Historial de acciones de todos los dispositivos, paginado y ordenado por la API
+    suspend fun getLogs(limit: Int = 50, offset: Int = 0): AppResult<List<DeviceLog>>
 
     // Crea un dispositivo y lo asocia a la habitación (resuelve el deviceTypeId real contra el catálogo)
     suspend fun createDevice(roomId: String, type: DeviceType, name: String): AppResult<Device>

@@ -57,4 +57,7 @@ class DevicesApi(
 
     suspend fun getDeviceState(deviceId: String): HttpResponse =
         client.get(ApiRoutes.resolve(ApiRoutes.deviceState(deviceId)))
+
+    suspend fun getLogs(limit: Int, offset: Int): HttpResponse =
+        client.get(ApiRoutes.resolve(ApiRoutes.deviceLogs(limit, offset)))
 }
