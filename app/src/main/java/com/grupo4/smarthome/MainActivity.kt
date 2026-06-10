@@ -2,6 +2,7 @@ package com.grupo4.smarthome
 
 import android.net.Uri
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -42,6 +43,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.get
+import com.grupo4.smarthome.ui.auth.change.AuthChangePasswordScreen
+import com.grupo4.smarthome.ui.auth.change.AuthChangePasswordScreenTablet
+import com.grupo4.smarthome.ui.auth.change.AuthChangePasswordViewModel
+import com.grupo4.smarthome.ui.auth.change.AuthChangePasswordViewModelFactory
 import com.grupo4.smarthome.ui.auth.change.ChangePasswordScreen
 import com.grupo4.smarthome.ui.auth.change.ChangePasswordScreenTablet
 import com.grupo4.smarthome.ui.auth.change.ChangePasswordViewModel
@@ -83,6 +88,8 @@ import com.grupo4.smarthome.ui.screens.notifications.NotificationsScreen
 import com.grupo4.smarthome.ui.screens.notifications.sampleNotifications
 import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeScreen
 import com.grupo4.smarthome.ui.screens.profile.ProfileScreen
+import com.grupo4.smarthome.ui.screens.profile.ProfileViewModel
+import com.grupo4.smarthome.ui.screens.profile.ProfileViewModelFactory
 import com.grupo4.smarthome.ui.screens.rooms.RoomsScreen
 import com.grupo4.smarthome.ui.screens.rooms.RoomsViewModel
 import com.grupo4.smarthome.ui.screens.rooms.RoomsViewModelFactory
@@ -149,6 +156,7 @@ fun SmartHomeApp(
     val currentBaseRoute = currentRoute?.substringBefore('?')
     val isSelectHomeRoute = currentBaseRoute == Screen.SELECT_HOME_ROUTE
     val isRoutineDetailRoute = currentBaseRoute?.startsWith(Screen.ROUTINE_DETAIL_ROUTE) == true
+    val isChangePasswordRoute = currentBaseRoute == Screen.CHANGE_PASSWORD_ROUTE
     val isMainRoute = currentBaseRoute != null && currentBaseRoute !in AuthScreen.routes
 
     var isDrawerVisible by remember(currentBaseRoute) { mutableStateOf(false) }
@@ -324,6 +332,7 @@ fun SmartHomeApp(
         currentBaseRoute !in AuthScreen.routes &&
         !isSelectHomeRoute &&
         !isRoutineDetailRoute &&
+        !isChangePasswordRoute &&
         !isDrawerVisible &&
         !isTablet
 
@@ -727,10 +736,36 @@ fun SmartHomeApp(
                 val origin = navController.previousBackStackEntry
                     ?.destination?.route?.substringBefore('?')
                 val enteredFromHome = origin != null && origin != Screen.SELECT_HOME_ROUTE
+                val context = LocalContext.current
+                val profileFactory = remember(homesApplication) {
+                    ProfileViewModelFactory(
+                        homesApplication.appContainer.profileRepository,
+                        homesApplication.appContainer.sessionManager,
+                    )
+                }
+                val profileViewModel: ProfileViewModel = viewModel(factory = profileFactory)
+                val profileUiState by profileViewModel.uiState.collectAsStateWithLifecycle()
+                LaunchedEffect(profileUiState.nameSaved) {
+                    if (profileUiState.nameSaved) {
+                        profileViewModel.consumeNameSaved()
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.profile_saved),
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                    }
+                }
                 ProfileScreen(
                     windowSize = windowSize,
+                    userName = profileUiState.name,
+                    userEmail = profileUiState.email,
+                    isSavingName = profileUiState.isSaving,
+                    onSaveName = profileViewModel::saveName,
                     themePreference = themePreference,
                     onThemePreferenceChange = onThemePreferenceChange,
+                    onChangePassword = {
+                        navController.navigate(Screen.CHANGE_PASSWORD_ROUTE)
+                    },
                     onOpenNotificationSettings = openNotificationSettings,
                     notificationPreferences = notificationPreferences,
                     onNotificationPreferencesChange = { notificationPreferences = it },
@@ -762,6 +797,37 @@ fun SmartHomeApp(
                         }
                     },
                 )
+            }
+            composable(Screen.CHANGE_PASSWORD_ROUTE) {
+                val application = LocalContext.current.applicationContext as SmartHomeApplication
+                val context = LocalContext.current
+                val authChangeFactory = remember(application) {
+                    AuthChangePasswordViewModelFactory(application.appContainer.authRepository)
+                }
+                val authChangeViewModel: AuthChangePasswordViewModel =
+                    viewModel(factory = authChangeFactory)
+                val onPasswordChanged: () -> Unit = {
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.auth_change_pwd_success),
+                        Toast.LENGTH_LONG,
+                    ).show()
+                    navController.popBackStack()
+                }
+                val onBack: () -> Unit = { navController.popBackStack() }
+                if (isTablet) {
+                    AuthChangePasswordScreenTablet(
+                        onPasswordChanged = onPasswordChanged,
+                        onBack = onBack,
+                        viewModel = authChangeViewModel,
+                    )
+                } else {
+                    AuthChangePasswordScreen(
+                        onPasswordChanged = onPasswordChanged,
+                        onBack = onBack,
+                        viewModel = authChangeViewModel,
+                    )
+                }
             }
             composable(Screen.History.route) {
                 HistoryScreen(

@@ -1,6 +1,7 @@
 package com.grupo4.smarthome.data.remote.api
 
 import com.grupo4.smarthome.core.network.ApiRoutes
+import com.grupo4.smarthome.data.remote.dto.auth.ChangePasswordRequestDto
 import com.grupo4.smarthome.data.remote.dto.auth.ForgotPasswordRequestDto
 import com.grupo4.smarthome.data.remote.dto.auth.LoginRequestDto
 import com.grupo4.smarthome.data.remote.dto.auth.RegisterRequestDto
@@ -44,4 +45,12 @@ class AuthApi(
         client.post(ApiRoutes.resolve(ApiRoutes.UsersSendVerification)) {
             setBody(request)
         }
+
+    suspend fun changePassword(request: ChangePasswordRequestDto): HttpResponse =
+        client.post(ApiRoutes.resolve(ApiRoutes.UsersChangePassword)) {
+            setBody(request)
+        }
+
+    suspend fun logout(): HttpResponse =
+        client.post(ApiRoutes.resolve(ApiRoutes.UsersLogout))
 }

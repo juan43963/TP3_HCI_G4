@@ -91,6 +91,12 @@
     <string name="settings_section_profile">Profile</string>
     <string name="settings_field_name">Name</string>
     <string name="settings_field_email">Email</string>
+    <!-- Profile name editing (RNF3) -->
+    <string name="profile_edit_name">Edit name</string>
+    <string name="profile_save">Save</string>
+    <string name="profile_saving">Saving...</string>
+    <string name="profile_cancel">Cancel</string>
+    <string name="profile_saved">Name updated.</string>
     <string name="settings_section_security">Security</string>
     <string name="settings_change_password">Change password</string>
     <string name="settings_change_password_description">Update your password regularly to keep your account secure.</string>
@@ -138,6 +144,22 @@
     <string name="change_pwd_cta_submit">Create new password</string>
     <string name="change_pwd_cta_submitting">Creating...</string>
     <string name="change_pwd_back_to_login">Back to sign in</string>
+
+    <!-- Authenticated change password (RF4) -->
+    <string name="auth_change_pwd_title">Change password</string>
+    <string name="auth_change_pwd_subtitle">Enter your current password and choose a new one.</string>
+    <string name="auth_change_pwd_current_label">Current password</string>
+    <string name="auth_change_pwd_current_placeholder">Your current password</string>
+    <string name="auth_change_pwd_new_label">New password</string>
+    <string name="auth_change_pwd_new_placeholder">At least 8 characters</string>
+    <string name="auth_change_pwd_confirm_label">Confirm new password</string>
+    <string name="auth_change_pwd_confirm_placeholder">Repeat the new password</string>
+    <string name="auth_change_pwd_mismatch">Passwords don\'t match</string>
+    <string name="auth_change_pwd_cta_submit">Change password</string>
+    <string name="auth_change_pwd_cta_submitting">Changing...</string>
+    <string name="auth_change_pwd_cancel">Cancel</string>
+    <string name="auth_change_pwd_success">Password changed successfully.</string>
+    <string name="auth_change_pwd_error_current_wrong">The current password is incorrect.</string>
 
     <!-- Select Home -->
     <string name="select_home_search_placeholder">Search home</string>

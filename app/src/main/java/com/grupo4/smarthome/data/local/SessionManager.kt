@@ -27,6 +27,12 @@ class SessionManager(
         sessionDataStore.saveSession(token, user)
     }
 
+    // Reescribe el usuario cacheado conservando el token actual; sin sesión activa no hace nada
+    suspend fun updateUser(user: User) {
+        val token = session.value?.token ?: return
+        sessionDataStore.saveSession(token, user)
+    }
+
     suspend fun clearSession() {
         sessionDataStore.clearSession()
     }

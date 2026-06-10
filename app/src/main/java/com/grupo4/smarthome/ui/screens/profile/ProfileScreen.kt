@@ -23,17 +23,27 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.WbSunny
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,8 +63,10 @@ import com.grupo4.smarthome.ui.theme.ThemePreference
 @Composable
 fun ProfileScreen(
     windowSize: WindowSizeClass,
-    userName: String = "Juan Perez",
-    userEmail: String = "juanperez@itba.edu.ar",
+    userName: String = "",
+    userEmail: String = "",
+    isSavingName: Boolean = false,
+    onSaveName: (String) -> Unit = {},
     themePreference: ThemePreference = ThemePreference.SYSTEM,
     onThemePreferenceChange: (ThemePreference) -> Unit = {},
     onChangePassword: () -> Unit = {},
@@ -76,6 +88,8 @@ fun ProfileScreen(
         TabletSettingsLayout(
             userName = userName,
             userEmail = userEmail,
+            isSavingName = isSavingName,
+            onSaveName = onSaveName,
             themePreference = themePreference,
             onThemePreferenceChange = onThemePreferenceChange,
             onChangePassword = onChangePassword,
@@ -97,6 +111,8 @@ fun ProfileScreen(
     PhoneProfileLayout(
         userName = userName,
         userEmail = userEmail,
+        isSavingName = isSavingName,
+        onSaveName = onSaveName,
         themePreference = themePreference,
         onThemePreferenceChange = onThemePreferenceChange,
         onChangePassword = onChangePassword,
@@ -116,6 +132,8 @@ private fun PhoneProfileLayout(
     onThemePreferenceChange: (ThemePreference) -> Unit,
     onChangePassword: () -> Unit,
     onProfileAvatarClick: () -> Unit,
+    isSavingName: Boolean = false,
+    onSaveName: (String) -> Unit = {},
     onOpenNotificationSettings: () -> Unit = {},
     onNotificationsClick: () -> Unit = {},
     unreadNotificationCount: Int = 0,
@@ -139,7 +157,12 @@ private fun PhoneProfileLayout(
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
             Header()
-            ProfileSection(userName = userName, userEmail = userEmail)
+            ProfileSection(
+                userName = userName,
+                userEmail = userEmail,
+                isSavingName = isSavingName,
+                onSaveName = onSaveName,
+            )
             SecuritySection(onChangePassword = onChangePassword)
             NotificationsSection(onOpenNotificationSettings = onOpenNotificationSettings)
             AccessibilitySection(
@@ -200,7 +223,22 @@ internal fun SectionCard(
 }
 
 @Composable
-private fun ProfileSection(userName: String, userEmail: String) {
+private fun ProfileSection(
+    userName: String,
+    userEmail: String,
+    isSavingName: Boolean,
+    onSaveName: (String) -> Unit,
+) {
+    var editing by rememberSaveable { mutableStateOf(false) }
+    var draftName by rememberSaveable(userName) { mutableStateOf(userName) }
+
+    // Cerramos el editor cuando el guardado terminó y el estado ya refleja el nombre nuevo
+    LaunchedEffect(isSavingName) {
+        if (!isSavingName && editing && draftName.trim() == userName.trim()) {
+            editing = false
+        }
+    }
+
     SectionCard(title = stringResource(R.string.settings_section_profile)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -221,14 +259,25 @@ private fun ProfileSection(userName: String, userEmail: String) {
                     modifier = Modifier.size(28.dp),
                 )
             }
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 FieldLabel(stringResource(R.string.settings_field_name))
-                Text(
-                    text = userName,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
+                if (editing) {
+                    OutlinedTextField(
+                        value = draftName,
+                        onValueChange = { draftName = it },
+                        singleLine = true,
+                        enabled = !isSavingName,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                    )
+                } else {
+                    Text(
+                        text = userName,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 FieldLabel(stringResource(R.string.settings_field_email))
                 Text(
@@ -236,6 +285,40 @@ private fun ProfileSection(userName: String, userEmail: String) {
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+            if (!editing) {
+                IconButton(onClick = { draftName = userName; editing = true }) {
+                    Icon(
+                        imageVector = Icons.Outlined.Edit,
+                        contentDescription = stringResource(R.string.profile_edit_name),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+        }
+
+        if (editing) {
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+            ) {
+                TextButton(
+                    onClick = { editing = false; draftName = userName },
+                    enabled = !isSavingName,
+                ) {
+                    Text(stringResource(R.string.profile_cancel))
+                }
+                Button(
+                    onClick = { onSaveName(draftName) },
+                    enabled = !isSavingName && draftName.isNotBlank() && draftName.trim() != userName.trim(),
+                ) {
+                    Text(
+                        stringResource(
+                            if (isSavingName) R.string.profile_saving else R.string.profile_save
+                        )
+                    )
+                }
             }
         }
     }

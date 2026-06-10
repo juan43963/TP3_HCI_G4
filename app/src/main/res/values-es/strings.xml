@@ -90,6 +90,12 @@
     <string name="settings_section_profile">Perfil</string>
     <string name="settings_field_name">Nombre</string>
     <string name="settings_field_email">Email</string>
+    <!-- Edición de nombre del perfil (RNF3) -->
+    <string name="profile_edit_name">Editar nombre</string>
+    <string name="profile_save">Guardar</string>
+    <string name="profile_saving">Guardando...</string>
+    <string name="profile_cancel">Cancelar</string>
+    <string name="profile_saved">Nombre actualizado.</string>
     <string name="settings_section_security">Seguridad</string>
     <string name="settings_change_password">Cambiar contraseña</string>
     <string name="settings_change_password_description">Actualizá tu contraseña periódicamente para mantener tu cuenta segura.</string>
@@ -137,6 +143,22 @@
     <string name="change_pwd_cta_submit">Crear nueva contraseña</string>
     <string name="change_pwd_cta_submitting">Creando...</string>
     <string name="change_pwd_back_to_login">Volver a iniciar sesión</string>
+
+    <!-- Cambio de contraseña autenticado (RF4) -->
+    <string name="auth_change_pwd_title">Cambiar contraseña</string>
+    <string name="auth_change_pwd_subtitle">Ingresá tu contraseña actual y elegí una nueva.</string>
+    <string name="auth_change_pwd_current_label">Contraseña actual</string>
+    <string name="auth_change_pwd_current_placeholder">Tu contraseña actual</string>
+    <string name="auth_change_pwd_new_label">Nueva contraseña</string>
+    <string name="auth_change_pwd_new_placeholder">Al menos 8 caracteres</string>
+    <string name="auth_change_pwd_confirm_label">Confirmar nueva contraseña</string>
+    <string name="auth_change_pwd_confirm_placeholder">Repetí la nueva contraseña</string>
+    <string name="auth_change_pwd_mismatch">Las contraseñas no coinciden</string>
+    <string name="auth_change_pwd_cta_submit">Cambiar contraseña</string>
+    <string name="auth_change_pwd_cta_submitting">Cambiando...</string>
+    <string name="auth_change_pwd_cancel">Cancelar</string>
+    <string name="auth_change_pwd_success">Contraseña cambiada con éxito.</string>
+    <string name="auth_change_pwd_error_current_wrong">La contraseña actual es incorrecta.</string>
 
     <!-- Select Home -->
     <string name="select_home_search_placeholder">Buscar hogar</string>

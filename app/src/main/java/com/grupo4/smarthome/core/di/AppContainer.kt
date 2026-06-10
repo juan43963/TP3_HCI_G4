@@ -8,6 +8,7 @@ import com.grupo4.smarthome.data.local.SessionManager
 import com.grupo4.smarthome.data.remote.api.AuthApi
 import com.grupo4.smarthome.data.remote.api.DevicesApi
 import com.grupo4.smarthome.data.remote.api.HomesApi
+import com.grupo4.smarthome.data.remote.api.ProfileApi
 import com.grupo4.smarthome.data.remote.api.RoomsApi
 import com.grupo4.smarthome.data.remote.api.RoutinesApi
 import com.grupo4.smarthome.data.repository.AuthRepository
@@ -16,6 +17,8 @@ import com.grupo4.smarthome.data.repository.DevicesRepository
 import com.grupo4.smarthome.data.repository.DevicesRepositoryImpl
 import com.grupo4.smarthome.data.repository.HomesRepository
 import com.grupo4.smarthome.data.repository.HomesRepositoryImpl
+import com.grupo4.smarthome.data.repository.ProfileRepository
+import com.grupo4.smarthome.data.repository.ProfileRepositoryImpl
 import com.grupo4.smarthome.data.repository.RoomsRepository
 import com.grupo4.smarthome.data.repository.RoomsRepositoryImpl
 import com.grupo4.smarthome.data.repository.RoutinesRepository
@@ -38,6 +41,10 @@ class AppContainer(context: Context) {
     private val authApi: AuthApi = AuthApi(httpClient)
 
     val authRepository: AuthRepository = AuthRepositoryImpl(authApi, sessionManager)
+
+    private val profileApi: ProfileApi = ProfileApi(httpClient)
+
+    val profileRepository: ProfileRepository = ProfileRepositoryImpl(profileApi, sessionManager)
 
     private val homesApi: HomesApi = HomesApi(httpClient)
 

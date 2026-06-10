@@ -21,5 +21,6 @@ sealed class Screen(
         val items: List<Screen> by lazy { listOf(Home, Routines, Rooms) }
         const val SELECT_HOME_ROUTE = "select_home"
         const val ROUTINE_DETAIL_ROUTE = "routine_detail"
+        const val CHANGE_PASSWORD_ROUTE = "change_password_auth"
     }
 }

@@ -24,18 +24,25 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Contrast
 import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.WbSunny
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -75,6 +82,8 @@ private enum class SettingsSection { PROFILE, SECURITY, NOTIFICATIONS, ACCESSIBI
 fun TabletSettingsLayout(
     userName: String,
     userEmail: String,
+    isSavingName: Boolean = false,
+    onSaveName: (String) -> Unit = {},
     themePreference: ThemePreference,
     onThemePreferenceChange: (ThemePreference) -> Unit,
     onChangePassword: () -> Unit,
@@ -147,6 +156,8 @@ fun TabletSettingsLayout(
                 SettingsContent(
                     userName = userName,
                     userEmail = userEmail,
+                    isSavingName = isSavingName,
+                    onSaveName = onSaveName,
                     themePreference = themePreference,
                     onThemePreferenceChange = onThemePreferenceChange,
                     onChangePassword = onChangePassword,
@@ -164,6 +175,8 @@ fun TabletSettingsLayout(
 private fun SettingsContent(
     userName: String,
     userEmail: String,
+    isSavingName: Boolean,
+    onSaveName: (String) -> Unit,
     themePreference: ThemePreference,
     onThemePreferenceChange: (ThemePreference) -> Unit,
     onChangePassword: () -> Unit,
@@ -205,6 +218,8 @@ private fun SettingsContent(
                     selectedSection = selectedSection,
                     userName = userName,
                     userEmail = userEmail,
+                    isSavingName = isSavingName,
+                    onSaveName = onSaveName,
                     themePreference = themePreference,
                     onThemePreferenceChange = onThemePreferenceChange,
                     onChangePassword = onChangePassword,
@@ -225,6 +240,8 @@ private fun SettingsContent(
                 selectedSection = selectedSection,
                 userName = userName,
                 userEmail = userEmail,
+                isSavingName = isSavingName,
+                onSaveName = onSaveName,
                 themePreference = themePreference,
                 onThemePreferenceChange = onThemePreferenceChange,
                 onChangePassword = onChangePassword,
@@ -353,6 +370,8 @@ private fun SettingsDetailPane(
     selectedSection: SettingsSection,
     userName: String,
     userEmail: String,
+    isSavingName: Boolean,
+    onSaveName: (String) -> Unit,
     themePreference: ThemePreference,
     onThemePreferenceChange: (ThemePreference) -> Unit,
     onChangePassword: () -> Unit,
@@ -388,7 +407,12 @@ private fun SettingsDetailPane(
         }
 
         when (selectedSection) {
-            SettingsSection.PROFILE -> ProfileDetailCard(userName = userName, userEmail = userEmail)
+            SettingsSection.PROFILE -> ProfileDetailCard(
+                userName = userName,
+                userEmail = userEmail,
+                isSavingName = isSavingName,
+                onSaveName = onSaveName,
+            )
             SettingsSection.SECURITY -> SecurityDetailCard(onChangePassword = onChangePassword)
             SettingsSection.NOTIFICATIONS -> NotificationPreferenceSections(
                 preferences = notificationPreferences,
@@ -403,7 +427,21 @@ private fun SettingsDetailPane(
 }
 
 @Composable
-private fun ProfileDetailCard(userName: String, userEmail: String) {
+private fun ProfileDetailCard(
+    userName: String,
+    userEmail: String,
+    isSavingName: Boolean,
+    onSaveName: (String) -> Unit,
+) {
+    var editing by rememberSaveable { mutableStateOf(false) }
+    var draftName by rememberSaveable(userName) { mutableStateOf(userName) }
+
+    LaunchedEffect(isSavingName) {
+        if (!isSavingName && editing && draftName.trim() == userName.trim()) {
+            editing = false
+        }
+    }
+
     SectionCard {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -424,14 +462,25 @@ private fun ProfileDetailCard(userName: String, userEmail: String) {
                     modifier = Modifier.size(28.dp),
                 )
             }
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 FieldLabel(stringResource(R.string.settings_field_name))
-                Text(
-                    text = userName,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
+                if (editing) {
+                    OutlinedTextField(
+                        value = draftName,
+                        onValueChange = { draftName = it },
+                        singleLine = true,
+                        enabled = !isSavingName,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                    )
+                } else {
+                    Text(
+                        text = userName,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 FieldLabel(stringResource(R.string.settings_field_email))
                 Text(
@@ -439,6 +488,40 @@ private fun ProfileDetailCard(userName: String, userEmail: String) {
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+            if (!editing) {
+                IconButton(onClick = { draftName = userName; editing = true }) {
+                    Icon(
+                        imageVector = Icons.Outlined.Edit,
+                        contentDescription = stringResource(R.string.profile_edit_name),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+        }
+
+        if (editing) {
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+            ) {
+                TextButton(
+                    onClick = { editing = false; draftName = userName },
+                    enabled = !isSavingName,
+                ) {
+                    Text(stringResource(R.string.profile_cancel))
+                }
+                Button(
+                    onClick = { onSaveName(draftName) },
+                    enabled = !isSavingName && draftName.isNotBlank() && draftName.trim() != userName.trim(),
+                ) {
+                    Text(
+                        stringResource(
+                            if (isSavingName) R.string.profile_saving else R.string.profile_save
+                        )
+                    )
+                }
             }
         }
     }

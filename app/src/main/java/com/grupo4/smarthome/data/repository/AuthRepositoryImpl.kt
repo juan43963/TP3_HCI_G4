@@ -7,6 +7,7 @@ import com.grupo4.smarthome.data.local.SessionManager
 import com.grupo4.smarthome.data.model.RegisterResult
 import com.grupo4.smarthome.data.model.User
 import com.grupo4.smarthome.data.remote.api.AuthApi
+import com.grupo4.smarthome.data.remote.dto.auth.ChangePasswordRequestDto
 import com.grupo4.smarthome.data.remote.dto.auth.ForgotPasswordRequestDto
 import com.grupo4.smarthome.data.remote.dto.auth.LoginRequestDto
 import com.grupo4.smarthome.data.remote.dto.auth.LoginResponseDto
@@ -80,8 +81,12 @@ class AuthRepositoryImpl(
     override suspend fun sendVerification(email: String): AppResult<Unit> =
         requestUnit { authApi.sendVerification(SendVerificationRequestDto(email.trim())) }
 
-    // Por ahora solo limpia la sesión local; el StateFlow emite Unauthenticated en cascada
+    override suspend fun changePassword(oldPassword: String, newPassword: String): AppResult<Unit> =
+        requestUnit { authApi.changePassword(ChangePasswordRequestDto(oldPassword, newPassword)) }
+
+    // Best-effort: avisamos al backend pero siempre limpiamos la sesión local
     override suspend fun logout() {
+        runCatching { authApi.logout() }
         sessionManager.clearSession()
     }
 
