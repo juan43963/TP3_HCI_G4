@@ -1,8 +1,10 @@
 package com.grupo4.smarthome.ui.auth.verify
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.grupo4.smarthome.R
 import com.grupo4.smarthome.core.result.AppResult
 import com.grupo4.smarthome.core.result.ErrorKind
 import com.grupo4.smarthome.data.repository.AuthRepository
@@ -33,7 +35,7 @@ class VerifyAccountViewModel(
             when (val result = authRepository.verifyAccount(current.code)) {
                 is AppResult.Success -> _uiState.update { it.copy(isLoading = false, verified = true) }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(isLoading = false, errorMessage = messageFor(result.error.kind, result.error.description))
+                    it.copy(isLoading = false, errorMessage = messageFor(result.error.kind))
                 }
             }
         }
@@ -51,12 +53,13 @@ class VerifyAccountViewModel(
         _uiState.update { it.copy(verified = false) }
     }
 
-    private fun messageFor(kind: ErrorKind, fallback: String): String =
+    @StringRes
+    private fun messageFor(kind: ErrorKind): Int =
         when (kind) {
-            ErrorKind.Conflict -> "La cuenta ya está verificada."
-            ErrorKind.Validation, ErrorKind.NotFound -> "El código no es válido o ya expiró."
-            ErrorKind.Network -> "No se pudo conectar con el servidor."
-            else -> fallback
+            ErrorKind.Conflict -> R.string.error_account_already_verified
+            ErrorKind.Validation, ErrorKind.NotFound -> R.string.error_invalid_or_expired_code
+            ErrorKind.Network -> R.string.error_network
+            else -> R.string.error_unknown
         }
 }
 

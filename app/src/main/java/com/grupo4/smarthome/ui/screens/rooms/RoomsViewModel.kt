@@ -1,8 +1,10 @@
 package com.grupo4.smarthome.ui.screens.rooms
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.grupo4.smarthome.R
 import com.grupo4.smarthome.core.result.ApiError
 import com.grupo4.smarthome.core.result.AppResult
 import com.grupo4.smarthome.core.result.ErrorKind
@@ -83,7 +85,7 @@ class RoomsViewModel(
                     loadAllRoomDevices()
                 }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(isLoading = false, errorMessage = messageFor(result.error.kind, result.error.description))
+                    it.copy(isLoading = false, errorMessage = messageFor(result.error.kind))
                 }
             }
         }
@@ -98,7 +100,7 @@ class RoomsViewModel(
             when (val result = roomsRepository.createRoom(currentHome, name, type)) {
                 is AppResult.Success -> refreshRooms()
                 is AppResult.Error -> _uiState.update {
-                    it.copy(errorMessage = messageFor(result.error.kind, result.error.description))
+                    it.copy(errorMessage = messageFor(result.error.kind))
                 }
             }
         }
@@ -117,7 +119,7 @@ class RoomsViewModel(
                     )
                 }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(errorMessage = messageFor(result.error.kind, result.error.description))
+                    it.copy(errorMessage = messageFor(result.error.kind))
                 }
             }
         }
@@ -134,7 +136,7 @@ class RoomsViewModel(
                     refreshRooms()
                 }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(errorMessage = messageFor(result.error.kind, result.error.description))
+                    it.copy(errorMessage = messageFor(result.error.kind))
                 }
             }
         }
@@ -152,7 +154,7 @@ class RoomsViewModel(
                     )
                 }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(errorMessage = messageFor(result.error.kind, result.error.description))
+                    it.copy(errorMessage = messageFor(result.error.kind))
                 }
             }
         }
@@ -172,7 +174,7 @@ class RoomsViewModel(
                 loadAllRoomDevices()
             }
             is AppResult.Error -> _uiState.update {
-                it.copy(errorMessage = messageFor(result.error.kind, result.error.description))
+                it.copy(errorMessage = messageFor(result.error.kind))
             }
         }
     }
@@ -231,7 +233,7 @@ class RoomsViewModel(
             when (val result = devicesRepository.toggleDevice(device)) {
                 is AppResult.Success -> updateDeviceInState(result.data)
                 is AppResult.Error -> {
-                    _uiState.update { it.copy(errorMessage = messageFor(result.error.kind, result.error.description)) }
+                    _uiState.update { it.copy(errorMessage = messageFor(result.error.kind)) }
                     reloadRoomDevices(device.roomId)
                 }
             }
@@ -246,7 +248,7 @@ class RoomsViewModel(
             when (val result = devicesRepository.setDeviceValue(device, value)) {
                 is AppResult.Success -> updateDeviceInState(result.data)
                 is AppResult.Error -> {
-                    _uiState.update { it.copy(errorMessage = messageFor(result.error.kind, result.error.description)) }
+                    _uiState.update { it.copy(errorMessage = messageFor(result.error.kind)) }
                     reloadRoomDevices(device.roomId)
                 }
             }
@@ -265,7 +267,7 @@ class RoomsViewModel(
             // Refetch de la habitación para reflejar lo realmente persistido en el backend
             reloadRoomDevices(roomId)
             lastError?.let { err ->
-                _uiState.update { it.copy(errorMessage = messageFor(err.kind, err.description)) }
+                _uiState.update { it.copy(errorMessage = messageFor(err.kind)) }
             }
         }
     }
@@ -275,7 +277,7 @@ class RoomsViewModel(
             when (val result = devicesRepository.renameDevice(deviceId, name)) {
                 is AppResult.Success -> updateDeviceInState(result.data)
                 is AppResult.Error -> _uiState.update {
-                    it.copy(errorMessage = messageFor(result.error.kind, result.error.description))
+                    it.copy(errorMessage = messageFor(result.error.kind))
                 }
             }
         }
@@ -287,7 +289,7 @@ class RoomsViewModel(
                 // Solo removemos del estado si la API confirmó el borrado
                 is AppResult.Success -> _uiState.update { it.copy(rooms = it.rooms.withoutDevice(deviceId)) }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(errorMessage = messageFor(result.error.kind, result.error.description))
+                    it.copy(errorMessage = messageFor(result.error.kind))
                 }
             }
         }
@@ -319,18 +321,19 @@ class RoomsViewModel(
         }
     }
 
-    private fun messageFor(kind: ErrorKind, fallback: String): String =
+    @StringRes
+    private fun messageFor(kind: ErrorKind): Int =
         when (kind) {
-            ErrorKind.Unauthorized -> "Tu sesión expiró. Volvé a iniciar sesión."
-            ErrorKind.Network -> "No se pudo conectar con el servidor."
-            ErrorKind.Validation -> "Revisá los datos ingresados."
-            ErrorKind.NotFound -> fallback.ifBlank { "No se encontró el recurso solicitado." }
-            ErrorKind.Server -> "El servidor no pudo completar la operación."
-            else -> fallback
+            ErrorKind.Unauthorized -> R.string.error_session_expired
+            ErrorKind.Network -> R.string.error_network
+            ErrorKind.Validation -> R.string.error_validation
+            ErrorKind.NotFound -> R.string.error_not_found
+            ErrorKind.Server -> R.string.error_server_generic
+            else -> R.string.error_unknown
         }
 
     private companion object {
-        const val NoActiveHomeMessage = "Seleccioná un hogar para ver sus habitaciones."
+        val NoActiveHomeMessage = R.string.rooms_no_active_home
     }
 }
 

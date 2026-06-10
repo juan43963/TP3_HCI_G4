@@ -1,8 +1,10 @@
 package com.grupo4.smarthome.ui.auth.change
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.grupo4.smarthome.R
 import com.grupo4.smarthome.core.result.AppResult
 import com.grupo4.smarthome.core.result.ErrorKind
 import com.grupo4.smarthome.data.repository.AuthRepository
@@ -39,7 +41,7 @@ class ChangePasswordViewModel(
             when (val result = authRepository.resetPassword(current.code, current.password)) {
                 is AppResult.Success -> _uiState.update { it.copy(isLoading = false, passwordChanged = true) }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(isLoading = false, errorMessage = messageFor(result.error.kind, result.error.description))
+                    it.copy(isLoading = false, errorMessage = messageFor(result.error.kind))
                 }
             }
         }
@@ -49,11 +51,12 @@ class ChangePasswordViewModel(
         _uiState.update { it.copy(passwordChanged = false) }
     }
 
-    private fun messageFor(kind: ErrorKind, fallback: String): String =
+    @StringRes
+    private fun messageFor(kind: ErrorKind): Int =
         when (kind) {
-            ErrorKind.NotFound, ErrorKind.Validation -> "El código no es válido o ya expiró."
-            ErrorKind.Network -> "No se pudo conectar con el servidor."
-            else -> fallback
+            ErrorKind.NotFound, ErrorKind.Validation -> R.string.error_invalid_or_expired_code
+            ErrorKind.Network -> R.string.error_network
+            else -> R.string.error_unknown
         }
 }
 

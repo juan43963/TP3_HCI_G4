@@ -190,7 +190,7 @@ fun ChangePasswordContent(
             if (uiState.errorMessage != null) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = uiState.errorMessage,
+                    text = stringResource(uiState.errorMessage),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.fillMaxWidth(),

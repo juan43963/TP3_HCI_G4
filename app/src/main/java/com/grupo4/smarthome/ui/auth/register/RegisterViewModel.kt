@@ -1,8 +1,10 @@
 package com.grupo4.smarthome.ui.auth.register
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.grupo4.smarthome.R
 import com.grupo4.smarthome.core.result.AppResult
 import com.grupo4.smarthome.core.result.ErrorKind
 import com.grupo4.smarthome.data.repository.AuthRepository
@@ -82,7 +84,7 @@ class RegisterViewModel(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = messageFor(result.error.kind, result.error.description),
+                            errorMessage = messageFor(result.error.kind),
                         )
                     }
                 }
@@ -104,28 +106,31 @@ class RegisterViewModel(
         }
     }
 
-    private fun validateStepOne(state: RegisterUiState): String? =
+    @StringRes
+    private fun validateStepOne(state: RegisterUiState): Int? =
         when {
-            state.fullName.isBlank() -> "Ingresá tu nombre."
-            state.email.isBlank() -> "Ingresá tu email."
-            !state.email.trim().matches(EMAIL_REGEX) -> "Ingresá un email válido."
+            state.fullName.isBlank() -> R.string.error_name_required
+            state.email.isBlank() -> R.string.error_email_required
+            !state.email.trim().matches(EMAIL_REGEX) -> R.string.error_email_invalid
             else -> null
         }
 
-    private fun validateForm(state: RegisterUiState): String? =
+    @StringRes
+    private fun validateForm(state: RegisterUiState): Int? =
         validateStepOne(state) ?: when {
-            state.password.length < MIN_PASSWORD_LENGTH -> "La contraseña debe tener al menos 6 caracteres."
-            state.password != state.confirmPassword -> "Las contraseñas no coinciden."
+            state.password.length < MIN_PASSWORD_LENGTH -> R.string.error_password_too_short_6
+            state.password != state.confirmPassword -> R.string.error_passwords_mismatch
             else -> null
         }
 
-    private fun messageFor(kind: ErrorKind, fallback: String): String =
+    @StringRes
+    private fun messageFor(kind: ErrorKind): Int =
         when (kind) {
-            ErrorKind.Conflict -> "Ese email ya está registrado."
-            ErrorKind.Network -> "No se pudo conectar con el servidor."
-            ErrorKind.Server -> "El servidor no pudo crear la cuenta."
-            ErrorKind.Validation -> "Revisá los datos ingresados."
-            else -> fallback
+            ErrorKind.Conflict -> R.string.error_register_email_taken
+            ErrorKind.Network -> R.string.error_network
+            ErrorKind.Server -> R.string.error_register_server
+            ErrorKind.Validation -> R.string.error_validation
+            else -> R.string.error_unknown
         }
 
     companion object {

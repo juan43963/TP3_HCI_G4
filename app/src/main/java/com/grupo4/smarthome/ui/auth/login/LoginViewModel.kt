@@ -1,8 +1,10 @@
 package com.grupo4.smarthome.ui.auth.login
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.grupo4.smarthome.R
 import com.grupo4.smarthome.core.result.AppResult
 import com.grupo4.smarthome.core.result.ErrorKind
 import com.grupo4.smarthome.data.repository.AuthRepository
@@ -35,7 +37,7 @@ class LoginViewModel(
             when (val result = authRepository.login(current.email, current.password)) {
                 is AppResult.Success -> _uiState.update { it.copy(isLoading = false, loggedIn = true) }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(isLoading = false, errorMessage = messageFor(result.error.kind, result.error.description))
+                    it.copy(isLoading = false, errorMessage = messageFor(result.error.kind))
                 }
             }
         }
@@ -45,12 +47,13 @@ class LoginViewModel(
         _uiState.update { it.copy(loggedIn = false) }
     }
 
-    private fun messageFor(kind: ErrorKind, fallback: String): String =
+    @StringRes
+    private fun messageFor(kind: ErrorKind): Int =
         when (kind) {
-            ErrorKind.Unauthorized, ErrorKind.Validation -> "Email o contraseña incorrectos."
-            ErrorKind.Network -> "No se pudo conectar con el servidor."
-            ErrorKind.Server -> "El servidor no pudo iniciar la sesión."
-            else -> fallback
+            ErrorKind.Unauthorized, ErrorKind.Validation -> R.string.error_login_invalid_credentials
+            ErrorKind.Network -> R.string.error_network
+            ErrorKind.Server -> R.string.error_login_server
+            else -> R.string.error_unknown
         }
 }
 

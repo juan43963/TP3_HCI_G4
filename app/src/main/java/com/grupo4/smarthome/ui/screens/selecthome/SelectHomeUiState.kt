@@ -1,18 +1,19 @@
 package com.grupo4.smarthome.ui.screens.selecthome
 
+import androidx.annotation.StringRes
 import com.grupo4.smarthome.data.model.SharedUser
 
 data class SelectHomeUiState(
     val userName: String = "",
     val homes: List<SelectableHome> = emptyList(),
     val isLoading: Boolean = false,
-    val errorMessage: String? = null,
+    @StringRes val errorMessage: Int? = null,
     val isCreating: Boolean = false,
-    val createError: String? = null,
+    @StringRes val createError: Int? = null,
     val homeJustCreated: Boolean = false,
     val dialog: HomeDialog? = null,
     val isProcessingAction: Boolean = false,
-    val actionError: String? = null,
+    @StringRes val actionError: Int? = null,
     val sharedUsers: List<SharedUser> = emptyList(),
     val isLoadingShared: Boolean = false,
     val activeHomeId: String? = null,

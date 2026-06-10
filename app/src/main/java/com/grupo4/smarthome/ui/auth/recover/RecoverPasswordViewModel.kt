@@ -1,8 +1,10 @@
 package com.grupo4.smarthome.ui.auth.recover
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.grupo4.smarthome.R
 import com.grupo4.smarthome.core.result.AppResult
 import com.grupo4.smarthome.core.result.ErrorKind
 import com.grupo4.smarthome.data.repository.AuthRepository
@@ -31,7 +33,7 @@ class RecoverPasswordViewModel(
             when (val result = authRepository.forgotPassword(current.email)) {
                 is AppResult.Success -> _uiState.update { it.copy(isLoading = false, codeSent = true) }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(isLoading = false, errorMessage = messageFor(result.error.kind, result.error.description))
+                    it.copy(isLoading = false, errorMessage = messageFor(result.error.kind))
                 }
             }
         }
@@ -41,12 +43,13 @@ class RecoverPasswordViewModel(
         _uiState.update { it.copy(codeSent = false, errorMessage = null) }
     }
 
-    private fun messageFor(kind: ErrorKind, fallback: String): String =
+    @StringRes
+    private fun messageFor(kind: ErrorKind): Int =
         when (kind) {
-            ErrorKind.NotFound -> "No encontramos una cuenta con ese email."
-            ErrorKind.Network -> "No se pudo conectar con el servidor."
-            ErrorKind.Validation -> "Ingresá un email válido."
-            else -> fallback
+            ErrorKind.NotFound -> R.string.error_recover_account_not_found
+            ErrorKind.Network -> R.string.error_network
+            ErrorKind.Validation -> R.string.error_email_invalid
+            else -> R.string.error_unknown
         }
 }
 

@@ -1,8 +1,10 @@
 package com.grupo4.smarthome.ui.screens.routines
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.grupo4.smarthome.R
 import com.grupo4.smarthome.core.result.AppResult
 import com.grupo4.smarthome.core.result.ErrorKind
 import com.grupo4.smarthome.data.model.Device
@@ -72,7 +74,7 @@ class RoutinesViewModel(
                     loadDevices(currentHome)
                 }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(isLoading = false, errorMessage = messageFor(result.error.kind, result.error.description))
+                    it.copy(isLoading = false, errorMessage = messageFor(result.error.kind))
                 }
             }
         }
@@ -92,7 +94,7 @@ class RoutinesViewModel(
             when (result) {
                 is AppResult.Success -> refreshRoutines()
                 is AppResult.Error -> _uiState.update {
-                    it.copy(errorMessage = messageFor(result.error.kind, result.error.description))
+                    it.copy(errorMessage = messageFor(result.error.kind))
                 }
             }
         }
@@ -108,7 +110,7 @@ class RoutinesViewModel(
                     )
                 }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(errorMessage = messageFor(result.error.kind, result.error.description))
+                    it.copy(errorMessage = messageFor(result.error.kind))
                 }
             }
         }
@@ -127,7 +129,7 @@ class RoutinesViewModel(
                     state.copy(routines = state.routines.filterNot { it.id == routineId }, errorMessage = null)
                 }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(errorMessage = messageFor(result.error.kind, result.error.description))
+                    it.copy(errorMessage = messageFor(result.error.kind))
                 }
             }
         }
@@ -143,7 +145,7 @@ class RoutinesViewModel(
                     )
                 }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(errorMessage = messageFor(result.error.kind, result.error.description))
+                    it.copy(errorMessage = messageFor(result.error.kind))
                 }
             }
         }
@@ -161,7 +163,7 @@ class RoutinesViewModel(
                 is AppResult.Error -> _uiState.update {
                     it.copy(
                         executingRoutineId = null,
-                        errorMessage = messageFor(result.error.kind, result.error.description),
+                        errorMessage = messageFor(result.error.kind),
                     )
                 }
             }
@@ -179,7 +181,7 @@ class RoutinesViewModel(
         when (val result = routinesRepository.getRoutines(currentHome)) {
             is AppResult.Success -> _uiState.update { it.copy(routines = result.data, errorMessage = null) }
             is AppResult.Error -> _uiState.update {
-                it.copy(errorMessage = messageFor(result.error.kind, result.error.description))
+                it.copy(errorMessage = messageFor(result.error.kind))
             }
         }
     }
@@ -220,18 +222,19 @@ class RoutinesViewModel(
         _uiState.update { it.copy(deviceActions = actions) }
     }
 
-    private fun messageFor(kind: ErrorKind, fallback: String): String =
+    @StringRes
+    private fun messageFor(kind: ErrorKind): Int =
         when (kind) {
-            ErrorKind.Unauthorized -> "Tu sesión expiró. Volvé a iniciar sesión."
-            ErrorKind.Network -> "No se pudo conectar con el servidor."
-            ErrorKind.Validation -> "Revisá los datos ingresados."
-            ErrorKind.NotFound -> fallback.ifBlank { "No se encontró el recurso solicitado." }
-            ErrorKind.Server -> "El servidor no pudo completar la operación."
-            else -> fallback
+            ErrorKind.Unauthorized -> R.string.error_session_expired
+            ErrorKind.Network -> R.string.error_network
+            ErrorKind.Validation -> R.string.error_validation
+            ErrorKind.NotFound -> R.string.error_not_found
+            ErrorKind.Server -> R.string.error_server_generic
+            else -> R.string.error_unknown
         }
 
     private companion object {
-        const val NoActiveHomeMessage = "Seleccioná un hogar para ver sus rutinas."
+        val NoActiveHomeMessage = R.string.routines_no_active_home
     }
 }
 

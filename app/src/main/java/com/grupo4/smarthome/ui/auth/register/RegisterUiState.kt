@@ -1,5 +1,7 @@
 package com.grupo4.smarthome.ui.auth.register
 
+import androidx.annotation.StringRes
+
 data class RegisterUiState(
     val step: Int = 1,
     val fullName: String = "",
@@ -7,7 +9,7 @@ data class RegisterUiState(
     val password: String = "",
     val confirmPassword: String = "",
     val isLoading: Boolean = false,
-    val errorMessage: String? = null,
+    @StringRes val errorMessage: Int? = null,
     val registrationCompleted: Boolean = false,
     val registeredEmail: String? = null,
 ) {

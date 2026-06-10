@@ -100,6 +100,8 @@ import com.grupo4.smarthome.ui.screens.routines.toDetailUi
 import com.grupo4.smarthome.ui.screens.routines.toRoutineUi
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 import com.grupo4.smarthome.ui.theme.ThemePreference
+import com.grupo4.smarthome.ui.theme.ThemeViewModel
+import com.grupo4.smarthome.ui.theme.ThemeViewModelFactory
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -116,13 +118,17 @@ class MainActivity : ComponentActivity() {
         }
         enableEdgeToEdge()
         setContent {
-            var themePreference by rememberSaveable { mutableStateOf(ThemePreference.SYSTEM) }
+            val appContainer = (application as SmartHomeApplication).appContainer
+            val themeViewModel: ThemeViewModel = viewModel(
+                factory = remember { ThemeViewModelFactory(appContainer.preferencesDataStore) },
+            )
+            val themePreference by themeViewModel.themePreference.collectAsStateWithLifecycle()
             SmartHomeTheme(themePreference = themePreference) {
                 val windowSize = calculateWindowSizeClass(this)
                 SmartHomeApp(
                     windowSize = windowSize,
                     themePreference = themePreference,
-                    onThemePreferenceChange = { themePreference = it },
+                    onThemePreferenceChange = themeViewModel::setTheme,
                 )
             }
         }
@@ -540,7 +546,7 @@ fun SmartHomeApp(
                     userName = selectHomeUiState.userName,
                     homes = selectHomeUiState.homes,
                     isLoading = selectHomeUiState.isLoading,
-                    errorMessage = selectHomeUiState.errorMessage,
+                    errorMessage = selectHomeUiState.errorMessage?.let { stringResource(it) },
                     onRetry = selectHomeViewModel::loadHomes,
                     onHomeSelected = { home ->
                         selectHomeViewModel.selectHome(home.id)
@@ -559,7 +565,7 @@ fun SmartHomeApp(
                     onDeleteHome = selectHomeViewModel::openDeleteDialog,
                     dialog = selectHomeUiState.dialog,
                     isProcessingAction = selectHomeUiState.isProcessingAction,
-                    actionError = selectHomeUiState.actionError,
+                    actionError = selectHomeUiState.actionError?.let { stringResource(it) },
                     sharedUsers = selectHomeUiState.sharedUsers,
                     isLoadingShared = selectHomeUiState.isLoadingShared,
                     onDismissDialog = selectHomeViewModel::dismissDialog,
@@ -675,7 +681,7 @@ fun SmartHomeApp(
                         it.toRoutineUi(routinesUiState.deviceNamesById)
                     },
                     isLoading = routinesUiState.isLoading,
-                    errorMessage = routinesUiState.errorMessage,
+                    errorMessage = routinesUiState.errorMessage?.let { stringResource(it) },
                     infoMessage = routinesUiState.infoMessage,
                     onExecuteRoutine = routinesViewModel::executeRoutine,
                     onSaveRoutine = { id, name, time24h, days, enabled ->
@@ -912,7 +918,7 @@ fun SmartHomeApp(
                 isTablet = isTablet,
                 onDismiss = { showAddHome = false },
                 isCreating = selectHomeUiState.isCreating,
-                errorMessage = selectHomeUiState.createError,
+                errorMessage = selectHomeUiState.createError?.let { stringResource(it) },
                 onCreate = { name, typeIndex, photoIndex, shareEmail ->
                     selectHomeViewModel.createHome(name, typeIndex, photoIndex, shareEmail)
                 },

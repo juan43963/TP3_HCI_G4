@@ -38,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.annotation.StringRes
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -218,11 +219,11 @@ fun RegisterContent(
 }
 
 @Composable
-internal fun RegisterErrorText(errorMessage: String?) {
+internal fun RegisterErrorText(@StringRes errorMessage: Int?) {
     if (errorMessage == null) return
     Spacer(modifier = Modifier.height(12.dp))
     Text(
-        text = errorMessage,
+        text = stringResource(errorMessage),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.error,
         modifier = Modifier.fillMaxWidth(),

@@ -133,7 +133,7 @@ private fun RecoverPasswordTabletContent(
                 if (uiState.errorMessage != null) {
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = uiState.errorMessage,
+                        text = stringResource(uiState.errorMessage),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.error,
                         textAlign = TextAlign.Center,

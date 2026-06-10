@@ -1,8 +1,10 @@
 package com.grupo4.smarthome.ui.screens.selecthome
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.grupo4.smarthome.R
 import com.grupo4.smarthome.core.result.AppResult
 import com.grupo4.smarthome.core.result.ErrorKind
 import com.grupo4.smarthome.data.local.PreferencesDataStore
@@ -59,7 +61,7 @@ class SelectHomeViewModel(
                     reconcileActiveHome()
                 }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(isLoading = false, errorMessage = messageFor(result.error.kind, result.error.description))
+                    it.copy(isLoading = false, errorMessage = messageFor(result.error.kind))
                 }
             }
         }
@@ -114,7 +116,7 @@ class SelectHomeViewModel(
                     reconcileActiveHome()
                 }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(isCreating = false, createError = messageFor(result.error.kind, result.error.description))
+                    it.copy(isCreating = false, createError = messageFor(result.error.kind))
                 }
             }
         }
@@ -163,7 +165,7 @@ class SelectHomeViewModel(
                 is AppResult.Error -> _uiState.update {
                     it.copy(
                         isProcessingAction = false,
-                        actionError = messageFor(result.error.kind, result.error.description),
+                        actionError = messageFor(result.error.kind),
                     )
                 }
             }
@@ -184,7 +186,7 @@ class SelectHomeViewModel(
                 is AppResult.Error -> _uiState.update {
                     it.copy(
                         isProcessingAction = false,
-                        actionError = messageFor(result.error.kind, result.error.description),
+                        actionError = messageFor(result.error.kind),
                     )
                 }
             }
@@ -224,23 +226,25 @@ class SelectHomeViewModel(
         }
     }
 
-    private fun messageFor(kind: ErrorKind, fallback: String): String =
+    @StringRes
+    private fun messageFor(kind: ErrorKind): Int =
         when (kind) {
-            ErrorKind.Unauthorized -> "Tu sesión expiró. Volvé a iniciar sesión."
-            ErrorKind.Network -> "No se pudo conectar con el servidor."
-            ErrorKind.Validation -> "Revisá los datos ingresados."
-            ErrorKind.Server -> "El servidor no pudo completar la operación."
-            else -> fallback
+            ErrorKind.Unauthorized -> R.string.error_session_expired
+            ErrorKind.Network -> R.string.error_network
+            ErrorKind.Validation -> R.string.error_validation
+            ErrorKind.Server -> R.string.error_server_generic
+            else -> R.string.error_unknown
         }
 
-    private fun shareMessageFor(kind: ErrorKind): String =
+    @StringRes
+    private fun shareMessageFor(kind: ErrorKind): Int =
         when (kind) {
-            ErrorKind.Conflict -> "La casa ya está compartida con ese usuario."
-            ErrorKind.NotFound -> "No existe un usuario con ese email."
-            ErrorKind.Validation -> "Ingresá un email válido."
-            ErrorKind.Network -> "No se pudo conectar con el servidor."
-            ErrorKind.Unauthorized -> "Tu sesión expiró. Volvé a iniciar sesión."
-            else -> "No se pudo compartir la casa."
+            ErrorKind.Conflict -> R.string.error_share_already_shared
+            ErrorKind.NotFound -> R.string.error_share_user_not_found
+            ErrorKind.Validation -> R.string.error_email_invalid
+            ErrorKind.Network -> R.string.error_network
+            ErrorKind.Unauthorized -> R.string.error_session_expired
+            else -> R.string.error_share_generic
         }
 }
 

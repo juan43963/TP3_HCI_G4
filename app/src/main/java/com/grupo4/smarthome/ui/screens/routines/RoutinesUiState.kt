@@ -1,5 +1,6 @@
 package com.grupo4.smarthome.ui.screens.routines
 
+import androidx.annotation.StringRes
 import com.grupo4.smarthome.data.model.Device
 import com.grupo4.smarthome.data.model.DeviceActionInfo
 import com.grupo4.smarthome.data.model.DeviceType
@@ -16,7 +17,7 @@ data class RoutinesUiState(
     val deviceRoomNames: Map<String, String> = emptyMap(),
     val deviceActions: Map<DeviceType, List<DeviceActionInfo>> = emptyMap(),
     val isLoading: Boolean = false,
-    val errorMessage: String? = null,
+    @StringRes val errorMessage: Int? = null,
     val infoMessage: String? = null,
     val executingRoutineId: String? = null,
 )

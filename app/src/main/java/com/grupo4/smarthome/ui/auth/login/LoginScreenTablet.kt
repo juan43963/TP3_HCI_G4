@@ -185,7 +185,7 @@ private fun LoginTabletContent(
             if (uiState.errorMessage != null) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = uiState.errorMessage,
+                    text = stringResource(uiState.errorMessage),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.error,
                     textAlign = TextAlign.Center,

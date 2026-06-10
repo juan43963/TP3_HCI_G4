@@ -121,12 +121,12 @@ fun RoomsScreen(
     )
 
     Box(modifier = modifier.fillMaxSize()) {
-        val errorMessage = state.errorMessage
+        val errorText = state.errorMessage?.let { stringResource(it) }
         when {
             // Sin contenido + error (incluye "no hay hogar activo"): estado de error accionable
-            state.rooms.isEmpty() && errorMessage != null -> {
+            state.rooms.isEmpty() && errorText != null -> {
                 RoomsErrorState(
-                    message = errorMessage,
+                    message = errorText,
                     onRetry = viewModel::loadRooms,
                     modifier = Modifier.fillMaxSize(),
                 )
@@ -146,9 +146,9 @@ fun RoomsScreen(
                 )
                 // Errores no bloqueantes (fallos en mutaciones con contenido ya visible)
                 val snackbarHostState = remember { SnackbarHostState() }
-                LaunchedEffect(errorMessage) {
-                    if (errorMessage != null) {
-                        snackbarHostState.showSnackbar(errorMessage)
+                LaunchedEffect(errorText) {
+                    if (errorText != null) {
+                        snackbarHostState.showSnackbar(errorText)
                         viewModel.dismissError()
                     }
                 }

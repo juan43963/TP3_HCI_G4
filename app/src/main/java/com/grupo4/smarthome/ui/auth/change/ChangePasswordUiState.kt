@@ -1,12 +1,14 @@
 package com.grupo4.smarthome.ui.auth.change
 
+import androidx.annotation.StringRes
+
 data class ChangePasswordUiState(
     val code: String = "",
     val password: String = "",
     val confirm: String = "",
     val isLoading: Boolean = false,
     val passwordChanged: Boolean = false,
-    val errorMessage: String? = null,
+    @StringRes val errorMessage: Int? = null,
 ) {
     val showMismatch: Boolean
         get() = confirm.isNotEmpty() && confirm != password

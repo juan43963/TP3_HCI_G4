@@ -206,7 +206,7 @@ private fun ChangePasswordTabletContent(
             if (uiState.errorMessage != null) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = uiState.errorMessage,
+                    text = stringResource(uiState.errorMessage),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.error,
                     textAlign = TextAlign.Center,

@@ -1,5 +1,6 @@
 package com.grupo4.smarthome.ui.screens.rooms
 
+import androidx.annotation.StringRes
 import com.grupo4.smarthome.data.model.Device
 import com.grupo4.smarthome.data.model.DeviceType
 import com.grupo4.smarthome.data.model.Room
@@ -15,7 +16,7 @@ data class RoomsUiState(
     val editDevicesMode: Boolean = false,
     val isLoading: Boolean = false,
     val unreadNotificationCount: Int = 0,
-    val errorMessage: String? = null,
+    @StringRes val errorMessage: Int? = null,
 )
 
 data class RoomsPresentationState(
