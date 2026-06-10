@@ -6,6 +6,8 @@ import com.grupo4.smarthome.core.result.AppResult
 import com.grupo4.smarthome.core.result.ErrorKind
 import com.grupo4.smarthome.core.result.ErrorMapper
 import com.grupo4.smarthome.data.model.Device
+import com.grupo4.smarthome.data.model.DeviceActionInfo
+import com.grupo4.smarthome.data.model.DeviceActionParamInfo
 import com.grupo4.smarthome.data.model.DeviceType
 import com.grupo4.smarthome.data.remote.api.DevicesApi
 import com.grupo4.smarthome.data.remote.dto.device.DeviceCreateDto
@@ -165,6 +167,25 @@ class DevicesRepositoryImpl(
                 return@runCatching AppResult.Error(ErrorMapper.fromHttp(response.status, response.bodyAsText()))
             }
             refetchDevice(device.id, device.roomId, catalog)
+        }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
+
+    override suspend fun getActionsFor(type: DeviceType): AppResult<List<DeviceActionInfo>> =
+        runCatching {
+            val catalog = ensureDeviceTypes() ?: return@runCatching catalogError()
+            val actions = catalog.firstOrNull { it.name?.lowercase() in type.apiNames() }
+                ?.actions
+                ?.mapNotNull { action ->
+                    action.name?.let { name ->
+                        DeviceActionInfo(
+                            name = name,
+                            params = action.params.mapNotNull { param ->
+                                param.name?.let { DeviceActionParamInfo(it, param.type.orEmpty(), param.min, param.max) }
+                            },
+                        )
+                    }
+                }
+                .orEmpty()
+            AppResult.Success(actions)
         }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
 
     // --- Helpers de red ---

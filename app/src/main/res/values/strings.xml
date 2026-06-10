@@ -385,7 +385,10 @@
     <string name="routines_category_night">Noche</string>
     <string name="routines_category_comfort">Confort</string>
     <string name="routines_category_security">Seguridad</string>
+    <string name="routines_category_custom">Personalizada</string>
     <string name="routines_more_actions">+%1$d acciones más</string>
+    <string name="routines_executed">Se ejecutó “%1$s”.</string>
+    <string name="routines_retry">Reintentar</string>
     <string name="routines_favorite_content_description">Marcar como favorita</string>
     <string name="routines_play_content_description">Ejecutar rutina</string>
     <string name="routines_add_content_description">Crear rutina</string>
@@ -432,6 +435,9 @@
     <string name="create_routine_search_placeholder">Buscar por nombre o habitación...</string>
     <string name="create_routine_devices_title">Dispositivos disponibles</string>
     <string name="create_routine_devices_subtitle">Tocá uno para seleccionarlo</string>
+    <string name="create_routine_devices_empty">No hay dispositivos disponibles para este hogar.</string>
+    <string name="create_routine_devices_no_results">No encontramos dispositivos con ese nombre o habitación.</string>
+    <string name="create_routine_device_generic">Dispositivo</string>
     <string name="create_routine_device_fridge">Heladera</string>
     <string name="create_routine_device_fridge_room">hhh</string>
     <string name="create_routine_device_living_light">Luz del living</string>

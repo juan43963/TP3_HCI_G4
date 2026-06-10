@@ -4,12 +4,13 @@ import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.grupo4.smarthome.ui.screens.dashboard.DashboardCallbacks
-import com.grupo4.smarthome.ui.screens.dashboard.DashboardPreviewData
 import com.grupo4.smarthome.ui.screens.dashboard.DashboardScreen
+import com.grupo4.smarthome.ui.screens.dashboard.DashboardUiState
 
 @Composable
 fun HomeScreen(
     windowSize: WindowSizeClass,
+    state: DashboardUiState,
     modifier: Modifier = Modifier,
     onNavigateRooms: () -> Unit = {},
     onNavigateRoutines: () -> Unit = {},
@@ -18,13 +19,15 @@ fun HomeScreen(
     onNavigateNotifications: () -> Unit = {},
     unreadNotificationCount: Int = 0,
     onQuickActionsOpen: () -> Unit = {},
+    onCreateRoom: () -> Unit = {},
+    onCreateDevice: () -> Unit = {},
     onCreateRoutine: () -> Unit = {},
     showQuickAddFab: Boolean = true,
 ) {
     DashboardScreen(
         windowSize = windowSize,
         modifier = modifier,
-        state = DashboardPreviewData.populated.copy(
+        state = state.copy(
             unreadNotificationCount = unreadNotificationCount,
         ),
         callbacks = DashboardCallbacks(
@@ -33,6 +36,8 @@ fun HomeScreen(
             onProfileClick = onNavigateProfile,
             onHistoryClick = onNavigateHistory,
             onNotificationsClick = onNavigateNotifications,
+            onCreateRoom = onCreateRoom,
+            onCreateDevice = onCreateDevice,
             onCreateRoutine = onCreateRoutine,
             onQuickAddClick = onQuickActionsOpen,
             showQuickAddFab = showQuickAddFab,

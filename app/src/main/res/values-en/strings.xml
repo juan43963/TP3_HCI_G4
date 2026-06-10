@@ -79,6 +79,8 @@
     <string name="create_routine_summary_temperature">Change temperature: 4</string>
     <string name="create_routine_device_step_label">STEP 1 OF 3 — CHOOSE DEVICE</string>
     <string name="create_routine_search_placeholder">Search by name or room...</string>
+    <string name="create_routine_devices_empty">There are no available devices for this home.</string>
+    <string name="create_routine_devices_no_results">No devices match that name or room.</string>
     <string name="create_routine_devices_title">Available devices</string>
     <string name="create_routine_devices_subtitle">Tap one to select it</string>
     <string name="create_routine_device_fridge">Fridge</string>

@@ -72,3 +72,16 @@ enum class DeviceType {
     ALARM,
     FRIDGE,
 }
+
+// Acción que admite un tipo de dispositivo según el catálogo (GET /devicetypes); usada al crear rutinas
+data class DeviceActionInfo(
+    val name: String,
+    val params: List<DeviceActionParamInfo> = emptyList(),
+)
+
+data class DeviceActionParamInfo(
+    val name: String,
+    val type: String,
+    val min: Int? = null,
+    val max: Int? = null,
+)

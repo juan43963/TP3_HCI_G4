@@ -29,6 +29,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -61,9 +63,19 @@ fun TabletRoutinesScreen(
     routines: List<RoutineUi> = sampleRoutines,
     onProfileClick: () -> Unit = {},
     onAddRoutine: () -> Unit = {},
+    onCreateRoom: () -> Unit = {},
+    onCreateDevice: () -> Unit = {},
     onNavigateHome: () -> Unit = {},
     onNavigateRooms: () -> Unit = {},
     onRoutineClick: (String) -> Unit = {},
+    onExecuteRoutine: (String) -> Unit = {},
+    onSaveRoutine: (id: String, name: String, time24h: String, days: List<Boolean>, enabled: Boolean) -> Unit = { _, _, _, _, _ -> },
+    onDeleteRoutine: (String) -> Unit = {},
+    detailFor: (String) -> RoutineDetailUi? = { null },
+    errorMessage: String? = null,
+    infoMessage: String? = null,
+    onDismissError: () -> Unit = {},
+    onDismissInfo: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val openDrawer = LocalOpenDrawer.current
@@ -91,6 +103,8 @@ fun TabletRoutinesScreen(
         onNavigateHome = onNavigateHome,
         onNavigateRooms = onNavigateRooms,
         onNavigateRoutines = {},
+        onCreateRoom = onCreateRoom,
+        onCreateDevice = onCreateDevice,
         onCreateRoutine = onAddRoutine,
         onQuickAddClick = onAddRoutine,
     )
@@ -145,6 +159,7 @@ fun TabletRoutinesScreen(
                             selectedRoutineId = routine.id
                             onRoutineClick(routine.id)
                         },
+                        onExecuteRoutine = onExecuteRoutine,
                     )
                 } else {
                     TabletRoutinesTwoPane(
@@ -156,6 +171,10 @@ fun TabletRoutinesScreen(
                         onRoutineSelected = { selectedRoutineId = it.id },
                         onAddRoutine = onAddRoutine,
                         contentPadding = contentPadding,
+                        onExecuteRoutine = onExecuteRoutine,
+                        onSaveRoutine = onSaveRoutine,
+                        onDeleteRoutine = onDeleteRoutine,
+                        detailFor = detailFor,
                     )
                 }
             },
@@ -166,6 +185,26 @@ fun TabletRoutinesScreen(
             compact = portraitLike,
             callbacks = callbacks,
             onDismiss = { quickAddMenuExpanded = false },
+        )
+
+        // Feedback no bloqueante (ejecución / errores)
+        val snackbarHostState = remember { SnackbarHostState() }
+        val executedTemplate = stringResource(R.string.routines_executed)
+        LaunchedEffect(errorMessage) {
+            if (errorMessage != null) {
+                snackbarHostState.showSnackbar(errorMessage)
+                onDismissError()
+            }
+        }
+        LaunchedEffect(infoMessage) {
+            if (infoMessage != null) {
+                snackbarHostState.showSnackbar(executedTemplate.format(infoMessage))
+                onDismissInfo()
+            }
+        }
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter),
         )
     }
 }
@@ -180,6 +219,7 @@ private fun TabletRoutinesGrid(
     contentPadding: androidx.compose.ui.unit.Dp,
     onAddRoutine: () -> Unit,
     onRoutineSelected: (RoutineUi) -> Unit,
+    onExecuteRoutine: (String) -> Unit = {},
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(if (portraitLike) 1 else 2),
@@ -216,6 +256,7 @@ private fun TabletRoutinesGrid(
                 RoutineCard(
                     routine = routine,
                     onClick = { onRoutineSelected(routine) },
+                    onExecute = { onExecuteRoutine(routine.id) },
                 )
             }
         }
@@ -344,6 +385,10 @@ private fun TabletRoutinesTwoPane(
     onRoutineSelected: (RoutineUi) -> Unit,
     onAddRoutine: () -> Unit,
     contentPadding: androidx.compose.ui.unit.Dp,
+    onExecuteRoutine: (String) -> Unit = {},
+    onSaveRoutine: (id: String, name: String, time24h: String, days: List<Boolean>, enabled: Boolean) -> Unit = { _, _, _, _, _ -> },
+    onDeleteRoutine: (String) -> Unit = {},
+    detailFor: (String) -> RoutineDetailUi? = { null },
 ) {
     Row(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -376,6 +421,7 @@ private fun TabletRoutinesTwoPane(
                     routine = routine,
                     selected = routine.id == selectedRoutine.id,
                     onClick = { onRoutineSelected(routine) },
+                    onExecute = { onExecuteRoutine(routine.id) },
                 )
             }
         }
@@ -389,7 +435,10 @@ private fun TabletRoutinesTwoPane(
 
         TabletRoutineDetailPane(
             routine = selectedRoutine,
+            detail = detailFor(selectedRoutine.id),
             onAddAction = onAddRoutine,
+            onSaveRoutine = onSaveRoutine,
+            onDeleteRoutine = { onDeleteRoutine(selectedRoutine.id) },
             contentPadding = contentPadding,
             modifier = Modifier
                 .weight(0.58f)
@@ -455,11 +504,15 @@ private fun RoutinesTabletSearchBar(
 @Composable
 private fun TabletRoutineDetailPane(
     routine: RoutineUi,
+    detail: RoutineDetailUi?,
     onAddAction: () -> Unit,
+    onSaveRoutine: (id: String, name: String, time24h: String, days: List<Boolean>, enabled: Boolean) -> Unit,
+    onDeleteRoutine: () -> Unit,
     contentPadding: androidx.compose.ui.unit.Dp,
     modifier: Modifier = Modifier,
 ) {
-    val detail = remember(routine.id) { routine.toDetailUi() }
+    // Preferimos el detalle derivado del dominio (acciones/categoría reales); si falta, caemos al de RoutineUi
+    val detail = detail ?: remember(routine.id) { routine.toDetailUi() }
     var enabled by remember(routine.id) { mutableStateOf(detail.enabled) }
     var name by remember(routine.id) { mutableStateOf(detail.name) }
     var time by remember(routine.id) { mutableStateOf(detail.time) }
@@ -525,7 +578,7 @@ private fun TabletRoutineDetailPane(
 
         DetailActionBar(
             onDelete = { showDeleteDialog = true },
-            onSave = {},
+            onSave = { onSaveRoutine(detail.id, name, parseDisplayTimeTo24h(time), days, enabled) },
             contentPadding = contentPadding,
             showDelete = false,
         )
@@ -547,6 +600,7 @@ private fun TabletRoutineDetailPane(
             onDismiss = { showDeleteDialog = false },
             onConfirm = {
                 showDeleteDialog = false
+                onDeleteRoutine()
             },
         )
     }

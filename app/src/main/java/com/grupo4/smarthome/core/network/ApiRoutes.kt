@@ -19,6 +19,8 @@ object ApiRoutes {
 
     const val DeviceTypes = "devicetypes"
 
+    const val Routines = "routines"
+
     fun homeById(homeId: String): String = "$Homes/$homeId"
 
     fun homeShare(homeId: String): String = "$Homes/$homeId/share"
@@ -55,6 +57,12 @@ object ApiRoutes {
 
     // DELETE para desvincular un dispositivo de su habitación
     fun roomDeviceRemoval(deviceId: String): String = "$Rooms/devices/$deviceId"
+
+    // GET/PUT/DELETE de una rutina puntual
+    fun routineById(routineId: String): String = "$Routines/$routineId"
+
+    // PATCH para ejecutar todas las acciones de una rutina
+    fun routineExecute(routineId: String): String = "$Routines/$routineId/execute"
 
     fun resolve(path: String): String =
         "${ApiConstants.BaseUrl.trimEnd('/')}/${path.trimStart('/')}"

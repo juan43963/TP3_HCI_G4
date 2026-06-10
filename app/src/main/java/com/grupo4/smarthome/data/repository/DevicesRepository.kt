@@ -2,6 +2,7 @@ package com.grupo4.smarthome.data.repository
 
 import com.grupo4.smarthome.core.result.AppResult
 import com.grupo4.smarthome.data.model.Device
+import com.grupo4.smarthome.data.model.DeviceActionInfo
 import com.grupo4.smarthome.data.model.DeviceType
 
 interface DevicesRepository {
@@ -22,4 +23,7 @@ interface DevicesRepository {
 
     // Ajusta un valor (brillo/temperatura/volumen) con la acción posicional correspondiente
     suspend fun setDeviceValue(device: Device, value: Int): AppResult<Device>
+
+    // Acciones que admite un tipo según el catálogo (GET /devicetypes); usado al armar rutinas
+    suspend fun getActionsFor(type: DeviceType): AppResult<List<DeviceActionInfo>>
 }

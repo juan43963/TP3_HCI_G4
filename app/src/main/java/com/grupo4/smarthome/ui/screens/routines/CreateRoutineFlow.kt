@@ -32,13 +32,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.outlined.Air
-import androidx.compose.material.icons.outlined.Kitchen
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.Thermostat
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -54,6 +48,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -69,8 +65,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
+import com.grupo4.smarthome.data.model.Device
+import com.grupo4.smarthome.data.model.DeviceActionInfo
+import com.grupo4.smarthome.data.model.DeviceActionParamInfo
+import com.grupo4.smarthome.data.model.DeviceType
+import com.grupo4.smarthome.data.model.RoutineAction
+import com.grupo4.smarthome.data.model.RoutineCategory
+import com.grupo4.smarthome.ui.screens.rooms.components.deviceTypeIcon
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
+
+// Persiste la lista de días (7 booleans) a través de rotación
+private val DaysListSaver = listSaver<List<Boolean>, Boolean>(
+    save = { it.toList() },
+    restore = { it.toList() },
+)
 
 private enum class CreateRoutineStep {
     Details,
@@ -88,27 +97,15 @@ private enum class NewRoutineCategory(@StringRes val labelRes: Int, val icon: Im
     Custom(R.string.create_routine_category_custom, SmartHomeIcons.CustomRoutine),
 }
 
-private enum class ActivationMode(@StringRes val labelRes: Int, val icon: ImageVector) {
-    Scheduled(R.string.create_routine_activation_schedule, SmartHomeIcons.Schedule),
-    Manual(R.string.create_routine_activation_manual, SmartHomeIcons.ManualTrigger),
-}
-
-private data class RoutineDeviceOption(
-    val nameRes: Int,
-    val roomRes: Int,
-    val icon: ImageVector,
-)
-
-private data class RoutineActionOption(
-    val labelRes: Int,
-    val icon: ImageVector,
-)
-
 @Composable
 fun BoxScope.CreateRoutineOverlay(
     visible: Boolean,
     isTablet: Boolean,
     onDismiss: () -> Unit,
+    devices: List<Device> = emptyList(),
+    deviceRoomNames: Map<String, String> = emptyMap(),
+    deviceActions: Map<DeviceType, List<DeviceActionInfo>> = emptyMap(),
+    onCreate: (name: String, category: RoutineCategory, time24h: String, days: List<Boolean>, actions: List<RoutineAction>) -> Unit = { _, _, _, _, _ -> },
 ) {
     AnimatedVisibility(
         visible = visible,
@@ -116,21 +113,56 @@ fun BoxScope.CreateRoutineOverlay(
         exit = slideOutVertically(animationSpec = tween(250)) { it } + fadeOut(tween(180)),
         modifier = Modifier.matchParentSize(),
     ) {
-        CreateRoutineScreen(onDismiss = onDismiss)
+        CreateRoutineScreen(
+            onDismiss = onDismiss,
+            devices = devices,
+            deviceRoomNames = deviceRoomNames,
+            deviceActions = deviceActions,
+            onCreate = onCreate,
+        )
     }
 }
 
 @Composable
-private fun CreateRoutineScreen(onDismiss: () -> Unit) {
+private fun CreateRoutineScreen(
+    onDismiss: () -> Unit,
+    devices: List<Device>,
+    deviceRoomNames: Map<String, String>,
+    deviceActions: Map<DeviceType, List<DeviceActionInfo>>,
+    onCreate: (name: String, category: RoutineCategory, time24h: String, days: List<Boolean>, actions: List<RoutineAction>) -> Unit,
+) {
     var currentStep by rememberSaveable { mutableStateOf(CreateRoutineStep.Details) }
     var routineName by rememberSaveable { mutableStateOf("") }
-    var routineDescription by rememberSaveable { mutableStateOf("") }
     var selectedCategory by rememberSaveable { mutableStateOf(NewRoutineCategory.Morning) }
-    var activationMode by rememberSaveable { mutableStateOf(ActivationMode.Scheduled) }
-    var selectedDevice by rememberSaveable { mutableStateOf(0) }
-    var selectedAction by rememberSaveable { mutableStateOf(1) }
-    var temperature by rememberSaveable { mutableStateOf(4f) }
-    var actionAdded by rememberSaveable { mutableStateOf(true) }
+    // Horario en formato display ("08:00 AM"); días lunes-primero
+    var time by rememberSaveable { mutableStateOf("08:00 AM") }
+    var days by rememberSaveable(stateSaver = DaysListSaver) {
+        mutableStateOf(listOf(true, true, true, true, true, false, false))
+    }
+    var draftActions by remember { mutableStateOf(listOf<RoutineAction>()) }
+    // Selección transitoria mientras se arma una acción
+    var selectedDevice by remember { mutableStateOf<Device?>(null) }
+    var selectedActionInfo by remember { mutableStateOf<DeviceActionInfo?>(null) }
+    var paramValue by remember { mutableStateOf(0f) }
+
+    val currentActions = remember(selectedDevice, deviceActions) {
+        selectedDevice?.let { deviceActions[it.type] }.orEmpty()
+    }
+
+    // Agrega la acción en construcción a la lista y vuelve al resumen
+    val commitAction: (List<String>) -> Unit = { params ->
+        val device = selectedDevice
+        val info = selectedActionInfo
+        if (device != null && info != null) {
+            draftActions = draftActions + RoutineAction(
+                deviceId = device.id,
+                deviceName = device.name,
+                actionName = info.name,
+                params = params,
+            )
+        }
+        currentStep = CreateRoutineStep.ActionsSummary
+    }
 
     val goBack: () -> Unit = {
         currentStep = when (currentStep) {
@@ -141,6 +173,8 @@ private fun CreateRoutineScreen(onDismiss: () -> Unit) {
             CreateRoutineStep.ConfigureParameter -> CreateRoutineStep.SelectAction
         }
     }
+
+    val canCreate = routineName.isNotBlank() && draftActions.isNotEmpty()
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -160,6 +194,7 @@ private fun CreateRoutineScreen(onDismiss: () -> Unit) {
             bottomBar = {
                 CreateRoutineBottomBar(
                     currentStep = currentStep,
+                    canCreate = canCreate,
                     onBack = goBack,
                     onCancel = onDismiss,
                     onNext = {
@@ -170,11 +205,20 @@ private fun CreateRoutineScreen(onDismiss: () -> Unit) {
                             CreateRoutineStep.SelectAction -> CreateRoutineStep.ConfigureParameter
                             CreateRoutineStep.ConfigureParameter -> CreateRoutineStep.ActionsSummary
                         }
-                        if (currentStep == CreateRoutineStep.ActionsSummary) {
-                            actionAdded = true
+                    },
+                    onConfirmParameter = { commitAction(listOf(paramValue.toInt().toString())) },
+                    onCreate = {
+                        if (canCreate) {
+                            onCreate(
+                                routineName.trim(),
+                                selectedCategory.toDomain(),
+                                parseDisplayTimeTo24h(time),
+                                days,
+                                draftActions,
+                            )
+                            onDismiss()
                         }
                     },
-                    onCreate = onDismiss,
                 )
             },
         ) { innerPadding ->
@@ -189,41 +233,64 @@ private fun CreateRoutineScreen(onDismiss: () -> Unit) {
                     CreateRoutineStep.Details -> DetailsStep(
                         routineName = routineName,
                         onRoutineNameChange = { routineName = it },
-                        routineDescription = routineDescription,
-                        onRoutineDescriptionChange = { routineDescription = it },
                         selectedCategory = selectedCategory,
                         onCategorySelected = { selectedCategory = it },
-                        activationMode = activationMode,
-                        onActivationModeSelected = { activationMode = it },
+                        time = time,
+                        onTimeChange = { time = it },
+                        days = days,
+                        onDaysChange = { days = it },
                     )
 
                     CreateRoutineStep.ActionsSummary -> ActionsSummaryStep(
-                        actionAdded = actionAdded,
+                        actions = draftActions,
                         onAddAction = { currentStep = CreateRoutineStep.SelectDevice },
                     )
 
                     CreateRoutineStep.SelectDevice -> SelectDeviceStep(
-                        selectedIndex = selectedDevice,
-                        onSelected = { selectedDevice = it },
+                        devices = devices,
+                        deviceRoomNames = deviceRoomNames,
+                        selectedDeviceId = selectedDevice?.id,
+                        onSelected = {
+                            selectedDevice = it
+                            currentStep = CreateRoutineStep.SelectAction
+                        },
                     )
 
                     CreateRoutineStep.SelectAction -> SelectActionStep(
-                        selectedDevice = sampleDevices[selectedDevice],
-                        onSelected = {
-                            selectedAction = it
-                            currentStep = CreateRoutineStep.ConfigureParameter
+                        deviceName = selectedDevice?.name.orEmpty(),
+                        actions = currentActions,
+                        onSelected = { info ->
+                            selectedActionInfo = info
+                            val numericParam = info.params.firstOrNull { it.min != null && it.max != null }
+                            if (numericParam == null) {
+                                // Acción sin parámetros: se agrega directo
+                                commitAction(emptyList())
+                            } else {
+                                paramValue = (numericParam.min ?: 0).toFloat()
+                                currentStep = CreateRoutineStep.ConfigureParameter
+                            }
                         },
                     )
 
                     CreateRoutineStep.ConfigureParameter -> ConfigureParameterStep(
-                        action = sampleActions[selectedAction],
-                        temperature = temperature,
-                        onTemperatureChange = { temperature = it },
+                        actionName = selectedActionInfo?.name.orEmpty().toReadableAction(),
+                        param = selectedActionInfo?.params?.firstOrNull { it.min != null && it.max != null },
+                        value = paramValue,
+                        onValueChange = { paramValue = it },
                     )
                 }
             }
         }
     }
+}
+
+// Mapea la categoría de la UI de creación al enum de dominio
+private fun NewRoutineCategory.toDomain(): RoutineCategory = when (this) {
+    NewRoutineCategory.Morning -> RoutineCategory.MORNING
+    NewRoutineCategory.Night -> RoutineCategory.NIGHT
+    NewRoutineCategory.Comfort -> RoutineCategory.COMFORT
+    NewRoutineCategory.Security -> RoutineCategory.SECURITY
+    NewRoutineCategory.Custom -> RoutineCategory.CUSTOM
 }
 
 @Composable
@@ -409,13 +476,16 @@ private fun StepMarker(
 private fun DetailsStep(
     routineName: String,
     onRoutineNameChange: (String) -> Unit,
-    routineDescription: String,
-    onRoutineDescriptionChange: (String) -> Unit,
     selectedCategory: NewRoutineCategory,
     onCategorySelected: (NewRoutineCategory) -> Unit,
-    activationMode: ActivationMode,
-    onActivationModeSelected: (ActivationMode) -> Unit,
+    time: String,
+    onTimeChange: (String) -> Unit,
+    days: List<Boolean>,
+    onDaysChange: (List<Boolean>) -> Unit,
 ) {
+    var showScheduleDialog by rememberSaveable { mutableStateOf(false) }
+    var showDaysDialog by rememberSaveable { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -428,12 +498,6 @@ private fun DetailsStep(
             onValueChange = onRoutineNameChange,
             placeholder = stringResource(R.string.create_routine_name_placeholder),
         )
-        CompactTextField(
-            label = stringResource(R.string.create_routine_description_label),
-            value = routineDescription,
-            onValueChange = onRoutineDescriptionChange,
-            placeholder = stringResource(R.string.create_routine_description_placeholder),
-        )
         Text(
             text = stringResource(R.string.create_routine_category_label),
             style = MaterialTheme.typography.labelLarge,
@@ -444,19 +508,29 @@ private fun DetailsStep(
             selectedCategory = selectedCategory,
             onCategorySelected = onCategorySelected,
         )
-        Text(
-            text = stringResource(R.string.create_routine_activation_label),
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.onSurface,
+        ScheduleCard(time = time, onClick = { showScheduleDialog = true })
+        RepeatCard(days = days, onClick = { showDaysDialog = true })
+    }
+
+    if (showScheduleDialog) {
+        EditScheduleDialog(
+            currentTime = time,
+            onDismiss = { showScheduleDialog = false },
+            onConfirm = {
+                onTimeChange(it)
+                showScheduleDialog = false
+            },
         )
-        SegmentedChoices(
-            options = ActivationMode.entries,
-            selected = activationMode,
-            onSelected = onActivationModeSelected,
+    }
+    if (showDaysDialog) {
+        EditDaysDialog(
+            currentDays = days,
+            onDismiss = { showDaysDialog = false },
+            onConfirm = {
+                onDaysChange(it)
+                showDaysDialog = false
+            },
         )
-        ScheduleCard()
-        RepeatCard()
     }
 }
 
@@ -527,28 +601,6 @@ private fun CategoryGrid(
 }
 
 @Composable
-private fun SegmentedChoices(
-    options: List<ActivationMode>,
-    selected: ActivationMode,
-    onSelected: (ActivationMode) -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        options.forEach { option ->
-            ChoicePill(
-                label = stringResource(option.labelRes),
-                icon = option.icon,
-                selected = selected == option,
-                modifier = Modifier.weight(1f),
-                onClick = { onSelected(option) },
-            )
-        }
-    }
-}
-
-@Composable
 private fun ChoicePill(
     label: String,
     icon: ImageVector,
@@ -595,7 +647,7 @@ private fun ChoicePill(
 }
 
 @Composable
-private fun ScheduleCard() {
+private fun ScheduleCard(time: String, onClick: () -> Unit) {
     InfoCard {
         CardSectionTitle(
             icon = SmartHomeIcons.Schedule,
@@ -604,7 +656,8 @@ private fun ScheduleCard() {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(46.dp),
+                .height(46.dp)
+                .clickable(onClick = onClick),
             shape = RoundedCornerShape(10.dp),
             color = MaterialTheme.colorScheme.surfaceVariant,
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
@@ -614,7 +667,7 @@ private fun ScheduleCard() {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = stringResource(R.string.create_routine_time_value),
+                    text = time,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -625,7 +678,7 @@ private fun ScheduleCard() {
 }
 
 @Composable
-private fun RepeatCard() {
+private fun RepeatCard(days: List<Boolean>, onClick: () -> Unit) {
     val dayInitials = stringArrayResource(R.array.routines_day_initials)
     InfoCard {
         CardSectionTitle(
@@ -633,11 +686,13 @@ private fun RepeatCard() {
             text = stringResource(R.string.create_routine_repeat_label),
         )
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             dayInitials.forEachIndexed { index, day ->
-                val selected = index < 5
+                val selected = days.getOrElse(index) { false }
                 Surface(
                     modifier = Modifier
                         .weight(1f)
@@ -712,22 +767,26 @@ private fun CardSectionTitle(icon: ImageVector, text: String) {
 
 @Composable
 private fun ActionsSummaryStep(
-    actionAdded: Boolean,
+    actions: List<RoutineAction>,
     onAddAction: () -> Unit,
 ) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        if (actionAdded) {
-            RoutineActionSummaryCard()
+        actions.forEachIndexed { index, action ->
+            RoutineActionSummaryCard(position = index + 1, action = action)
         }
         AddActionCard(onClick = onAddAction)
     }
 }
 
 @Composable
-private fun RoutineActionSummaryCard() {
+private fun RoutineActionSummaryCard(position: Int, action: RoutineAction) {
+    val params = action.params.joinToString(", ")
+    val description = action.actionName.toReadableAction() + if (params.isNotBlank()) " • $params" else ""
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -748,35 +807,22 @@ private fun RoutineActionSummaryCard() {
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(
-                        text = "1",
+                        text = position.toString(),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.ExtraBold,
                         color = MaterialTheme.colorScheme.primary,
                     )
                 }
             }
-            Surface(
-                modifier = Modifier.size(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant,
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Outlined.Kitchen,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = stringResource(R.string.create_routine_device_fridge),
+                    text = action.deviceName.ifBlank { stringResource(R.string.create_routine_device_generic) },
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
-                    text = stringResource(R.string.create_routine_summary_temperature),
+                    text = description,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -841,13 +887,47 @@ private fun AddActionCard(onClick: () -> Unit) {
 
 @Composable
 private fun SelectDeviceStep(
-    selectedIndex: Int,
-    onSelected: (Int) -> Unit,
+    devices: List<Device>,
+    deviceRoomNames: Map<String, String>,
+    selectedDeviceId: String?,
+    onSelected: (Device) -> Unit,
 ) {
+    var query by rememberSaveable { mutableStateOf("") }
+    val visibleDevices = remember(query, devices, deviceRoomNames) {
+        val normalized = query.trim().lowercase()
+        if (normalized.isBlank()) {
+            devices
+        } else {
+            devices.filter { device ->
+                device.name.lowercase().contains(normalized) ||
+                    deviceRoomNames[device.id].orEmpty().lowercase().contains(normalized)
+            }
+        }
+    }
+
     StepContentLabel(R.string.create_routine_device_step_label)
     Spacer(modifier = Modifier.height(14.dp))
-    SearchField()
-    Spacer(modifier = Modifier.height(20.dp))
+    OutlinedTextField(
+        value = query,
+        onValueChange = { query = it },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(52.dp),
+        placeholder = {
+            Text(
+                text = stringResource(R.string.create_routine_search_placeholder),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        },
+        singleLine = true,
+        shape = RoundedCornerShape(10.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+        ),
+    )
+    Spacer(modifier = Modifier.height(14.dp))
     Text(
         text = stringResource(R.string.create_routine_devices_title),
         style = MaterialTheme.typography.titleMedium,
@@ -860,49 +940,41 @@ private fun SelectDeviceStep(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
     Spacer(modifier = Modifier.height(12.dp))
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        sampleDevices.forEachIndexed { index, device ->
+    Column(
+        modifier = Modifier.verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        when {
+            devices.isEmpty() -> EmptyDeviceMessage(R.string.create_routine_devices_empty)
+            visibleDevices.isEmpty() -> EmptyDeviceMessage(R.string.create_routine_devices_no_results)
+        }
+        visibleDevices.forEach { device ->
             DeviceOptionCard(
-                device = device,
-                selected = selectedIndex == index,
-                onClick = { onSelected(index) },
+                name = device.name,
+                roomName = deviceRoomNames[device.id].orEmpty(),
+                icon = deviceTypeIcon(device.type),
+                selected = selectedDeviceId == device.id,
+                onClick = { onSelected(device) },
             )
         }
     }
 }
 
 @Composable
-private fun SearchField() {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(52.dp),
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Search,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                text = stringResource(R.string.create_routine_search_placeholder),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
+private fun EmptyDeviceMessage(@StringRes textRes: Int) {
+    Text(
+        text = stringResource(textRes),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = 10.dp),
+    )
 }
 
 @Composable
 private fun DeviceOptionCard(
-    device: RoutineDeviceOption,
+    name: String,
+    roomName: String,
+    icon: ImageVector,
     selected: Boolean,
     onClick: () -> Unit,
 ) {
@@ -932,7 +1004,7 @@ private fun DeviceOptionCard(
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
-                        imageVector = device.icon,
+                        imageVector = icon,
                         contentDescription = null,
                         tint = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -940,16 +1012,19 @@ private fun DeviceOptionCard(
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = stringResource(device.nameRes),
+                    text = name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
-                Text(
-                    text = stringResource(device.roomRes),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                if (roomName.isNotBlank()) {
+                    Text(
+                        text = roomName,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
             if (selected) {
                 Surface(
@@ -973,26 +1048,27 @@ private fun DeviceOptionCard(
 
 @Composable
 private fun SelectActionStep(
-    selectedDevice: RoutineDeviceOption,
-    onSelected: (Int) -> Unit,
+    deviceName: String,
+    actions: List<DeviceActionInfo>,
+    onSelected: (DeviceActionInfo) -> Unit,
 ) {
     StepContentLabel(R.string.create_routine_action_step_label)
     Spacer(modifier = Modifier.height(18.dp))
     Text(
-        text = stringResource(
-            R.string.create_routine_action_question,
-            stringResource(selectedDevice.nameRes),
-        ),
+        text = stringResource(R.string.create_routine_action_question, deviceName),
         style = MaterialTheme.typography.titleMedium,
         fontWeight = FontWeight.SemiBold,
         color = MaterialTheme.colorScheme.onSurface,
     )
     Spacer(modifier = Modifier.height(18.dp))
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        sampleActions.forEachIndexed { index, action ->
+    Column(
+        modifier = Modifier.verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        actions.forEach { action ->
             ActionOptionCard(
-                action = action,
-                onClick = { onSelected(index) },
+                label = action.name.toReadableAction(),
+                onClick = { onSelected(action) },
             )
         }
     }
@@ -1000,7 +1076,7 @@ private fun SelectActionStep(
 
 @Composable
 private fun ActionOptionCard(
-    action: RoutineActionOption,
+    label: String,
     onClick: () -> Unit,
 ) {
     Surface(
@@ -1024,14 +1100,14 @@ private fun ActionOptionCard(
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
-                        imageVector = action.icon,
+                        imageVector = SmartHomeIcons.Routines,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
                     )
                 }
             }
             Text(
-                text = stringResource(action.labelRes),
+                text = label,
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.onSurface,
@@ -1048,34 +1124,27 @@ private fun ActionOptionCard(
 
 @Composable
 private fun ConfigureParameterStep(
-    action: RoutineActionOption,
-    temperature: Float,
-    onTemperatureChange: (Float) -> Unit,
+    actionName: String,
+    param: DeviceActionParamInfo?,
+    value: Float,
+    onValueChange: (Float) -> Unit,
 ) {
+    val min = (param?.min ?: 0).toFloat()
+    val max = (param?.max ?: 100).toFloat()
     StepContentLabel(R.string.create_routine_parameters_step_label)
     Spacer(modifier = Modifier.height(22.dp))
     Text(
-        text = stringResource(
-            R.string.create_routine_parameter_prompt,
-            stringResource(action.labelRes),
-        ),
+        text = stringResource(R.string.create_routine_parameter_prompt, actionName),
         style = MaterialTheme.typography.titleMedium,
         color = MaterialTheme.colorScheme.onSurface,
     )
     Spacer(modifier = Modifier.height(28.dp))
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            text = stringResource(R.string.create_routine_temperature_label),
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Text(
-            text = stringResource(R.string.create_routine_temperature_description),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
+    Text(
+        text = param?.name.orEmpty(),
+        style = MaterialTheme.typography.titleSmall,
+        fontWeight = FontWeight.ExtraBold,
+        color = MaterialTheme.colorScheme.onSurface,
+    )
     Spacer(modifier = Modifier.height(22.dp))
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -1083,9 +1152,9 @@ private fun ConfigureParameterStep(
         horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         Slider(
-            value = temperature,
-            onValueChange = onTemperatureChange,
-            valueRange = 0f..8f,
+            value = value,
+            onValueChange = onValueChange,
+            valueRange = min..max,
             modifier = Modifier.weight(1f),
             colors = SliderDefaults.colors(
                 thumbColor = MaterialTheme.colorScheme.primary,
@@ -1094,11 +1163,11 @@ private fun ConfigureParameterStep(
             ),
         )
         Text(
-            text = temperature.toInt().toString(),
+            text = value.toInt().toString(),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.ExtraBold,
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.width(22.dp),
+            modifier = Modifier.width(36.dp),
             textAlign = TextAlign.End,
         )
     }
@@ -1117,9 +1186,11 @@ private fun StepContentLabel(@StringRes labelRes: Int) {
 @Composable
 private fun CreateRoutineBottomBar(
     currentStep: CreateRoutineStep,
+    canCreate: Boolean,
     onBack: () -> Unit,
     onCancel: () -> Unit,
     onNext: () -> Unit,
+    onConfirmParameter: () -> Unit,
     onCreate: () -> Unit,
 ) {
     Surface(
@@ -1162,22 +1233,19 @@ private fun CreateRoutineBottomBar(
                         text = stringResource(R.string.create_routine_create),
                         icon = SmartHomeIcons.Add,
                         onClick = onCreate,
+                        enabled = canCreate,
                         modifier = Modifier.weight(1.35f),
                     )
 
                     CreateRoutineStep.ConfigureParameter -> PrimaryActionButton(
                         text = stringResource(R.string.create_routine_add_action_cta),
                         icon = SmartHomeIcons.Add,
-                        onClick = onNext,
+                        onClick = onConfirmParameter,
                         modifier = Modifier.weight(1.5f),
                     )
 
-                    else -> PrimaryActionButton(
-                        text = stringResource(R.string.create_routine_next),
-                        icon = Icons.AutoMirrored.Filled.ArrowForward,
-                        onClick = onNext,
-                        modifier = Modifier.weight(1.35f),
-                    )
+                    // SelectDevice/SelectAction avanzan al tocar una tarjeta: no necesitan botón primario
+                    else -> Spacer(modifier = Modifier.weight(1.35f))
                 }
             }
         }
@@ -1190,9 +1258,11 @@ private fun PrimaryActionButton(
     icon: ImageVector,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     Button(
         onClick = onClick,
+        enabled = enabled,
         modifier = modifier.height(48.dp),
         shape = RoundedCornerShape(10.dp),
         colors = ButtonDefaults.buttonColors(
@@ -1269,39 +1339,6 @@ private fun TextButtonLike(
         )
     }
 }
-
-private val sampleDevices = listOf(
-    RoutineDeviceOption(
-        nameRes = R.string.create_routine_device_fridge,
-        roomRes = R.string.create_routine_device_fridge_room,
-        icon = Icons.Outlined.Kitchen,
-    ),
-    RoutineDeviceOption(
-        nameRes = R.string.create_routine_device_living_light,
-        roomRes = R.string.create_routine_device_living_room,
-        icon = SmartHomeIcons.Lightbulb,
-    ),
-    RoutineDeviceOption(
-        nameRes = R.string.create_routine_device_ac,
-        roomRes = R.string.create_routine_device_bedroom,
-        icon = Icons.Outlined.Air,
-    ),
-)
-
-private val sampleActions = listOf(
-    RoutineActionOption(
-        labelRes = R.string.create_routine_action_freezer_temperature,
-        icon = Icons.Default.AcUnit,
-    ),
-    RoutineActionOption(
-        labelRes = R.string.create_routine_action_temperature,
-        icon = Icons.Outlined.Thermostat,
-    ),
-    RoutineActionOption(
-        labelRes = R.string.create_routine_action_mode,
-        icon = Icons.Default.GridView,
-    ),
-)
 
 @Preview(name = "Create Routine - Details", showBackground = true, showSystemUi = true)
 @Composable

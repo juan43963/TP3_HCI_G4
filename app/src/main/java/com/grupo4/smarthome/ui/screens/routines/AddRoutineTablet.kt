@@ -23,13 +23,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.outlined.Air
-import androidx.compose.material.icons.outlined.Blinds
-import androidx.compose.material.icons.outlined.Kitchen
-import androidx.compose.material.icons.outlined.NotificationsActive
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -37,11 +31,15 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -53,11 +51,19 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.grupo4.smarthome.R
+import com.grupo4.smarthome.data.model.Device
+import com.grupo4.smarthome.data.model.DeviceActionInfo
+import com.grupo4.smarthome.data.model.DeviceActionParamInfo
+import com.grupo4.smarthome.data.model.DeviceType
+import com.grupo4.smarthome.data.model.RoutineAction
+import com.grupo4.smarthome.data.model.RoutineCategory
+import com.grupo4.smarthome.ui.screens.rooms.components.deviceTypeIcon
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 
@@ -75,25 +81,26 @@ private enum class AddRoutineTabletCategory(@StringRes val labelRes: Int, val ic
     Night(R.string.create_routine_category_night, SmartHomeIcons.NightRoutine),
     Comfort(R.string.create_routine_category_comfort, SmartHomeIcons.ComfortRoutine),
     Security(R.string.create_routine_category_security, SmartHomeIcons.SecurityRoutine),
-    Custom(R.string.create_routine_category_custom, SmartHomeIcons.CustomRoutine),
-}
+    Custom(R.string.create_routine_category_custom, SmartHomeIcons.CustomRoutine);
 
-private enum class AddRoutineTabletActivation(@StringRes val labelRes: Int, val icon: ImageVector) {
-    Scheduled(R.string.create_routine_activation_schedule, SmartHomeIcons.Schedule),
-    Manual(R.string.create_routine_activation_manual, SmartHomeIcons.ManualTrigger),
+    fun toDomain(): RoutineCategory = when (this) {
+        Morning -> RoutineCategory.MORNING
+        Night -> RoutineCategory.NIGHT
+        Comfort -> RoutineCategory.COMFORT
+        Security -> RoutineCategory.SECURITY
+        Custom -> RoutineCategory.CUSTOM
+    }
 }
-
-private data class AddRoutineTabletDevice(
-    val name: String,
-    val room: String,
-    val icon: ImageVector,
-)
 
 
 @Composable
 fun BoxScope.AddRoutineTabletOverlay(
     visible: Boolean,
     onDismiss: () -> Unit,
+    devices: List<Device> = emptyList(),
+    deviceRoomNames: Map<String, String> = emptyMap(),
+    deviceActions: Map<DeviceType, List<DeviceActionInfo>> = emptyMap(),
+    onCreate: (name: String, category: RoutineCategory, time24h: String, days: List<Boolean>, actions: List<RoutineAction>) -> Unit = { _, _, _, _, _ -> },
 ) {
     if (!visible) return
 
@@ -107,20 +114,54 @@ fun BoxScope.AddRoutineTabletOverlay(
                 .padding(horizontal = 32.dp),
             contentAlignment = Alignment.Center,
         ) {
-            AddRoutineTabletDialogContent(onDismiss = onDismiss)
+            AddRoutineTabletDialogContent(
+                onDismiss = onDismiss,
+                devices = devices,
+                deviceRoomNames = deviceRoomNames,
+                deviceActions = deviceActions,
+                onCreate = onCreate,
+            )
         }
     }
 }
 
 @Composable
-private fun AddRoutineTabletDialogContent(onDismiss: () -> Unit) {
+private fun AddRoutineTabletDialogContent(
+    onDismiss: () -> Unit,
+    devices: List<Device>,
+    deviceRoomNames: Map<String, String>,
+    deviceActions: Map<DeviceType, List<DeviceActionInfo>>,
+    onCreate: (name: String, category: RoutineCategory, time24h: String, days: List<Boolean>, actions: List<RoutineAction>) -> Unit,
+) {
     var currentStep by rememberSaveable { mutableStateOf(AddRoutineTabletStep.Details) }
     var routineName by rememberSaveable { mutableStateOf("") }
-    var routineDescription by rememberSaveable { mutableStateOf("") }
     var selectedCategory by rememberSaveable { mutableStateOf(AddRoutineTabletCategory.Morning) }
-    var activation by rememberSaveable { mutableStateOf(AddRoutineTabletActivation.Scheduled) }
-    var selectedDevice by rememberSaveable { mutableStateOf(2) }
-    var actionAdded by rememberSaveable { mutableStateOf(true) }
+    var time by rememberSaveable { mutableStateOf("08:00 AM") }
+    var days by rememberSaveable(stateSaver = TabletDaysSaver) {
+        mutableStateOf(listOf(true, true, true, true, true, false, false))
+    }
+    var draftActions by remember { mutableStateOf(listOf<RoutineAction>()) }
+    var selectedDevice by remember { mutableStateOf<Device?>(null) }
+    var selectedActionInfo by remember { mutableStateOf<DeviceActionInfo?>(null) }
+    var paramValue by remember { mutableStateOf(0f) }
+
+    val currentActions = remember(selectedDevice, deviceActions) {
+        selectedDevice?.let { deviceActions[it.type] }.orEmpty()
+    }
+
+    val commitAction: (List<String>) -> Unit = { params ->
+        val device = selectedDevice
+        val info = selectedActionInfo
+        if (device != null && info != null) {
+            draftActions = draftActions + RoutineAction(
+                deviceId = device.id,
+                deviceName = device.name,
+                actionName = info.name,
+                params = params,
+            )
+        }
+        currentStep = AddRoutineTabletStep.ActionsSummary
+    }
 
     val goBack: () -> Unit = {
         currentStep = when (currentStep) {
@@ -131,6 +172,8 @@ private fun AddRoutineTabletDialogContent(onDismiss: () -> Unit) {
             AddRoutineTabletStep.ConfigureParameter -> AddRoutineTabletStep.SelectAction
         }
     }
+
+    val canCreate = routineName.isNotBlank() && draftActions.isNotEmpty()
 
     Surface(
         modifier = Modifier
@@ -158,35 +201,56 @@ private fun AddRoutineTabletDialogContent(onDismiss: () -> Unit) {
                     AddRoutineTabletStep.Details -> AddRoutineTabletDetailsStep(
                         routineName = routineName,
                         onRoutineNameChange = { routineName = it },
-                        routineDescription = routineDescription,
-                        onRoutineDescriptionChange = { routineDescription = it },
                         selectedCategory = selectedCategory,
                         onCategorySelected = { selectedCategory = it },
-                        activation = activation,
-                        onActivationSelected = { activation = it },
+                        time = time,
+                        onTimeChange = { time = it },
+                        days = days,
+                        onDaysChange = { days = it },
                     )
 
                     AddRoutineTabletStep.ActionsSummary -> AddRoutineTabletActionsSummaryStep(
-                        actionAdded = actionAdded,
+                        actions = draftActions,
                         onAddAction = { currentStep = AddRoutineTabletStep.SelectDevice },
                     )
 
                     AddRoutineTabletStep.SelectDevice -> AddRoutineTabletSelectDeviceStep(
-                        selectedIndex = selectedDevice,
-                        onSelected = { selectedDevice = it },
+                        devices = devices,
+                        deviceRoomNames = deviceRoomNames,
+                        selectedDeviceId = selectedDevice?.id,
+                        onSelected = {
+                            selectedDevice = it
+                            currentStep = AddRoutineTabletStep.SelectAction
+                        },
                     )
 
                     AddRoutineTabletStep.SelectAction -> AddRoutineTabletSelectActionStep(
-                        deviceName = addRoutineTabletDevices[selectedDevice].name,
-                        onSelected = { currentStep = AddRoutineTabletStep.ConfigureParameter },
+                        deviceName = selectedDevice?.name.orEmpty(),
+                        actions = currentActions,
+                        onSelected = { info ->
+                            selectedActionInfo = info
+                            val numericParam = info.params.firstOrNull { it.min != null && it.max != null }
+                            if (numericParam == null) {
+                                commitAction(emptyList())
+                            } else {
+                                paramValue = (numericParam.min ?: 0).toFloat()
+                                currentStep = AddRoutineTabletStep.ConfigureParameter
+                            }
+                        },
                     )
 
-                    AddRoutineTabletStep.ConfigureParameter -> AddRoutineTabletConfigureParameterStep()
+                    AddRoutineTabletStep.ConfigureParameter -> AddRoutineTabletConfigureParameterStep(
+                        actionName = selectedActionInfo?.name.orEmpty().toReadableAction(),
+                        param = selectedActionInfo?.params?.firstOrNull { it.min != null && it.max != null },
+                        value = paramValue,
+                        onValueChange = { paramValue = it },
+                    )
                 }
             }
 
             AddRoutineTabletFooter(
                 currentStep = currentStep,
+                canCreate = canCreate,
                 onBack = goBack,
                 onCancel = onDismiss,
                 onNext = {
@@ -197,13 +261,30 @@ private fun AddRoutineTabletDialogContent(onDismiss: () -> Unit) {
                         AddRoutineTabletStep.SelectAction -> AddRoutineTabletStep.ConfigureParameter
                         AddRoutineTabletStep.ConfigureParameter -> AddRoutineTabletStep.ActionsSummary
                     }
-                    actionAdded = true
                 },
-                onCreate = onDismiss,
+                onConfirmParameter = { commitAction(listOf(paramValue.toInt().toString())) },
+                onCreate = {
+                    if (canCreate) {
+                        onCreate(
+                            routineName.trim(),
+                            selectedCategory.toDomain(),
+                            parseDisplayTimeTo24h(time),
+                            days,
+                            draftActions,
+                        )
+                        onDismiss()
+                    }
+                },
             )
         }
     }
 }
+
+// Persiste la lista de días a través de rotación (dialog tablet)
+private val TabletDaysSaver = listSaver<List<Boolean>, Boolean>(
+    save = { it.toList() },
+    restore = { it.toList() },
+)
 
 
 @Composable
@@ -374,24 +455,21 @@ private fun AddRoutineTabletStepMarker(
 private fun AddRoutineTabletDetailsStep(
     routineName: String,
     onRoutineNameChange: (String) -> Unit,
-    routineDescription: String,
-    onRoutineDescriptionChange: (String) -> Unit,
     selectedCategory: AddRoutineTabletCategory,
     onCategorySelected: (AddRoutineTabletCategory) -> Unit,
-    activation: AddRoutineTabletActivation,
-    onActivationSelected: (AddRoutineTabletActivation) -> Unit,
+    time: String,
+    onTimeChange: (String) -> Unit,
+    days: List<Boolean>,
+    onDaysChange: (List<Boolean>) -> Unit,
 ) {
+    var showScheduleDialog by rememberSaveable { mutableStateOf(false) }
+    var showDaysDialog by rememberSaveable { mutableStateOf(false) }
+
     AddRoutineTabletField(
         label = stringResource(R.string.create_routine_name_label),
         value = routineName,
         onValueChange = onRoutineNameChange,
         placeholder = stringResource(R.string.create_routine_name_placeholder),
-    )
-    AddRoutineTabletField(
-        label = stringResource(R.string.create_routine_description_label),
-        value = routineDescription,
-        onValueChange = onRoutineDescriptionChange,
-        placeholder = stringResource(R.string.create_routine_description_placeholder),
     )
     Text(
         text = stringResource(R.string.create_routine_category_label),
@@ -403,32 +481,41 @@ private fun AddRoutineTabletDetailsStep(
         selectedCategory = selectedCategory,
         onCategorySelected = onCategorySelected,
     )
-    Text(
-        text = stringResource(R.string.create_routine_activation_label),
-        style = MaterialTheme.typography.labelLarge,
-        fontWeight = FontWeight.ExtraBold,
-        color = MaterialTheme.colorScheme.onSurface,
-    )
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        AddRoutineTabletActivation.entries.forEach { option ->
-            AddRoutineTabletPill(
-                label = stringResource(option.labelRes),
-                icon = option.icon,
-                selected = activation == option,
-                modifier = Modifier.weight(1f),
-                onClick = { onActivationSelected(option) },
-            )
-        }
-    }
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        AddRoutineTabletScheduleCard(modifier = Modifier.weight(1f))
-        AddRoutineTabletRepeatCard(modifier = Modifier.weight(1.4f))
+        AddRoutineTabletScheduleCard(
+            time = time,
+            onClick = { showScheduleDialog = true },
+            modifier = Modifier.weight(1f),
+        )
+        AddRoutineTabletRepeatCard(
+            days = days,
+            onClick = { showDaysDialog = true },
+            modifier = Modifier.weight(1.4f),
+        )
+    }
+
+    if (showScheduleDialog) {
+        EditScheduleDialog(
+            currentTime = time,
+            onDismiss = { showScheduleDialog = false },
+            onConfirm = {
+                onTimeChange(it)
+                showScheduleDialog = false
+            },
+        )
+    }
+    if (showDaysDialog) {
+        EditDaysDialog(
+            currentDays = days,
+            onDismiss = { showDaysDialog = false },
+            onConfirm = {
+                onDaysChange(it)
+                showDaysDialog = false
+            },
+        )
     }
 }
 
@@ -537,7 +624,7 @@ private fun AddRoutineTabletPill(
 }
 
 @Composable
-private fun AddRoutineTabletScheduleCard(modifier: Modifier = Modifier) {
+private fun AddRoutineTabletScheduleCard(time: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     AddRoutineTabletInfoCard(modifier = modifier) {
         AddRoutineTabletCardTitle(
             icon = SmartHomeIcons.Schedule,
@@ -546,7 +633,8 @@ private fun AddRoutineTabletScheduleCard(modifier: Modifier = Modifier) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(46.dp),
+                .height(46.dp)
+                .clickable(onClick = onClick),
             shape = RoundedCornerShape(10.dp),
             color = MaterialTheme.colorScheme.surfaceVariant,
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
@@ -556,7 +644,7 @@ private fun AddRoutineTabletScheduleCard(modifier: Modifier = Modifier) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = stringResource(R.string.create_routine_time_value),
+                    text = time,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -567,7 +655,7 @@ private fun AddRoutineTabletScheduleCard(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun AddRoutineTabletRepeatCard(modifier: Modifier = Modifier) {
+private fun AddRoutineTabletRepeatCard(days: List<Boolean>, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val dayInitials = stringArrayResource(R.array.routines_day_initials)
     AddRoutineTabletInfoCard(modifier = modifier) {
         AddRoutineTabletCardTitle(
@@ -575,11 +663,13 @@ private fun AddRoutineTabletRepeatCard(modifier: Modifier = Modifier) {
             text = stringResource(R.string.create_routine_repeat_label),
         )
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             dayInitials.forEachIndexed { index, day ->
-                val selected = index < 5
+                val selected = days.getOrElse(index) { false }
                 Surface(
                     modifier = Modifier
                         .weight(1f)
@@ -658,19 +748,15 @@ private fun AddRoutineTabletCardTitle(icon: ImageVector, text: String) {
 
 @Composable
 private fun AddRoutineTabletActionsSummaryStep(
-    actionAdded: Boolean,
+    actions: List<RoutineAction>,
     onAddAction: () -> Unit,
 ) {
-    if (actionAdded) {
+    actions.forEachIndexed { index, action ->
+        val params = action.params.joinToString(", ")
         AddRoutineTabletActionSummaryRow(
-            number = "1",
-            title = stringResource(R.string.create_routine_device_living_light),
-            subtitle = "turnOff",
-        )
-        AddRoutineTabletActionSummaryRow(
-            number = "2",
-            title = "Parlante",
-            subtitle = "play",
+            number = (index + 1).toString(),
+            title = action.deviceName.ifBlank { stringResource(R.string.create_routine_device_generic) },
+            subtitle = action.actionName.toReadableAction() + if (params.isNotBlank()) " • $params" else "",
         )
     }
     AddRoutineTabletAddActionCard(onClick = onAddAction)
@@ -709,12 +795,6 @@ private fun AddRoutineTabletActionSummaryRow(
                     )
                 }
             }
-            Icon(
-                imageVector = SmartHomeIcons.Lightbulb,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(22.dp),
-            )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
@@ -786,29 +866,68 @@ private fun AddRoutineTabletAddActionCard(onClick: () -> Unit) {
 
 @Composable
 private fun AddRoutineTabletSelectDeviceStep(
-    selectedIndex: Int,
-    onSelected: (Int) -> Unit,
+    devices: List<Device>,
+    deviceRoomNames: Map<String, String>,
+    selectedDeviceId: String?,
+    onSelected: (Device) -> Unit,
 ) {
+    var query by rememberSaveable { mutableStateOf("") }
+    val visibleDevices = remember(query, devices, deviceRoomNames) {
+        val normalized = query.trim().lowercase()
+        if (normalized.isBlank()) {
+            devices
+        } else {
+            devices.filter { device ->
+                device.name.lowercase().contains(normalized) ||
+                    deviceRoomNames[device.id].orEmpty().lowercase().contains(normalized)
+            }
+        }
+    }
+
     AddRoutineTabletSubstepLabel(stringResource(R.string.create_routine_device_step_label))
-    AddRoutineTabletSearchField()
+    OutlinedTextField(
+        value = query,
+        onValueChange = { query = it },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(52.dp),
+        placeholder = {
+            Text(
+                text = stringResource(R.string.create_routine_search_placeholder),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        },
+        singleLine = true,
+        shape = RoundedCornerShape(10.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+        ),
+    )
     Text(
         text = stringResource(R.string.create_routine_devices_title),
         style = MaterialTheme.typography.titleSmall,
         fontWeight = FontWeight.ExtraBold,
         color = MaterialTheme.colorScheme.onSurface,
     )
-    val rows = addRoutineTabletDevices.chunked(3)
+    when {
+        devices.isEmpty() -> AddRoutineTabletEmptyDeviceMessage(R.string.create_routine_devices_empty)
+        visibleDevices.isEmpty() -> AddRoutineTabletEmptyDeviceMessage(R.string.create_routine_devices_no_results)
+    }
+    val rows = visibleDevices.chunked(3)
     rows.forEach { row ->
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             row.forEach { device ->
-                val index = addRoutineTabletDevices.indexOf(device)
                 AddRoutineTabletDeviceTile(
-                    device = device,
-                    selected = selectedIndex == index,
-                    onClick = { onSelected(index) },
+                    name = device.name,
+                    roomName = deviceRoomNames[device.id].orEmpty(),
+                    icon = deviceTypeIcon(device.type),
+                    selected = selectedDeviceId == device.id,
+                    onClick = { onSelected(device) },
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -820,37 +939,19 @@ private fun AddRoutineTabletSelectDeviceStep(
 }
 
 @Composable
-private fun AddRoutineTabletSearchField() {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(48.dp),
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Search,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                text = stringResource(R.string.create_routine_search_placeholder),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
+private fun AddRoutineTabletEmptyDeviceMessage(@StringRes textRes: Int) {
+    Text(
+        text = stringResource(textRes),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
 
 @Composable
 private fun AddRoutineTabletDeviceTile(
-    device: AddRoutineTabletDevice,
+    name: String,
+    roomName: String,
+    icon: ImageVector,
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -876,7 +977,7 @@ private fun AddRoutineTabletDeviceTile(
                 verticalArrangement = Arrangement.Center,
             ) {
                 Icon(
-                    imageVector = device.icon,
+                    imageVector = icon,
                     contentDescription = null,
                     tint = if (selected) MaterialTheme.colorScheme.primary
                     else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -884,18 +985,22 @@ private fun AddRoutineTabletDeviceTile(
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = device.name,
+                    text = name,
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                 )
-                Text(
-                    text = device.room,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                )
+                if (roomName.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = roomName,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                    )
+                }
             }
             if (selected) {
                 Surface(
@@ -924,7 +1029,8 @@ private fun AddRoutineTabletDeviceTile(
 @Composable
 private fun AddRoutineTabletSelectActionStep(
     deviceName: String,
-    onSelected: (Int) -> Unit,
+    actions: List<DeviceActionInfo>,
+    onSelected: (DeviceActionInfo) -> Unit,
 ) {
     AddRoutineTabletSubstepLabel(stringResource(R.string.create_routine_action_step_label))
     Text(
@@ -933,11 +1039,11 @@ private fun AddRoutineTabletSelectActionStep(
         fontWeight = FontWeight.SemiBold,
         color = MaterialTheme.colorScheme.onSurface,
     )
-    addRoutineTabletActions.forEachIndexed { index, action ->
+    actions.forEach { action ->
         AddRoutineTabletActionRow(
-            label = action,
-            selected = index == 0,
-            onClick = { onSelected(index) },
+            label = action.name.toReadableAction(),
+            selected = false,
+            onClick = { onSelected(action) },
         )
     }
 }
@@ -978,18 +1084,51 @@ private fun AddRoutineTabletActionRow(
 
 
 @Composable
-private fun AddRoutineTabletConfigureParameterStep() {
+private fun AddRoutineTabletConfigureParameterStep(
+    actionName: String,
+    param: DeviceActionParamInfo?,
+    value: Float,
+    onValueChange: (Float) -> Unit,
+) {
+    val min = (param?.min ?: 0).toFloat()
+    val max = (param?.max ?: 100).toFloat()
     AddRoutineTabletSubstepLabel(stringResource(R.string.create_routine_parameters_step_label))
     Text(
-        text = stringResource(R.string.create_routine_parameter_prompt, "play"),
+        text = stringResource(R.string.create_routine_parameter_prompt, actionName),
         style = MaterialTheme.typography.titleMedium,
         color = MaterialTheme.colorScheme.onSurface,
     )
     Text(
-        text = "Esta acción no requiere parámetros.",
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        text = param?.name.orEmpty(),
+        style = MaterialTheme.typography.titleSmall,
+        fontWeight = FontWeight.ExtraBold,
+        color = MaterialTheme.colorScheme.onSurface,
     )
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        Slider(
+            value = value,
+            onValueChange = onValueChange,
+            valueRange = min..max,
+            modifier = Modifier.weight(1f),
+            colors = SliderDefaults.colors(
+                thumbColor = MaterialTheme.colorScheme.primary,
+                activeTrackColor = MaterialTheme.colorScheme.primary,
+                inactiveTrackColor = MaterialTheme.colorScheme.primaryContainer,
+            ),
+        )
+        Text(
+            text = value.toInt().toString(),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.ExtraBold,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.width(36.dp),
+            textAlign = TextAlign.End,
+        )
+    }
 }
 
 @Composable
@@ -1006,9 +1145,11 @@ private fun AddRoutineTabletSubstepLabel(text: String) {
 @Composable
 private fun AddRoutineTabletFooter(
     currentStep: AddRoutineTabletStep,
+    canCreate: Boolean,
     onBack: () -> Unit,
     onCancel: () -> Unit,
     onNext: () -> Unit,
+    onConfirmParameter: () -> Unit,
     onCreate: () -> Unit,
 ) {
     Surface(
@@ -1038,19 +1179,17 @@ private fun AddRoutineTabletFooter(
                     text = stringResource(R.string.create_routine_create),
                     icon = SmartHomeIcons.Add,
                     onClick = onCreate,
+                    enabled = canCreate,
                 )
 
                 AddRoutineTabletStep.ConfigureParameter -> AddRoutineTabletPrimaryButton(
                     text = stringResource(R.string.create_routine_add_action_cta),
                     icon = SmartHomeIcons.Add,
-                    onClick = onNext,
+                    onClick = onConfirmParameter,
                 )
 
-                else -> AddRoutineTabletPrimaryButton(
-                    text = stringResource(R.string.create_routine_next),
-                    icon = Icons.AutoMirrored.Filled.ArrowForward,
-                    onClick = onNext,
-                )
+                // SelectDevice/SelectAction avanzan al tocar una tarjeta
+                else -> Unit
             }
         }
     }
@@ -1061,9 +1200,11 @@ private fun AddRoutineTabletPrimaryButton(
     text: String,
     icon: ImageVector,
     onClick: () -> Unit,
+    enabled: Boolean = true,
 ) {
     Button(
         onClick = onClick,
+        enabled = enabled,
         modifier = Modifier.height(48.dp),
         shape = RoundedCornerShape(10.dp),
         colors = ButtonDefaults.buttonColors(
@@ -1141,37 +1282,18 @@ private fun AddRoutineTabletTextButton(
 }
 
 
-private val addRoutineTabletDevices = listOf(
-    AddRoutineTabletDevice("Persiana", "Baño principal", Icons.Outlined.Blinds),
-    AddRoutineTabletDevice("Lámpara", "Baño principal", SmartHomeIcons.Lightbulb),
-    AddRoutineTabletDevice("Lámpara", "Comedor", SmartHomeIcons.Lightbulb),
-    AddRoutineTabletDevice("Alarma", "Comedor", Icons.Outlined.NotificationsActive),
-    AddRoutineTabletDevice("Aire acond.", "Comedor", Icons.Outlined.Air),
-    AddRoutineTabletDevice("Parlante", "Comedor", SmartHomeIcons.Speaker),
-    AddRoutineTabletDevice("Heladera", "Cocina", Icons.Outlined.Kitchen),
-    AddRoutineTabletDevice("Aire acond.", "Living", Icons.Outlined.Air),
-    AddRoutineTabletDevice("Parlante", "Living", SmartHomeIcons.Speaker),
-)
-
-private val addRoutineTabletActions = listOf(
-    "play",
-    "stop",
-    "pause",
-    "resume",
-    "setVolume",
-    "nextSong",
-    "previousSong",
-    "setGenre",
-    "getPlaylist",
-)
-
-
 @Preview(name = "Add routine tablet", showBackground = true, widthDp = 1280, heightDp = 800)
 @Composable
 private fun AddRoutineTabletPreview() {
     SmartHomeTheme(darkTheme = false) {
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            AddRoutineTabletDialogContent(onDismiss = {})
+            AddRoutineTabletDialogContent(
+                onDismiss = {},
+                devices = emptyList(),
+                deviceRoomNames = emptyMap(),
+                deviceActions = emptyMap(),
+                onCreate = { _, _, _, _, _ -> },
+            )
         }
     }
 }

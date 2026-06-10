@@ -9,6 +9,7 @@ import com.grupo4.smarthome.data.remote.api.AuthApi
 import com.grupo4.smarthome.data.remote.api.DevicesApi
 import com.grupo4.smarthome.data.remote.api.HomesApi
 import com.grupo4.smarthome.data.remote.api.RoomsApi
+import com.grupo4.smarthome.data.remote.api.RoutinesApi
 import com.grupo4.smarthome.data.repository.AuthRepository
 import com.grupo4.smarthome.data.repository.AuthRepositoryImpl
 import com.grupo4.smarthome.data.repository.DevicesRepository
@@ -17,6 +18,8 @@ import com.grupo4.smarthome.data.repository.HomesRepository
 import com.grupo4.smarthome.data.repository.HomesRepositoryImpl
 import com.grupo4.smarthome.data.repository.RoomsRepository
 import com.grupo4.smarthome.data.repository.RoomsRepositoryImpl
+import com.grupo4.smarthome.data.repository.RoutinesRepository
+import com.grupo4.smarthome.data.repository.RoutinesRepositoryImpl
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -47,4 +50,8 @@ class AppContainer(context: Context) {
     private val devicesApi: DevicesApi = DevicesApi(httpClient)
 
     val devicesRepository: DevicesRepository = DevicesRepositoryImpl(devicesApi)
+
+    private val routinesApi: RoutinesApi = RoutinesApi(httpClient)
+
+    val routinesRepository: RoutinesRepository = RoutinesRepositoryImpl(routinesApi)
 }

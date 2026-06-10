@@ -81,6 +81,7 @@ data class RoutineActionUi(
 
 /** Modelo temporal para la pantalla de detalle. */
 data class RoutineDetailUi(
+    val id: String = "",
     val name: String,
     val category: RoutineCategory,
     val enabled: Boolean,
@@ -89,6 +90,7 @@ data class RoutineDetailUi(
     /** 7 valores, empezando por lunes (L M M J V S D). */
     val days: List<Boolean>,
     val actions: List<RoutineActionUi>,
+    val favorite: Boolean = false,
 )
 
 @Composable
@@ -98,7 +100,7 @@ fun RoutineDetailScreen(
     onRename: (String) -> Unit = {},
     onDelete: () -> Unit = {},
     onAddAction: () -> Unit = {},
-    onSave: () -> Unit = {},
+    onSave: (name: String, time24h: String, days: List<Boolean>, enabled: Boolean) -> Unit = { _, _, _, _ -> },
 ) {
     var enabled by remember { mutableStateOf(routine.enabled) }
     var name by remember { mutableStateOf(routine.name) }
@@ -167,7 +169,7 @@ fun RoutineDetailScreen(
             }
         }
 
-        SaveBar(onSave = onSave)
+        SaveBar(onSave = { onSave(name, parseDisplayTimeTo24h(time), days, enabled) })
     }
 
     if (showRenameDialog) {
@@ -1154,6 +1156,7 @@ private fun parseTime(time: String): Pair<Int, Int> = runCatching {
 }.getOrDefault(7 to 0)
 
 private val sampleRoutineDetail = RoutineDetailUi(
+    id = "sample",
     name = "Buenos días",
     category = RoutineCategory.MORNING,
     enabled = true,
@@ -1191,6 +1194,7 @@ internal fun RoutineUi.toDetailUi(): RoutineDetailUi {
     }
 
     return RoutineDetailUi(
+        id = id,
         name = name,
         category = category,
         enabled = true,
@@ -1198,6 +1202,7 @@ internal fun RoutineUi.toDetailUi(): RoutineDetailUi {
         daysSummary = "",
         days = days,
         actions = detailActions,
+        favorite = favorite,
     )
 }
 
@@ -1669,6 +1674,7 @@ internal fun MasterRoutineCard(
     routine: RoutineUi,
     selected: Boolean,
     onClick: () -> Unit,
+    onExecute: () -> Unit = {},
 ) {
     val border = if (selected) {
         BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
@@ -1770,7 +1776,7 @@ internal fun MasterRoutineCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 MasterDayLabels(days = routine.days, modifier = Modifier.weight(1f))
-                MasterPlayButton()
+                MasterPlayButton(onClick = onExecute)
             }
         }
     }
@@ -1811,11 +1817,12 @@ private fun MasterDayLabels(days: List<Boolean>, modifier: Modifier = Modifier) 
 }
 
 @Composable
-private fun MasterPlayButton() {
+private fun MasterPlayButton(onClick: () -> Unit = {}) {
     Box(
         modifier = Modifier
             .size(44.dp)
             .clip(CircleShape)
+            .clickable(onClick = onClick)
             .background(RoutinePlay),
         contentAlignment = Alignment.Center,
     ) {

@@ -152,7 +152,7 @@ fun PhoneRoomsLayout(
             PhoneRoomsFab(
                 onClick = {
                     val room = selectedRoom
-                    if (room == null) callbacks.onCreateRoomClick()
+                    if (room == null) callbacks.onAddClick()
                     else callbacks.onAddDeviceClick(room.id)
                 },
             )

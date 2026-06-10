@@ -22,12 +22,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,6 +68,7 @@ enum class RoutineCategory(val labelRes: Int, val icon: ImageVector) {
     NIGHT(R.string.routines_category_night, SmartHomeIcons.NightRoutine),
     COMFORT(R.string.routines_category_comfort, SmartHomeIcons.ComfortRoutine),
     SECURITY(R.string.routines_category_security, SmartHomeIcons.SecurityRoutine),
+    CUSTOM(R.string.routines_category_custom, SmartHomeIcons.CustomRoutine),
 }
 
 data class RoutineUi(
@@ -85,20 +90,42 @@ fun RoutinesScreen(
     onNotificationsClick: () -> Unit = {},
     unreadNotificationCount: Int = 0,
     onRoutineClick: (String) -> Unit = {},
+    onCreateRoom: () -> Unit = {},
+    onCreateDevice: () -> Unit = {},
     showQuickAddFab: Boolean = true,
     isTablet: Boolean = false,
     onNavigateHome: () -> Unit = {},
     onNavigateRooms: () -> Unit = {},
     routines: List<RoutineUi> = sampleRoutines,
+    isLoading: Boolean = false,
+    errorMessage: String? = null,
+    infoMessage: String? = null,
+    onExecuteRoutine: (String) -> Unit = {},
+    onSaveRoutine: (id: String, name: String, time24h: String, days: List<Boolean>, enabled: Boolean) -> Unit = { _, _, _, _, _ -> },
+    onDeleteRoutine: (String) -> Unit = {},
+    onRetry: () -> Unit = {},
+    onDismissError: () -> Unit = {},
+    onDismissInfo: () -> Unit = {},
+    detailFor: (String) -> RoutineDetailUi? = { null },
 ) {
     if (isTablet) {
         TabletRoutinesScreen(
             routines = routines,
             onProfileClick = onProfileClick,
             onAddRoutine = onAddRoutine,
+            onCreateRoom = onCreateRoom,
+            onCreateDevice = onCreateDevice,
             onNavigateHome = onNavigateHome,
             onNavigateRooms = onNavigateRooms,
             onRoutineClick = onRoutineClick,
+            onExecuteRoutine = onExecuteRoutine,
+            onSaveRoutine = onSaveRoutine,
+            onDeleteRoutine = onDeleteRoutine,
+            detailFor = detailFor,
+            errorMessage = errorMessage,
+            infoMessage = infoMessage,
+            onDismissError = onDismissError,
+            onDismissInfo = onDismissInfo,
         )
         return
     }
@@ -125,58 +152,125 @@ fun RoutinesScreen(
             }
         },
     ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(innerPadding),
-            contentPadding = PaddingValues(
-                start = 16.dp,
-                end = 16.dp,
-                top = 4.dp,
-                bottom = 96.dp,
-            ),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            item {
-                Column {
-                    Text(
-                        text = stringResource(R.string.routines_header_title),
-                        style = MaterialTheme.typography.headlineMedium.copy(
-                            fontWeight = FontWeight.ExtraBold,
+        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+            when {
+                // Carga inicial sin contenido todavía: loader simple
+                routines.isEmpty() && isLoading -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+                // Sin contenido + error: estado accionable con reintentar
+                routines.isEmpty() && errorMessage != null -> {
+                    RoutinesErrorState(message = errorMessage, onRetry = onRetry)
+                }
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.background),
+                        contentPadding = PaddingValues(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = 4.dp,
+                            bottom = 96.dp,
                         ),
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = stringResource(R.string.routines_header_subtitle),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                        verticalArrangement = Arrangement.spacedBy(14.dp),
+                    ) {
+                        item {
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.routines_header_title),
+                                    style = MaterialTheme.typography.headlineMedium.copy(
+                                        fontWeight = FontWeight.ExtraBold,
+                                    ),
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = stringResource(R.string.routines_header_subtitle),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                        item {
+                            CategoryFilter(
+                                routines = routines,
+                                selectedCategory = selectedCategory,
+                                onCategorySelected = { selectedCategory = it },
+                            )
+                        }
+                        if (routines.isEmpty()) {
+                            item {
+                                RoutinesEmptyStateCard(
+                                    onCreateRoutineClick = onAddRoutine,
+                                    compact = true,
+                                )
+                            }
+                        } else {
+                            items(items = visibleRoutines, key = { it.id }) { routine ->
+                                RoutineCard(
+                                    routine = routine,
+                                    onClick = { onRoutineClick(routine.id) },
+                                    onExecute = { onExecuteRoutine(routine.id) },
+                                )
+                            }
+                        }
+                    }
                 }
             }
-            item {
-                CategoryFilter(
-                    routines = routines,
-                    selectedCategory = selectedCategory,
-                    onCategorySelected = { selectedCategory = it },
-                )
-            }
-            if (routines.isEmpty()) {
-                item {
-                    RoutinesEmptyStateCard(
-                        onCreateRoutineClick = onAddRoutine,
-                        compact = true,
-                    )
-                }
-            } else {
-                items(items = visibleRoutines, key = { it.id }) { routine ->
-                    RoutineCard(
-                        routine = routine,
-                        onClick = { onRoutineClick(routine.id) },
-                    )
+
+            // Feedback no bloqueante (ejecución / errores en mutaciones con contenido visible)
+            val snackbarHostState = remember { SnackbarHostState() }
+            val executedTemplate = stringResource(R.string.routines_executed)
+            LaunchedEffect(errorMessage) {
+                if (errorMessage != null && routines.isNotEmpty()) {
+                    snackbarHostState.showSnackbar(errorMessage)
+                    onDismissError()
                 }
             }
+            LaunchedEffect(infoMessage) {
+                if (infoMessage != null) {
+                    snackbarHostState.showSnackbar(executedTemplate.format(infoMessage))
+                    onDismissInfo()
+                }
+            }
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding(),
+            )
+        }
+    }
+}
+
+@Composable
+private fun RoutinesErrorState(message: String, onRetry: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Surface(
+            modifier = Modifier.clip(RoundedCornerShape(999.dp)).clickable(onClick = onRetry),
+            shape = RoundedCornerShape(999.dp),
+            color = MaterialTheme.colorScheme.primary,
+        ) {
+            Text(
+                text = stringResource(R.string.routines_retry),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
+            )
         }
     }
 }
@@ -295,7 +389,7 @@ private fun FilterChip(
 }
 
 @Composable
-internal fun RoutineCard(routine: RoutineUi, onClick: () -> Unit = {}) {
+internal fun RoutineCard(routine: RoutineUi, onClick: () -> Unit = {}, onExecute: () -> Unit = {}) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -406,7 +500,7 @@ internal fun RoutineCard(routine: RoutineUi, onClick: () -> Unit = {}) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 DaysRow(days = routine.days, modifier = Modifier.weight(1f))
-                PlayButton(onClick = {})
+                PlayButton(onClick = onExecute)
             }
         }
     }

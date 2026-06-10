@@ -22,14 +22,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.grupo4.smarthome.R
-import com.grupo4.smarthome.SmartHomeApplication
 import com.grupo4.smarthome.ui.screens.rooms.dialogs.AddDevicesToRoomDialog
 import com.grupo4.smarthome.ui.screens.rooms.dialogs.AddEditRoomDialog
 import com.grupo4.smarthome.ui.screens.rooms.dialogs.DeleteDeviceDialog
@@ -48,6 +45,7 @@ private enum class RoomsDialogKind {
 
 @Composable
 fun RoomsScreen(
+    viewModel: RoomsViewModel,
     activeHomeId: String?,
     windowSize: WindowSizeClass? = null,
     modifier: Modifier = Modifier,
@@ -57,15 +55,8 @@ fun RoomsScreen(
     onNavigateHistory: () -> Unit = {},
     onNotificationsClick: () -> Unit = {},
     unreadNotificationCount: Int = 0,
+    onQuickActionsOpen: () -> Unit = {},
 ) {
-    val application = LocalContext.current.applicationContext as SmartHomeApplication
-    val factory = remember(application) {
-        RoomsViewModelFactory(
-            application.appContainer.roomsRepository,
-            application.appContainer.devicesRepository,
-        )
-    }
-    val viewModel: RoomsViewModel = viewModel(factory = factory)
     val baseState by viewModel.uiState.collectAsStateWithLifecycle()
     val state = baseState.copy(unreadNotificationCount = unreadNotificationCount)
 
@@ -121,12 +112,7 @@ fun RoomsScreen(
         onDeviceValueChange = viewModel::onDeviceValueChange,
         onAvatarClick = onProfileClick,
         onAddClick = {
-            dialogRoomId = state.selectedRoomId
-            dialogKindName = if (state.selectedRoomId == null) {
-                RoomsDialogKind.AddRoom.name
-            } else {
-                RoomsDialogKind.AddDevices.name
-            }
+            onQuickActionsOpen()
         },
         onNavigateHome = onNavigateHome,
         onNavigateRoutines = onNavigateRoutines,

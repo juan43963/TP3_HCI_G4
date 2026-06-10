@@ -73,6 +73,8 @@ import com.grupo4.smarthome.ui.navigation.Screen
 import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneHomeDrawer
 import com.grupo4.smarthome.ui.screens.history.HistoryScreen
 import com.grupo4.smarthome.ui.screens.home.HomeScreen
+import com.grupo4.smarthome.ui.screens.home.HomeViewModel
+import com.grupo4.smarthome.ui.screens.home.HomeViewModelFactory
 import com.grupo4.smarthome.ui.screens.selecthome.AddHomeOverlay
 import com.grupo4.smarthome.ui.screens.notifications.NotificationPreferences
 import com.grupo4.smarthome.ui.screens.notifications.NotificationPreferencesSaver
@@ -82,10 +84,20 @@ import com.grupo4.smarthome.ui.screens.notifications.sampleNotifications
 import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeScreen
 import com.grupo4.smarthome.ui.screens.profile.ProfileScreen
 import com.grupo4.smarthome.ui.screens.rooms.RoomsScreen
+import com.grupo4.smarthome.ui.screens.rooms.RoomsViewModel
+import com.grupo4.smarthome.ui.screens.rooms.RoomsViewModelFactory
+import com.grupo4.smarthome.ui.screens.rooms.dialogs.AddDevicesToRoomDialog
+import com.grupo4.smarthome.ui.screens.rooms.dialogs.AddEditRoomDialog
 import com.grupo4.smarthome.ui.screens.routines.AddRoutineTabletOverlay
 import com.grupo4.smarthome.ui.screens.routines.CreateRoutineOverlay
 import com.grupo4.smarthome.ui.screens.routines.RoutineDetailScreen
 import com.grupo4.smarthome.ui.screens.routines.RoutinesScreen
+import com.grupo4.smarthome.ui.screens.routines.RoutinesViewModel
+import com.grupo4.smarthome.ui.screens.routines.RoutinesViewModelFactory
+import com.grupo4.smarthome.ui.screens.routines.deviceNamesById
+import com.grupo4.smarthome.ui.screens.routines.deviceTypesById
+import com.grupo4.smarthome.ui.screens.routines.toDetailUi
+import com.grupo4.smarthome.ui.screens.routines.toRoutineUi
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 import com.grupo4.smarthome.ui.theme.ThemePreference
 import androidx.compose.runtime.mutableStateOf
@@ -165,6 +177,69 @@ fun SmartHomeApp(
         },
     )
     val selectHomeUiState by selectHomeViewModel.uiState.collectAsStateWithLifecycle()
+    val activeHome = selectHomeUiState.homes.firstOrNull { it.id == selectHomeUiState.activeHomeId }
+    val activeHomeName = activeHome?.name.orEmpty()
+
+    val roomsViewModel: RoomsViewModel = viewModel(
+        factory = remember(homesApplication) {
+            RoomsViewModelFactory(
+                homesApplication.appContainer.roomsRepository,
+                homesApplication.appContainer.devicesRepository,
+            )
+        },
+    )
+    val roomsUiState by roomsViewModel.uiState.collectAsStateWithLifecycle()
+    LaunchedEffect(selectHomeUiState.activeHomeId) {
+        roomsViewModel.onHomeChanged(selectHomeUiState.activeHomeId)
+    }
+
+    // ViewModel de rutinas a nivel Activity: lo comparten lista, detalle y overlays de creación
+    val routinesViewModel: RoutinesViewModel = viewModel(
+        factory = remember(homesApplication) {
+            RoutinesViewModelFactory(
+                homesApplication.appContainer.routinesRepository,
+                homesApplication.appContainer.roomsRepository,
+                homesApplication.appContainer.devicesRepository,
+            )
+        },
+    )
+    val routinesUiState by routinesViewModel.uiState.collectAsStateWithLifecycle()
+    LaunchedEffect(selectHomeUiState.activeHomeId) {
+        routinesViewModel.onHomeChanged(selectHomeUiState.activeHomeId)
+    }
+    LaunchedEffect(routinesUiState.infoMessage) {
+        if (routinesUiState.infoMessage != null) {
+            roomsViewModel.loadRooms()
+        }
+    }
+
+    val homeViewModel: HomeViewModel = viewModel(
+        factory = remember(homesApplication) {
+            HomeViewModelFactory(
+                homesApplication.appContainer.roomsRepository,
+                homesApplication.appContainer.devicesRepository,
+                homesApplication.appContainer.routinesRepository,
+            )
+        },
+    )
+    val homeUiState by homeViewModel.uiState.collectAsStateWithLifecycle()
+    LaunchedEffect(selectHomeUiState.activeHomeId, activeHomeName, selectHomeUiState.userName) {
+        homeViewModel.onHomeChanged(
+            newHomeId = selectHomeUiState.activeHomeId,
+            homeName = activeHomeName,
+            userName = selectHomeUiState.userName,
+        )
+    }
+    LaunchedEffect(currentBaseRoute, selectHomeUiState.activeHomeId) {
+        if (currentBaseRoute == Screen.Home.route && selectHomeUiState.activeHomeId != null) {
+            homeViewModel.refresh(activeHomeName, selectHomeUiState.userName)
+        }
+    }
+    LaunchedEffect(roomsUiState.rooms.size, roomsUiState.rooms.sumOf { it.devices.size }) {
+        if (currentBaseRoute == Screen.Home.route && selectHomeUiState.activeHomeId != null) {
+            homeViewModel.refresh(activeHomeName, selectHomeUiState.userName)
+        }
+    }
 
     LaunchedEffect(selectHomeUiState.homeJustCreated) {
         if (selectHomeUiState.homeJustCreated) {
@@ -173,10 +248,26 @@ fun SmartHomeApp(
         }
     }
     var showQuickActions by rememberSaveable { mutableStateOf(false) }
+    var showCreateRoom by rememberSaveable { mutableStateOf(false) }
+    var showCreateDevice by rememberSaveable { mutableStateOf(false) }
     var showCreateRoutine by rememberSaveable { mutableStateOf(false) }
     val openQuickActions: () -> Unit = { showQuickActions = true }
+    val openCreateRoom: () -> Unit = {
+        showQuickActions = false
+        showCreateDevice = false
+        showCreateRoutine = false
+        showCreateRoom = true
+    }
+    val openCreateDevice: () -> Unit = {
+        showQuickActions = false
+        showCreateRoom = false
+        showCreateRoutine = false
+        showCreateDevice = true
+    }
     val openCreateRoutine: () -> Unit = {
         showQuickActions = false
+        showCreateRoom = false
+        showCreateDevice = false
         showCreateRoutine = true
     }
     val openDrawer: () -> Unit = {
@@ -481,6 +572,7 @@ fun SmartHomeApp(
             composable(Screen.Home.route) {
                 HomeScreen(
                     windowSize = windowSize,
+                    state = homeUiState,
                     onNavigateRooms = {
                         navController.navigate(Screen.Rooms.route) {
                             launchSingleTop = true
@@ -507,12 +599,16 @@ fun SmartHomeApp(
                     onNavigateNotifications = openNotifications,
                     unreadNotificationCount = unreadNotificationCount,
                     onQuickActionsOpen = openQuickActions,
+                    onCreateRoom = openCreateRoom,
+                    onCreateDevice = openCreateDevice,
                     onCreateRoutine = openCreateRoutine,
-                    showQuickAddFab = !isTablet && !showQuickActions && !showCreateRoutine,
+                    showQuickAddFab = !isTablet && !showQuickActions && !showCreateRoom &&
+                        !showCreateDevice && !showCreateRoutine,
                 )
             }
             composable(Screen.Rooms.route) {
                 RoomsScreen(
+                    viewModel = roomsViewModel,
                     activeHomeId = selectHomeUiState.activeHomeId,
                     windowSize = windowSize,
                     onProfileClick = {
@@ -540,6 +636,7 @@ fun SmartHomeApp(
                     },
                     onNotificationsClick = openNotifications,
                     unreadNotificationCount = unreadNotificationCount,
+                    onQuickActionsOpen = openQuickActions,
                 )
             }
             composable(Screen.Routines.route) {
@@ -551,8 +648,11 @@ fun SmartHomeApp(
                             launchSingleTop = true
                         }
                     },
+                    onCreateRoom = openCreateRoom,
+                    onCreateDevice = openCreateDevice,
                     onAddRoutine = if (isTablet) openCreateRoutine else openQuickActions,
-                    showQuickAddFab = !isTablet && !showQuickActions && !showCreateRoutine,
+                    showQuickAddFab = !isTablet && !showQuickActions && !showCreateRoom &&
+                        !showCreateDevice && !showCreateRoutine,
                     isTablet = isTablet,
                     onNavigateHome = {
                         navController.navigate(Screen.Home.route) {
@@ -571,13 +671,51 @@ fun SmartHomeApp(
                             navController.navigate("${Screen.ROUTINE_DETAIL_ROUTE}/$routineId")
                         }
                     },
+                    routines = routinesUiState.routines.map {
+                        it.toRoutineUi(routinesUiState.deviceNamesById)
+                    },
+                    isLoading = routinesUiState.isLoading,
+                    errorMessage = routinesUiState.errorMessage,
+                    infoMessage = routinesUiState.infoMessage,
+                    onExecuteRoutine = routinesViewModel::executeRoutine,
+                    onSaveRoutine = { id, name, time24h, days, enabled ->
+                        routinesViewModel.saveRoutine(id, name, time24h, days, enabled)
+                    },
+                    onDeleteRoutine = routinesViewModel::deleteRoutine,
+                    detailFor = { id ->
+                        routinesUiState.routines.firstOrNull { it.id == id }?.toDetailUi(
+                            routinesUiState.deviceNamesById,
+                            routinesUiState.deviceTypesById,
+                        )
+                    },
+                    onRetry = routinesViewModel::loadRoutines,
+                    onDismissError = routinesViewModel::dismissError,
+                    onDismissInfo = routinesViewModel::dismissInfo,
                 )
             }
-            composable("${Screen.ROUTINE_DETAIL_ROUTE}/{routineId}") {
-                RoutineDetailScreen(
-                    onBack = { navController.popBackStack() },
-                    onDelete = { navController.popBackStack() },
-                )
+            composable("${Screen.ROUTINE_DETAIL_ROUTE}/{routineId}") { backStackEntry ->
+                val routineId = backStackEntry.arguments?.getString("routineId").orEmpty()
+                val routine = routinesUiState.routines.firstOrNull { it.id == routineId }
+                if (routine == null) {
+                    // La rutina ya no existe (p.ej. tras borrarla): volvemos al listado
+                    LaunchedEffect(routineId) { navController.popBackStack() }
+                } else {
+                    RoutineDetailScreen(
+                        routine = routine.toDetailUi(
+                            routinesUiState.deviceNamesById,
+                            routinesUiState.deviceTypesById,
+                        ),
+                        onBack = { navController.popBackStack() },
+                        onDelete = {
+                            routinesViewModel.deleteRoutine(routineId)
+                            navController.popBackStack()
+                        },
+                        onSave = { name, time24h, days, enabled ->
+                            routinesViewModel.saveRoutine(routineId, name, time24h, days, enabled)
+                            navController.popBackStack()
+                        },
+                    )
+                }
             }
             composable(Screen.Profile.route) {
                 val origin = navController.previousBackStackEntry
@@ -783,22 +921,72 @@ fun SmartHomeApp(
             QuickActionsOverlay(
                 visible = showQuickActions,
                 onDismiss = { showQuickActions = false },
+                onAddRoom = openCreateRoom,
+                onAddDevice = openCreateDevice,
                 onAddRoutine = openCreateRoutine,
                 // Lift the overlay above the bottom NavigationBar (M3 default height
                 // 80.dp) so its close FAB stays where the "+" FAB was.
                 bottomBarPadding = if (showBottomBar) 80.dp else 0.dp,
             )
 
+            if (showCreateRoom) {
+                AddEditRoomDialog(
+                    room = null,
+                    onDismiss = { showCreateRoom = false },
+                    onConfirm = { name, type ->
+                        roomsViewModel.createRoom(name, type)
+                        showCreateRoom = false
+                    },
+                )
+            }
+
+            val targetRoom = roomsUiState.rooms.firstOrNull { it.id == roomsUiState.selectedRoomId }
+                ?: roomsUiState.rooms.firstOrNull()
+            if (showCreateDevice) {
+                if (targetRoom == null) {
+                    AddEditRoomDialog(
+                        room = null,
+                        onDismiss = { showCreateDevice = false },
+                        onConfirm = { name, type ->
+                            roomsViewModel.createRoom(name, type)
+                            showCreateDevice = false
+                        },
+                    )
+                } else {
+                    AddDevicesToRoomDialog(
+                        roomName = targetRoom.name,
+                        availableDeviceTypes = roomsUiState.availableDeviceTypes,
+                        onDismiss = { showCreateDevice = false },
+                        onConfirm = { pendingDevices ->
+                            roomsViewModel.addDevices(targetRoom.id, pendingDevices)
+                            showCreateDevice = false
+                        },
+                    )
+                }
+            }
+
             if (isTablet) {
                 AddRoutineTabletOverlay(
                     visible = showCreateRoutine,
                     onDismiss = { showCreateRoutine = false },
+                    devices = routinesUiState.devices,
+                    deviceRoomNames = routinesUiState.deviceRoomNames,
+                    deviceActions = routinesUiState.deviceActions,
+                    onCreate = { name, category, time24h, days, actions ->
+                        routinesViewModel.createRoutine(name, category, time24h, days, actions)
+                    },
                 )
             } else {
                 CreateRoutineOverlay(
                     visible = showCreateRoutine,
                     isTablet = false,
                     onDismiss = { showCreateRoutine = false },
+                    devices = routinesUiState.devices,
+                    deviceRoomNames = routinesUiState.deviceRoomNames,
+                    deviceActions = routinesUiState.deviceActions,
+                    onCreate = { name, category, time24h, days, actions ->
+                        routinesViewModel.createRoutine(name, category, time24h, days, actions)
+                    },
                 )
             }
         }
