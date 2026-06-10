@@ -15,6 +15,10 @@ object ApiRoutes {
 
     const val Rooms = "rooms"
 
+    const val Devices = "devices"
+
+    const val DeviceTypes = "devicetypes"
+
     fun homeById(homeId: String): String = "$Homes/$homeId"
 
     fun homeShare(homeId: String): String = "$Homes/$homeId/share"
@@ -33,6 +37,24 @@ object ApiRoutes {
 
     // GET de los dispositivos de una habitación
     fun roomDevices(roomId: String): String = "$Rooms/$roomId/devices"
+
+    // GET/PUT/DELETE de un dispositivo puntual
+    fun deviceById(deviceId: String): String = "$Devices/$deviceId"
+
+    // GET del estado actual de un dispositivo
+    fun deviceState(deviceId: String): String = "$Devices/$deviceId/state"
+
+    // PATCH para ejecutar una acción (turnOn, setBrightness, etc.) sobre un dispositivo
+    fun deviceAction(deviceId: String, actionName: String): String = "$Devices/$deviceId/$actionName"
+
+    // GET de un tipo de dispositivo puntual del catálogo
+    fun deviceTypeById(deviceTypeId: String): String = "$DeviceTypes/$deviceTypeId"
+
+    // POST para asociar un dispositivo existente a una habitación (fallback de POST /devices)
+    fun roomDeviceAssociation(roomId: String, deviceId: String): String = "$Rooms/$roomId/devices/$deviceId"
+
+    // DELETE para desvincular un dispositivo de su habitación
+    fun roomDeviceRemoval(deviceId: String): String = "$Rooms/devices/$deviceId"
 
     fun resolve(path: String): String =
         "${ApiConstants.BaseUrl.trimEnd('/')}/${path.trimStart('/')}"

@@ -92,7 +92,16 @@ fun AddDevicesToRoomDialog(
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(18.dp),
                 ) {
-                    AddDevicesStepper(step = step)
+                    AddDevicesStepper(
+                        step = step,
+                        onDevicesClick = { step = 1 },
+                        onReviewClick = {
+                            submitted = true
+                            if (pendingDevices.isNotEmpty()) {
+                                step = 2
+                            }
+                        },
+                    )
                     if (step == 1) {
                         DeviceTypeGrid(
                             availableDeviceTypes = availableDeviceTypes,
@@ -344,7 +353,11 @@ private fun AddDevicesHeader(
 }
 
 @Composable
-private fun AddDevicesStepper(step: Int) {
+private fun AddDevicesStepper(
+    step: Int,
+    onDevicesClick: () -> Unit,
+    onReviewClick: () -> Unit,
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -353,12 +366,14 @@ private fun AddDevicesStepper(step: Int) {
             number = "1",
             label = stringResource(R.string.rooms_step_devices),
             selected = step == 1,
+            onClick = onDevicesClick,
             modifier = Modifier.weight(1f),
         )
         StepPill(
             number = "2",
             label = stringResource(R.string.rooms_step_review),
             selected = step == 2,
+            onClick = onReviewClick,
             modifier = Modifier.weight(1f),
         )
     }
@@ -369,10 +384,13 @@ private fun StepPill(
     number: String,
     label: String,
     selected: Boolean,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = modifier.height(44.dp),
+        modifier = modifier
+            .height(44.dp)
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(999.dp),
         color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
         border = BorderStroke(

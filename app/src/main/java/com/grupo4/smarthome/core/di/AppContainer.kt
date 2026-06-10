@@ -6,10 +6,13 @@ import com.grupo4.smarthome.data.local.PreferencesDataStore
 import com.grupo4.smarthome.data.local.SessionDataStore
 import com.grupo4.smarthome.data.local.SessionManager
 import com.grupo4.smarthome.data.remote.api.AuthApi
+import com.grupo4.smarthome.data.remote.api.DevicesApi
 import com.grupo4.smarthome.data.remote.api.HomesApi
 import com.grupo4.smarthome.data.remote.api.RoomsApi
 import com.grupo4.smarthome.data.repository.AuthRepository
 import com.grupo4.smarthome.data.repository.AuthRepositoryImpl
+import com.grupo4.smarthome.data.repository.DevicesRepository
+import com.grupo4.smarthome.data.repository.DevicesRepositoryImpl
 import com.grupo4.smarthome.data.repository.HomesRepository
 import com.grupo4.smarthome.data.repository.HomesRepositoryImpl
 import com.grupo4.smarthome.data.repository.RoomsRepository
@@ -40,4 +43,8 @@ class AppContainer(context: Context) {
     private val roomsApi: RoomsApi = RoomsApi(httpClient)
 
     val roomsRepository: RoomsRepository = RoomsRepositoryImpl(roomsApi)
+
+    private val devicesApi: DevicesApi = DevicesApi(httpClient)
+
+    val devicesRepository: DevicesRepository = DevicesRepositoryImpl(devicesApi)
 }

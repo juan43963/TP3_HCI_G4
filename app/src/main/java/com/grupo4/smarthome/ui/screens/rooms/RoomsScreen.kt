@@ -60,7 +60,10 @@ fun RoomsScreen(
 ) {
     val application = LocalContext.current.applicationContext as SmartHomeApplication
     val factory = remember(application) {
-        RoomsViewModelFactory(application.appContainer.roomsRepository)
+        RoomsViewModelFactory(
+            application.appContainer.roomsRepository,
+            application.appContainer.devicesRepository,
+        )
     }
     val viewModel: RoomsViewModel = viewModel(factory = factory)
     val baseState by viewModel.uiState.collectAsStateWithLifecycle()
