@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.core.result.AppResult
 import com.grupo4.smarthome.core.result.ErrorKind
+import com.grupo4.smarthome.core.result.toMessageRes
 import com.grupo4.smarthome.data.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -47,9 +48,8 @@ class RecoverPasswordViewModel(
     private fun messageFor(kind: ErrorKind): Int =
         when (kind) {
             ErrorKind.NotFound -> R.string.error_recover_account_not_found
-            ErrorKind.Network -> R.string.error_network
             ErrorKind.Validation -> R.string.error_email_invalid
-            else -> R.string.error_unknown
+            else -> kind.toMessageRes()
         }
 }
 

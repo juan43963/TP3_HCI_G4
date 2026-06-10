@@ -127,7 +127,7 @@ class RoutinesRepositoryImpl(
         runCatching {
             val current = resolveRoutine(routineId)
                 ?: return@runCatching AppResult.Error(
-                    ApiError(ErrorKind.NotFound, "No se encontró la rutina.")
+                    ApiError(ErrorKind.NotFound)
                 )
             updateRoutine(current.copy(favorite = !current.favorite))
         }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
@@ -136,7 +136,7 @@ class RoutinesRepositoryImpl(
         runCatching {
             val current = resolveRoutine(routineId)
                 ?: return@runCatching AppResult.Error(
-                    ApiError(ErrorKind.NotFound, "No se encontró la rutina.")
+                    ApiError(ErrorKind.NotFound)
                 )
             updateRoutine(current.copy(enabled = !current.enabled))
         }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }

@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.core.result.AppResult
 import com.grupo4.smarthome.core.result.ErrorKind
+import com.grupo4.smarthome.core.result.toMessageRes
 import com.grupo4.smarthome.data.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -51,9 +52,8 @@ class LoginViewModel(
     private fun messageFor(kind: ErrorKind): Int =
         when (kind) {
             ErrorKind.Unauthorized, ErrorKind.Validation -> R.string.error_login_invalid_credentials
-            ErrorKind.Network -> R.string.error_network
             ErrorKind.Server -> R.string.error_login_server
-            else -> R.string.error_unknown
+            else -> kind.toMessageRes()
         }
 }
 

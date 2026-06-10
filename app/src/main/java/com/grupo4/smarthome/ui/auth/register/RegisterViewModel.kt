@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.core.result.AppResult
 import com.grupo4.smarthome.core.result.ErrorKind
+import com.grupo4.smarthome.core.result.toMessageRes
 import com.grupo4.smarthome.data.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -127,10 +128,8 @@ class RegisterViewModel(
     private fun messageFor(kind: ErrorKind): Int =
         when (kind) {
             ErrorKind.Conflict -> R.string.error_register_email_taken
-            ErrorKind.Network -> R.string.error_network
             ErrorKind.Server -> R.string.error_register_server
-            ErrorKind.Validation -> R.string.error_validation
-            else -> R.string.error_unknown
+            else -> kind.toMessageRes()
         }
 
     companion object {

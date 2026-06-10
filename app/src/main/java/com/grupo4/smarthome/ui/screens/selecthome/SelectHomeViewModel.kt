@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.core.result.AppResult
 import com.grupo4.smarthome.core.result.ErrorKind
+import com.grupo4.smarthome.core.result.toMessageRes
 import com.grupo4.smarthome.data.local.PreferencesDataStore
 import com.grupo4.smarthome.data.local.SessionManager
 import com.grupo4.smarthome.data.model.Home
@@ -61,7 +62,7 @@ class SelectHomeViewModel(
                     reconcileActiveHome()
                 }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(isLoading = false, errorMessage = messageFor(result.error.kind))
+                    it.copy(isLoading = false, errorMessage = result.error.kind.toMessageRes())
                 }
             }
         }
@@ -116,7 +117,7 @@ class SelectHomeViewModel(
                     reconcileActiveHome()
                 }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(isCreating = false, createError = messageFor(result.error.kind))
+                    it.copy(isCreating = false, createError = result.error.kind.toMessageRes())
                 }
             }
         }
@@ -165,7 +166,7 @@ class SelectHomeViewModel(
                 is AppResult.Error -> _uiState.update {
                     it.copy(
                         isProcessingAction = false,
-                        actionError = messageFor(result.error.kind),
+                        actionError = result.error.kind.toMessageRes(),
                     )
                 }
             }
@@ -186,7 +187,7 @@ class SelectHomeViewModel(
                 is AppResult.Error -> _uiState.update {
                     it.copy(
                         isProcessingAction = false,
-                        actionError = messageFor(result.error.kind),
+                        actionError = result.error.kind.toMessageRes(),
                     )
                 }
             }
@@ -225,16 +226,6 @@ class SelectHomeViewModel(
             reconcileActiveHome()
         }
     }
-
-    @StringRes
-    private fun messageFor(kind: ErrorKind): Int =
-        when (kind) {
-            ErrorKind.Unauthorized -> R.string.error_session_expired
-            ErrorKind.Network -> R.string.error_network
-            ErrorKind.Validation -> R.string.error_validation
-            ErrorKind.Server -> R.string.error_server_generic
-            else -> R.string.error_unknown
-        }
 
     @StringRes
     private fun shareMessageFor(kind: ErrorKind): Int =

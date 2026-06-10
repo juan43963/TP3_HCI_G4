@@ -52,7 +52,7 @@ class DevicesRepositoryImpl(
             val catalog = ensureDeviceTypes() ?: return@runCatching catalogError()
             val typeId = catalog.typeIdFor(type)
                 ?: return@runCatching AppResult.Error(
-                    ApiError(ErrorKind.Unknown, "El tipo de dispositivo no está soportado por el servidor.")
+                    ApiError(ErrorKind.Unknown)
                 )
 
             val response = devicesApi.createDevice(
@@ -70,7 +70,7 @@ class DevicesRepositoryImpl(
             val created = ApiJson.Instance.decodeFromString(DeviceDto.serializer(), body)
                 .toDomain({ catalog.localTypeFor(it) }, roomId)
                 ?: return@runCatching AppResult.Error(
-                    ApiError(ErrorKind.Unknown, "No se pudo interpretar el dispositivo creado.")
+                    ApiError(ErrorKind.Unknown)
                 )
 
             // Sin id no se puede confirmar nada más: devolvemos lo creado tal como vino
@@ -113,7 +113,7 @@ class DevicesRepositoryImpl(
             // Si no se pudo leer, abortamos con NotFound en lugar de pisar la metadata con un objeto vacío.
             val current = fetchDeviceDto(deviceId)
                 ?: return@runCatching AppResult.Error(
-                    ApiError(ErrorKind.NotFound, "No se encontró el dispositivo.")
+                    ApiError(ErrorKind.NotFound)
                 )
             val response = devicesApi.updateDevice(
                 deviceId,
@@ -141,7 +141,7 @@ class DevicesRepositoryImpl(
             val actions = catalog.actionsFor(device.type)
             val actionName = resolveToggleAction(device, actions)
                 ?: return@runCatching AppResult.Error(
-                    ApiError(ErrorKind.Unknown, "Este dispositivo no admite encendido/apagado.")
+                    ApiError(ErrorKind.Unknown)
                 )
             val response = devicesApi.executeAction(device.id, actionName, buildJsonArray { })
             if (!response.status.isSuccess()) {
@@ -155,11 +155,11 @@ class DevicesRepositoryImpl(
             val catalog = ensureDeviceTypes() ?: return@runCatching catalogError()
             val actionName = valueActionFor(device.type)
                 ?: return@runCatching AppResult.Error(
-                    ApiError(ErrorKind.Unknown, "Este dispositivo no admite ajustar ese valor.")
+                    ApiError(ErrorKind.Unknown)
                 )
             if (actionName !in catalog.actionsFor(device.type)) {
                 return@runCatching AppResult.Error(
-                    ApiError(ErrorKind.Unknown, "La acción no está disponible para este dispositivo.")
+                    ApiError(ErrorKind.Unknown)
                 )
             }
             val response = devicesApi.executeAction(device.id, actionName, buildJsonArray { add(value) })
@@ -210,7 +210,7 @@ class DevicesRepositoryImpl(
             val device = ApiJson.Instance.decodeFromString(DeviceDto.serializer(), body)
                 .toDomain({ catalog.localTypeFor(it) }, fallbackRoomId)
                 ?: return AppResult.Error(
-                    ApiError(ErrorKind.Unknown, "No se pudo leer el estado del dispositivo.")
+                    ApiError(ErrorKind.Unknown)
                 )
             AppResult.Success(device)
         } else {
@@ -257,7 +257,7 @@ class DevicesRepositoryImpl(
     }
 
     private fun catalogError(): AppResult<Nothing> =
-        AppResult.Error(ApiError(ErrorKind.Server, "No se pudo cargar el catálogo de dispositivos."))
+        AppResult.Error(ApiError(ErrorKind.Server))
 
     // --- Resolución tipo/acción contra el catálogo ---
 

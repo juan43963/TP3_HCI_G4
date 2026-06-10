@@ -1,12 +1,11 @@
 package com.grupo4.smarthome.ui.screens.routines
 
-import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.core.result.AppResult
-import com.grupo4.smarthome.core.result.ErrorKind
+import com.grupo4.smarthome.core.result.toMessageRes
 import com.grupo4.smarthome.data.model.Device
 import com.grupo4.smarthome.data.model.DeviceActionInfo
 import com.grupo4.smarthome.data.model.DeviceType
@@ -74,7 +73,7 @@ class RoutinesViewModel(
                     loadDevices(currentHome)
                 }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(isLoading = false, errorMessage = messageFor(result.error.kind))
+                    it.copy(isLoading = false, errorMessage = result.error.kind.toMessageRes())
                 }
             }
         }
@@ -94,7 +93,7 @@ class RoutinesViewModel(
             when (result) {
                 is AppResult.Success -> refreshRoutines()
                 is AppResult.Error -> _uiState.update {
-                    it.copy(errorMessage = messageFor(result.error.kind))
+                    it.copy(errorMessage = result.error.kind.toMessageRes())
                 }
             }
         }
@@ -110,7 +109,7 @@ class RoutinesViewModel(
                     )
                 }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(errorMessage = messageFor(result.error.kind))
+                    it.copy(errorMessage = result.error.kind.toMessageRes())
                 }
             }
         }
@@ -129,7 +128,7 @@ class RoutinesViewModel(
                     state.copy(routines = state.routines.filterNot { it.id == routineId }, errorMessage = null)
                 }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(errorMessage = messageFor(result.error.kind))
+                    it.copy(errorMessage = result.error.kind.toMessageRes())
                 }
             }
         }
@@ -145,7 +144,7 @@ class RoutinesViewModel(
                     )
                 }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(errorMessage = messageFor(result.error.kind))
+                    it.copy(errorMessage = result.error.kind.toMessageRes())
                 }
             }
         }
@@ -163,7 +162,7 @@ class RoutinesViewModel(
                 is AppResult.Error -> _uiState.update {
                     it.copy(
                         executingRoutineId = null,
-                        errorMessage = messageFor(result.error.kind),
+                        errorMessage = result.error.kind.toMessageRes(),
                     )
                 }
             }
@@ -181,7 +180,7 @@ class RoutinesViewModel(
         when (val result = routinesRepository.getRoutines(currentHome)) {
             is AppResult.Success -> _uiState.update { it.copy(routines = result.data, errorMessage = null) }
             is AppResult.Error -> _uiState.update {
-                it.copy(errorMessage = messageFor(result.error.kind))
+                it.copy(errorMessage = result.error.kind.toMessageRes())
             }
         }
     }
@@ -221,17 +220,6 @@ class RoutinesViewModel(
         }
         _uiState.update { it.copy(deviceActions = actions) }
     }
-
-    @StringRes
-    private fun messageFor(kind: ErrorKind): Int =
-        when (kind) {
-            ErrorKind.Unauthorized -> R.string.error_session_expired
-            ErrorKind.Network -> R.string.error_network
-            ErrorKind.Validation -> R.string.error_validation
-            ErrorKind.NotFound -> R.string.error_not_found
-            ErrorKind.Server -> R.string.error_server_generic
-            else -> R.string.error_unknown
-        }
 
     private companion object {
         val NoActiveHomeMessage = R.string.routines_no_active_home

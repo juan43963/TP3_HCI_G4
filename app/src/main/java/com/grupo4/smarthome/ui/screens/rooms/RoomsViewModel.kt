@@ -1,13 +1,12 @@
 package com.grupo4.smarthome.ui.screens.rooms
 
-import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.core.result.ApiError
 import com.grupo4.smarthome.core.result.AppResult
-import com.grupo4.smarthome.core.result.ErrorKind
+import com.grupo4.smarthome.core.result.toMessageRes
 import com.grupo4.smarthome.data.model.Device
 import com.grupo4.smarthome.data.model.RoomType
 import com.grupo4.smarthome.data.repository.DevicesRepository
@@ -85,7 +84,7 @@ class RoomsViewModel(
                     loadAllRoomDevices()
                 }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(isLoading = false, errorMessage = messageFor(result.error.kind))
+                    it.copy(isLoading = false, errorMessage = result.error.kind.toMessageRes())
                 }
             }
         }
@@ -100,7 +99,7 @@ class RoomsViewModel(
             when (val result = roomsRepository.createRoom(currentHome, name, type)) {
                 is AppResult.Success -> refreshRooms()
                 is AppResult.Error -> _uiState.update {
-                    it.copy(errorMessage = messageFor(result.error.kind))
+                    it.copy(errorMessage = result.error.kind.toMessageRes())
                 }
             }
         }
@@ -119,7 +118,7 @@ class RoomsViewModel(
                     )
                 }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(errorMessage = messageFor(result.error.kind))
+                    it.copy(errorMessage = result.error.kind.toMessageRes())
                 }
             }
         }
@@ -136,7 +135,7 @@ class RoomsViewModel(
                     refreshRooms()
                 }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(errorMessage = messageFor(result.error.kind))
+                    it.copy(errorMessage = result.error.kind.toMessageRes())
                 }
             }
         }
@@ -154,7 +153,7 @@ class RoomsViewModel(
                     )
                 }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(errorMessage = messageFor(result.error.kind))
+                    it.copy(errorMessage = result.error.kind.toMessageRes())
                 }
             }
         }
@@ -174,7 +173,7 @@ class RoomsViewModel(
                 loadAllRoomDevices()
             }
             is AppResult.Error -> _uiState.update {
-                it.copy(errorMessage = messageFor(result.error.kind))
+                it.copy(errorMessage = result.error.kind.toMessageRes())
             }
         }
     }
@@ -233,7 +232,7 @@ class RoomsViewModel(
             when (val result = devicesRepository.toggleDevice(device)) {
                 is AppResult.Success -> updateDeviceInState(result.data)
                 is AppResult.Error -> {
-                    _uiState.update { it.copy(errorMessage = messageFor(result.error.kind)) }
+                    _uiState.update { it.copy(errorMessage = result.error.kind.toMessageRes()) }
                     reloadRoomDevices(device.roomId)
                 }
             }
@@ -248,7 +247,7 @@ class RoomsViewModel(
             when (val result = devicesRepository.setDeviceValue(device, value)) {
                 is AppResult.Success -> updateDeviceInState(result.data)
                 is AppResult.Error -> {
-                    _uiState.update { it.copy(errorMessage = messageFor(result.error.kind)) }
+                    _uiState.update { it.copy(errorMessage = result.error.kind.toMessageRes()) }
                     reloadRoomDevices(device.roomId)
                 }
             }
@@ -267,7 +266,7 @@ class RoomsViewModel(
             // Refetch de la habitación para reflejar lo realmente persistido en el backend
             reloadRoomDevices(roomId)
             lastError?.let { err ->
-                _uiState.update { it.copy(errorMessage = messageFor(err.kind)) }
+                _uiState.update { it.copy(errorMessage = err.kind.toMessageRes()) }
             }
         }
     }
@@ -277,7 +276,7 @@ class RoomsViewModel(
             when (val result = devicesRepository.renameDevice(deviceId, name)) {
                 is AppResult.Success -> updateDeviceInState(result.data)
                 is AppResult.Error -> _uiState.update {
-                    it.copy(errorMessage = messageFor(result.error.kind))
+                    it.copy(errorMessage = result.error.kind.toMessageRes())
                 }
             }
         }
@@ -289,7 +288,7 @@ class RoomsViewModel(
                 // Solo removemos del estado si la API confirmó el borrado
                 is AppResult.Success -> _uiState.update { it.copy(rooms = it.rooms.withoutDevice(deviceId)) }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(errorMessage = messageFor(result.error.kind))
+                    it.copy(errorMessage = result.error.kind.toMessageRes())
                 }
             }
         }
@@ -320,17 +319,6 @@ class RoomsViewModel(
             is AppResult.Error -> Unit // error silencioso en refetch; el error principal ya se mostró
         }
     }
-
-    @StringRes
-    private fun messageFor(kind: ErrorKind): Int =
-        when (kind) {
-            ErrorKind.Unauthorized -> R.string.error_session_expired
-            ErrorKind.Network -> R.string.error_network
-            ErrorKind.Validation -> R.string.error_validation
-            ErrorKind.NotFound -> R.string.error_not_found
-            ErrorKind.Server -> R.string.error_server_generic
-            else -> R.string.error_unknown
-        }
 
     private companion object {
         val NoActiveHomeMessage = R.string.rooms_no_active_home

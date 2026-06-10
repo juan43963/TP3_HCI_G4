@@ -1,12 +1,10 @@
 package com.grupo4.smarthome.ui.screens.profile
 
-import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.grupo4.smarthome.R
 import com.grupo4.smarthome.core.result.AppResult
-import com.grupo4.smarthome.core.result.ErrorKind
+import com.grupo4.smarthome.core.result.toMessageRes
 import com.grupo4.smarthome.data.local.SessionManager
 import com.grupo4.smarthome.data.repository.ProfileRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,7 +35,7 @@ class ProfileViewModel(
                     it.copy(isLoading = false, name = result.data.name, email = result.data.email)
                 }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(isLoading = false, errorMessage = messageFor(result.error.kind))
+                    it.copy(isLoading = false, errorMessage = result.error.kind.toMessageRes())
                 }
             }
         }
@@ -54,7 +52,7 @@ class ProfileViewModel(
                     it.copy(isSaving = false, name = result.data.name, nameSaved = true)
                 }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(isSaving = false, errorMessage = messageFor(result.error.kind))
+                    it.copy(isSaving = false, errorMessage = result.error.kind.toMessageRes())
                 }
             }
         }
@@ -67,13 +65,6 @@ class ProfileViewModel(
     fun consumeError() {
         _uiState.update { it.copy(errorMessage = null) }
     }
-
-    @StringRes
-    private fun messageFor(kind: ErrorKind): Int =
-        when (kind) {
-            ErrorKind.Network -> R.string.error_network
-            else -> R.string.error_unknown
-        }
 }
 
 class ProfileViewModelFactory(

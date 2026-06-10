@@ -9,10 +9,8 @@ import java.io.IOException
 object ErrorMapper {
     fun fromHttp(status: HttpStatusCode, body: String?): ApiError {
         val parsed = parseBody(body)
-        val kind = kindFor(status, parsed?.code)
         return ApiError(
-            kind = kind,
-            description = parsed?.description ?: defaultDescription(kind),
+            kind = kindFor(status, parsed?.code),
             httpStatus = status.value,
             apiCode = parsed?.code,
         )
@@ -24,10 +22,7 @@ object ErrorMapper {
             is IOException -> ErrorKind.Network
             else -> ErrorKind.Unknown
         }
-        return ApiError(
-            kind = kind,
-            description = defaultDescription(kind),
-        )
+        return ApiError(kind = kind)
     }
 
     private fun kindFor(status: HttpStatusCode, apiCode: Int?): ErrorKind =
@@ -52,17 +47,6 @@ object ErrorMapper {
         }.getOrNull()
     }
 
-    private fun defaultDescription(kind: ErrorKind): String =
-        when (kind) {
-            ErrorKind.Validation -> "Revisá los datos ingresados."
-            ErrorKind.Conflict -> "Ya existe un recurso con esos datos."
-            ErrorKind.Unauthorized -> "No se pudo autenticar la solicitud."
-            ErrorKind.Forbidden -> "No tenés permiso para realizar esta acción."
-            ErrorKind.NotFound -> "No se encontró el recurso solicitado."
-            ErrorKind.Network -> "No se pudo conectar con el servidor."
-            ErrorKind.Server -> "El servidor no pudo completar la solicitud."
-            ErrorKind.Unknown -> "Ocurrió un error inesperado."
-        }
 }
 
 @Serializable
@@ -73,5 +57,4 @@ private data class ApiErrorResponseBody(
 @Serializable
 private data class ApiErrorBody(
     val code: Int? = null,
-    val description: String? = null,
 )

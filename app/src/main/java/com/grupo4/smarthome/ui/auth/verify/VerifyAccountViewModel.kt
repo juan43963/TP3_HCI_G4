@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.core.result.AppResult
 import com.grupo4.smarthome.core.result.ErrorKind
+import com.grupo4.smarthome.core.result.toMessageRes
 import com.grupo4.smarthome.data.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -58,8 +59,7 @@ class VerifyAccountViewModel(
         when (kind) {
             ErrorKind.Conflict -> R.string.error_account_already_verified
             ErrorKind.Validation, ErrorKind.NotFound -> R.string.error_invalid_or_expired_code
-            ErrorKind.Network -> R.string.error_network
-            else -> R.string.error_unknown
+            else -> kind.toMessageRes()
         }
 }
 

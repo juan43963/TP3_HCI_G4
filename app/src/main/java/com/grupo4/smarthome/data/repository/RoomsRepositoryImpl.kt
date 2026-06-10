@@ -104,7 +104,7 @@ class RoomsRepositoryImpl(
             // Necesitamos el estado actual para no perder el favorito guardado en metadata
             val current = resolveRoom(roomId)
                 ?: return@runCatching AppResult.Error(
-                    ApiError(ErrorKind.NotFound, "No se encontró la habitación.")
+                    ApiError(ErrorKind.NotFound)
                 )
             val response = roomsApi.updateRoom(
                 roomId,
@@ -140,7 +140,7 @@ class RoomsRepositoryImpl(
             // Necesitamos el estado actual completo para no perder nombre ni tipo al togglear
             val current = resolveRoom(roomId)
                 ?: return@runCatching AppResult.Error(
-                    ApiError(ErrorKind.NotFound, "No se encontró la habitación.")
+                    ApiError(ErrorKind.NotFound)
                 )
             val response = roomsApi.updateRoom(
                 roomId,

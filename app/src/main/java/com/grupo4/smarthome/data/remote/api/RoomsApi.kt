@@ -36,8 +36,4 @@ class RoomsApi(
     // Asocia una habitación ya creada a un hogar (fallback si POST /rooms no la asoció)
     suspend fun addRoomToHome(homeId: String, roomId: String): HttpResponse =
         client.post(ApiRoutes.resolve(ApiRoutes.homeRoomAssociation(homeId, roomId)))
-
-    // Disponible para fase 2 (dispositivos por habitación)
-    suspend fun getRoomDevices(roomId: String): HttpResponse =
-        client.get(ApiRoutes.resolve(ApiRoutes.roomDevices(roomId)))
 }
