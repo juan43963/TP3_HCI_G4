@@ -880,6 +880,7 @@ fun SmartHomeApp(
                     },
                     onNotificationsClick = openNotifications,
                     unreadNotificationCount = unreadNotificationCount,
+                    onQuickAddClick = openQuickActions,
                 )
             }
             composable(Screen.Notifications.route) {

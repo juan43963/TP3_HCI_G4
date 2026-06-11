@@ -121,7 +121,9 @@ fun TabletSidebar(
 fun BoxScope.TabletQuickActionsOverlay(
     visible: Boolean,
     compact: Boolean,
-    callbacks: DashboardCallbacks,
+    onAddRoom: () -> Unit,
+    onAddDevice: () -> Unit,
+    onAddRoutine: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     val sidebarWidth = if (compact) 176.dp else 236.dp
@@ -168,7 +170,7 @@ fun BoxScope.TabletQuickActionsOverlay(
                 icon = SmartHomeIcons.Rooms,
                 onClick = {
                     onDismiss()
-                    callbacks.onCreateRoom()
+                    onAddRoom()
                 },
             )
             TabletQuickAddItem(
@@ -176,7 +178,7 @@ fun BoxScope.TabletQuickActionsOverlay(
                 icon = SmartHomeIcons.Devices,
                 onClick = {
                     onDismiss()
-                    callbacks.onCreateDevice()
+                    onAddDevice()
                 },
             )
             TabletQuickAddItem(
@@ -184,7 +186,7 @@ fun BoxScope.TabletQuickActionsOverlay(
                 icon = SmartHomeIcons.Routines,
                 onClick = {
                     onDismiss()
-                    callbacks.onCreateRoutine()
+                    onAddRoutine()
                 },
             )
         }

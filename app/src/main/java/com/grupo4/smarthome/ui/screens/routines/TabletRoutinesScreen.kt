@@ -183,7 +183,9 @@ fun TabletRoutinesScreen(
         TabletQuickActionsOverlay(
             visible = quickAddMenuExpanded,
             compact = portraitLike,
-            callbacks = callbacks,
+            onAddRoom = callbacks.onCreateRoom,
+            onAddDevice = callbacks.onCreateDevice,
+            onAddRoutine = callbacks.onCreateRoutine,
             onDismiss = { quickAddMenuExpanded = false },
         )
 
