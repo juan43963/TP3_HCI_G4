@@ -3,27 +3,39 @@ package com.grupo4.smarthome.ui.screens.dashboard.layout.phone
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -31,19 +43,21 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.data.model.HomeType
+import com.grupo4.smarthome.ui.components.SmartHomeWordmark
 import com.grupo4.smarthome.ui.screens.selecthome.SelectableHome
 import com.grupo4.smarthome.ui.theme.ErrorRed
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
+private val DrawerChromeReserve = 400.dp
+private val ExpandedHomesVisibleHeight = 160.dp
 @Composable
 fun PhoneHomeDrawer(
-    userName: String,
     homes: List<SelectableHome>,
     activeHomeId: String?,
     onHomeSelected: (String) -> Unit,
-    onSeeMoreHomes: () -> Unit,
+    onEditHome: (SelectableHome) -> Unit,
+    onShareHome: (SelectableHome) -> Unit,
     onAddHome: () -> Unit,
-    onSettings: () -> Unit,
     onHistory: () -> Unit,
     onLogout: () -> Unit,
     onClose: () -> Unit,
@@ -56,13 +70,12 @@ fun PhoneHomeDrawer(
         drawerContainerColor = MaterialTheme.colorScheme.surface,
     ) {
         PhoneHomeDrawerContent(
-            userName = userName,
             homes = homes,
             activeHomeId = activeHomeId,
             onHomeSelected = onHomeSelected,
-            onSeeMoreHomes = onSeeMoreHomes,
+            onEditHome = onEditHome,
+            onShareHome = onShareHome,
             onAddHome = onAddHome,
-            onSettings = onSettings,
             onHistory = onHistory,
             onLogout = onLogout,
             onClose = onClose,
@@ -72,65 +85,55 @@ fun PhoneHomeDrawer(
 
 @Composable
 fun PhoneHomeDrawerContent(
-    userName: String,
     homes: List<SelectableHome>,
     activeHomeId: String?,
     onHomeSelected: (String) -> Unit,
-    onSeeMoreHomes: () -> Unit,
+    onEditHome: (SelectableHome) -> Unit,
+    onShareHome: (SelectableHome) -> Unit,
     onAddHome: () -> Unit,
-    onSettings: () -> Unit,
     onHistory: () -> Unit,
     onLogout: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxHeight()
-            .padding(horizontal = 24.dp, vertical = 28.dp),
-    ) {
-        DrawerUserHeader(userName = userName)
+    BoxWithConstraints(modifier = modifier.fillMaxHeight()) {
+        val expandedMaxHeight = (maxHeight - DrawerChromeReserve).coerceIn(140.dp, 360.dp)
 
-        Spacer(modifier = Modifier.height(30.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxHeight()
+                .padding(horizontal = 24.dp, vertical = 28.dp),
+        ) {
+            SmartHomeWordmark(modifier = Modifier.fillMaxWidth())
 
-        DrawerSectionLabel(text = stringResource(R.string.dashboard_my_homes))
-        Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(30.dp))
 
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            homes.forEach { home ->
-                DrawerActionRow(
-                    label = home.name,
-                    icon = home.type.toDrawerIcon(),
-                    selected = home.id == activeHomeId,
-                    onClick = {
-                        onHomeSelected(home.id)
-                        onClose()
-                    },
-                )
+            DrawerSectionLabel(text = stringResource(R.string.dashboard_my_homes))
+            Spacer(modifier = Modifier.height(10.dp))
+
+            val homesListMaxHeight = ExpandedHomesVisibleHeight.coerceAtMost(expandedMaxHeight)
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = homesListMaxHeight),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(items = homes, key = { it.id }) { home ->
+                    DrawerHomeRow(
+                        home = home,
+                        selected = home.id == activeHomeId,
+                        onSelect = {
+                            onHomeSelected(home.id)
+                            onClose()
+                        },
+                        onEdit = { onEditHome(home) },
+                        onShare = { onShareHome(home) },
+                    )
+                }
             }
-        }
 
-        Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-        // "Ver más hogares" lleva a la vista de hogares (último ítem del bloque de casas)
-        DrawerActionRow(
-            label = stringResource(R.string.dashboard_see_more_homes),
-            icon = SmartHomeIcons.ChevronRight,
-            selected = false,
-            onClick = {
-                onSeeMoreHomes()
-                onClose()
-            },
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-        Spacer(modifier = Modifier.height(20.dp))
-
-        DrawerSectionLabel(text = stringResource(R.string.dashboard_quick_access))
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             DrawerActionRow(
                 label = stringResource(R.string.dashboard_add_home),
                 icon = SmartHomeIcons.Add,
@@ -140,15 +143,11 @@ fun PhoneHomeDrawerContent(
                     onClose()
                 },
             )
-            DrawerActionRow(
-                label = stringResource(R.string.dashboard_settings),
-                icon = SmartHomeIcons.Settings,
-                selected = false,
-                onClick = {
-                    onSettings()
-                    onClose()
-                },
-            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Spacer(modifier = Modifier.height(20.dp))
+
             DrawerActionRow(
                 label = stringResource(R.string.nav_history),
                 icon = SmartHomeIcons.History,
@@ -158,21 +157,21 @@ fun PhoneHomeDrawerContent(
                     onClose()
                 },
             )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            DrawerActionRow(
+                label = stringResource(R.string.dashboard_logout),
+                icon = SmartHomeIcons.Logout,
+                selected = false,
+                onClick = {
+                    onLogout()
+                    onClose()
+                },
+                contentColor = ErrorRed,
+                backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+            )
         }
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        DrawerActionRow(
-            label = stringResource(R.string.dashboard_logout),
-            icon = SmartHomeIcons.Logout,
-            selected = false,
-            onClick = {
-                onLogout()
-                onClose()
-            },
-            contentColor = ErrorRed,
-            backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-        )
     }
 }
 
@@ -185,38 +184,6 @@ private fun HomeType.toDrawerIcon(): ImageVector =
     }
 
 @Composable
-private fun DrawerUserHeader(userName: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Box(
-            modifier = Modifier
-                .size(52.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primaryContainer),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = SmartHomeIcons.Profile,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(28.dp),
-            )
-        }
-        Text(
-            text = userName,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.onSurface,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
-}
-
-@Composable
 private fun DrawerSectionLabel(text: String) {
     Text(
         text = text,
@@ -224,6 +191,109 @@ private fun DrawerSectionLabel(text: String) {
         fontWeight = FontWeight.ExtraBold,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
+}
+@Composable
+private fun DrawerHomeRow(
+    home: SelectableHome,
+    selected: Boolean,
+    onSelect: () -> Unit,
+    onEdit: () -> Unit,
+    onShare: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val contentColor = if (selected) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        MaterialTheme.colorScheme.onSurface
+    }
+    val backgroundColor = if (selected) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(48.dp)
+            .background(backgroundColor, RoundedCornerShape(14.dp)),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .clickable(onClick = onSelect)
+                .padding(start = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Icon(
+                imageVector = home.type.toDrawerIcon(),
+                contentDescription = null,
+                tint = contentColor,
+                modifier = Modifier.size(20.dp),
+            )
+            Text(
+                text = home.name,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.SemiBold,
+                color = contentColor,
+                modifier = Modifier.weight(1f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (selected) {
+                Icon(
+                    imageVector = SmartHomeIcons.Selected,
+                    contentDescription = null,
+                    tint = contentColor,
+                    modifier = Modifier.size(16.dp),
+                )
+            }
+        }
+
+        var menuExpanded by remember { mutableStateOf(false) }
+        IconButton(
+            onClick = { menuExpanded = true },
+            modifier = Modifier.size(40.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Filled.MoreVert,
+                contentDescription = stringResource(
+                    R.string.select_home_card_menu_content_description
+                ),
+                tint = if (selected) {
+                    contentColor
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+                modifier = Modifier.size(20.dp),
+            )
+            DropdownMenu(
+                expanded = menuExpanded,
+                onDismissRequest = { menuExpanded = false },
+            ) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.select_home_menu_rename)) },
+                    leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null) },
+                    onClick = {
+                        menuExpanded = false
+                        onEdit()
+                    },
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.select_home_menu_share)) },
+                    leadingIcon = { Icon(Icons.Outlined.Share, contentDescription = null) },
+                    onClick = {
+                        menuExpanded = false
+                        onShare()
+                    },
+                )
+            }
+        }
+    }
 }
 
 @Composable

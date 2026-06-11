@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.screens.dashboard.DashboardCallbacks
+import com.grupo4.smarthome.ui.components.SmartHomeWordmark
 import com.grupo4.smarthome.ui.screens.dashboard.components.QuickAddButton
 import com.grupo4.smarthome.ui.theme.BrandIndigoDark
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
@@ -72,7 +73,7 @@ fun TabletSidebar(
                 .fillMaxHeight()
                 .padding(horizontal = horizontalPadding, vertical = 28.dp),
         ) {
-            DashboardLogo(compact = compact)
+            SmartHomeWordmark(compact = compact, modifier = Modifier.fillMaxWidth())
 
             Spacer(modifier = Modifier.height(28.dp))
 
@@ -284,28 +285,6 @@ private fun TabletQuickAddCloseButton(
                 maxLines = 1,
             )
         }
-    }
-}
-
-@Composable
-private fun DashboardLogo(compact: Boolean) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Text(
-            text = stringResource(R.string.welcome_brand_smart),
-            style = if (compact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Text(
-            text = stringResource(R.string.welcome_brand_home),
-            style = if (compact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.primary,
-        )
     }
 }
 

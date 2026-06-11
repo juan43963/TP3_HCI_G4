@@ -22,8 +22,7 @@ data class SelectHomeUiState(
     val isEmpty: Boolean
         get() = !isLoading && errorMessage == null && homes.isEmpty()
 
-    // Sidebar (sin scroll): la casa activa primero y luego las últimas que se visitaron, hasta 3
-    val drawerHomes: List<SelectableHome>
+    val orderedDrawerHomes: List<SelectableHome>
         get() {
             val active = homes.firstOrNull { it.id == activeHomeId }
             val rest = homes
@@ -31,11 +30,12 @@ data class SelectHomeUiState(
                 .sortedBy { home ->
                     recentHomeIds.indexOf(home.id).let { if (it == -1) Int.MAX_VALUE else it }
                 }
-            return (listOfNotNull(active) + rest).take(3)
+            return listOfNotNull(active) + rest
         }
+    val drawerHomes: List<SelectableHome>
+        get() = orderedDrawerHomes.take(3)
 }
 
-// Diálogo abierto sobre una casa concreta; null significa que no hay ninguno
 sealed interface HomeDialog {
     val home: SelectableHome
 

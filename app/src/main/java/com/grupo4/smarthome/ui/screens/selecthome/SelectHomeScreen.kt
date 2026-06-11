@@ -79,15 +79,6 @@ fun SelectHomeScreen(
     onShareHome: (SelectableHome) -> Unit = {},
     onRenameHome: (SelectableHome) -> Unit = {},
     onDeleteHome: (SelectableHome) -> Unit = {},
-    dialog: HomeDialog? = null,
-    isProcessingAction: Boolean = false,
-    actionError: String? = null,
-    sharedUsers: List<com.grupo4.smarthome.data.model.SharedUser> = emptyList(),
-    isLoadingShared: Boolean = false,
-    onDismissDialog: () -> Unit = {},
-    onConfirmRename: (String) -> Unit = {},
-    onConfirmDelete: () -> Unit = {},
-    onConfirmShare: (String) -> Unit = {},
 ) {
     if (!windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)) {
         PhoneSelectHomeLayout(
@@ -120,18 +111,6 @@ fun SelectHomeScreen(
             modifier = modifier,
         )
     }
-
-    HomeActionDialogs(
-        dialog = dialog,
-        isProcessing = isProcessingAction,
-        actionError = actionError,
-        sharedUsers = sharedUsers,
-        isLoadingShared = isLoadingShared,
-        onDismiss = onDismissDialog,
-        onConfirmRename = onConfirmRename,
-        onConfirmDelete = onConfirmDelete,
-        onConfirmShare = onConfirmShare,
-    )
 }
 
 @Composable

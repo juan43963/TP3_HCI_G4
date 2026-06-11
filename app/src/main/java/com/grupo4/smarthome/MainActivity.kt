@@ -82,6 +82,7 @@ import com.grupo4.smarthome.ui.screens.home.HomeScreen
 import com.grupo4.smarthome.ui.screens.home.HomeViewModel
 import com.grupo4.smarthome.ui.screens.home.HomeViewModelFactory
 import com.grupo4.smarthome.ui.screens.selecthome.AddHomeOverlay
+import com.grupo4.smarthome.ui.screens.selecthome.HomeActionDialogs
 import com.grupo4.smarthome.ui.screens.notifications.NotificationPreferences
 import com.grupo4.smarthome.ui.screens.notifications.NotificationPreferencesSaver
 import com.grupo4.smarthome.ui.screens.notifications.NotificationSettingsScreen
@@ -142,6 +143,10 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+// Sentinela para `selectedHomeId`: marca que la preferencia de casa activa todavía no se cargó
+// desde DataStore (distinto de `null` = no hay casa seleccionada).
+private const val LOADING_HOME_ID = " __loading_home__"
+
 @Composable
 fun SmartHomeApp(
     windowSize: WindowSizeClass,
@@ -168,14 +173,26 @@ fun SmartHomeApp(
     // La pantalla de arranque depende de si hay sesión guardada; mientras carga no componemos nada
     val sessionState by homesApplication.appContainer.sessionManager.sessionState
         .collectAsStateWithLifecycle()
-    if (sessionState is SessionState.Loading) {
+
+    // Casa seleccionada persistida (DataStore). El sentinela distingue "todavía no cargó la
+    // preferencia" de "no hay casa seleccionada" (null), para elegir bien el destino inicial.
+    val loadingHomeId = LOADING_HOME_ID
+    val storedHomeId by homesApplication.appContainer.preferencesDataStore.selectedHomeId
+        .collectAsStateWithLifecycle(initialValue = loadingHomeId)
+    val hasSelectedHome = storedHomeId != loadingHomeId && !storedHomeId.isNullOrBlank()
+
+    // Esperamos a resolver sesión y, si está autenticado, también la preferencia de casa activa.
+    if (sessionState is SessionState.Loading ||
+        (sessionState is SessionState.Authenticated && storedHomeId == loadingHomeId)
+    ) {
         Box(modifier = Modifier.fillMaxSize())
         return
     }
-    val startDestination = if (sessionState is SessionState.Authenticated) {
-        Screen.SELECT_HOME_ROUTE
-    } else {
-        AuthScreen.Welcome.route
+    val startDestination = when {
+        // Si ya hay una casa seleccionada, entramos directo al dashboard (no a la gestión de hogares)
+        sessionState is SessionState.Authenticated && hasSelectedHome -> Screen.Home.route
+        sessionState is SessionState.Authenticated -> Screen.SELECT_HOME_ROUTE
+        else -> AuthScreen.Welcome.route
     }
 
     val logoutScope = rememberCoroutineScope()
@@ -401,7 +418,10 @@ fun SmartHomeApp(
                     Unit
                 }
                 val onLoginSuccess = {
-                    navController.navigate(Screen.SELECT_HOME_ROUTE) {
+                    // Si ya había una casa seleccionada persistida, vamos directo al dashboard;
+                    // si no, a la selección/gestión de hogares para elegir o crear una.
+                    val target = if (hasSelectedHome) Screen.Home.route else Screen.SELECT_HOME_ROUTE
+                    navController.navigate(target) {
                         popUpTo(AuthScreen.Welcome.route) { inclusive = true }
                     }
                     Unit
@@ -572,15 +592,6 @@ fun SmartHomeApp(
                     onShareHome = selectHomeViewModel::openShareDialog,
                     onRenameHome = selectHomeViewModel::openRenameDialog,
                     onDeleteHome = selectHomeViewModel::openDeleteDialog,
-                    dialog = selectHomeUiState.dialog,
-                    isProcessingAction = selectHomeUiState.isProcessingAction,
-                    actionError = selectHomeUiState.actionError?.let { stringResource(it) },
-                    sharedUsers = selectHomeUiState.sharedUsers,
-                    isLoadingShared = selectHomeUiState.isLoadingShared,
-                    onDismissDialog = selectHomeViewModel::dismissDialog,
-                    onConfirmRename = selectHomeViewModel::renameHome,
-                    onConfirmDelete = selectHomeViewModel::deleteHome,
-                    onConfirmShare = selectHomeViewModel::shareHome,
                 )
             }
 
@@ -964,24 +975,21 @@ fun SmartHomeApp(
                     onClose = closeDrawer,
                 ) {
                     PhoneHomeDrawer(
-                        userName = selectHomeUiState.userName,
-                        homes = selectHomeUiState.drawerHomes,
+                        homes = selectHomeUiState.orderedDrawerHomes,
                         activeHomeId = selectHomeUiState.activeHomeId,
                         onHomeSelected = { homeId ->
                             selectHomeViewModel.selectHome(homeId)
                         },
-                        onSeeMoreHomes = {
-                            navController.navigate(Screen.SELECT_HOME_ROUTE) {
-                                launchSingleTop = true
-                            }
+                        onEditHome = { home ->
+                            selectHomeViewModel.openRenameDialog(home)
+                            closeDrawer()
+                        },
+                        onShareHome = { home ->
+                            selectHomeViewModel.openShareDialog(home)
+                            closeDrawer()
                         },
                         onAddHome = {
                             showAddHome = true
-                        },
-                        onSettings = {
-                            navController.navigate(Screen.Profile.route) {
-                                launchSingleTop = true
-                            }
                         },
                         onHistory = {
                             navController.navigate(Screen.History.route) {
@@ -1009,6 +1017,21 @@ fun SmartHomeApp(
                 onCreate = { name, typeIndex, photoIndex, shareEmail ->
                     selectHomeViewModel.createHome(name, typeIndex, photoIndex, shareEmail)
                 },
+            )
+
+            // Diálogos de editar/compartir/eliminar hogar: render único a nivel Activity, driven por el
+            // SelectHomeViewModel compartido. Funcionan desde SelectHomeScreen (tablet) y desde el drawer
+            // de teléfono sin duplicarse.
+            HomeActionDialogs(
+                dialog = selectHomeUiState.dialog,
+                isProcessing = selectHomeUiState.isProcessingAction,
+                actionError = selectHomeUiState.actionError?.let { stringResource(it) },
+                sharedUsers = selectHomeUiState.sharedUsers,
+                isLoadingShared = selectHomeUiState.isLoadingShared,
+                onDismiss = selectHomeViewModel::dismissDialog,
+                onConfirmRename = selectHomeViewModel::renameHome,
+                onConfirmDelete = selectHomeViewModel::deleteHome,
+                onConfirmShare = selectHomeViewModel::shareHome,
             )
 
             QuickActionsOverlay(
