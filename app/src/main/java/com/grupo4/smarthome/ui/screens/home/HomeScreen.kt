@@ -1,6 +1,6 @@
 package com.grupo4.smarthome.ui.screens.home
 
-import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.window.core.layout.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.grupo4.smarthome.ui.screens.dashboard.DashboardCallbacks

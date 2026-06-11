@@ -23,8 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.windowsizeclass.WindowSizeClass
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.window.core.layout.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,7 +60,7 @@ fun NotificationSettingsScreen(
     selectedHomeName: String = "Casa Principal",
     modifier: Modifier = Modifier,
 ) {
-    val isTablet = windowSize.widthSizeClass != WindowWidthSizeClass.Compact
+    val isTablet = windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
 
     if (isTablet) {
         BoxWithConstraints(modifier = modifier.fillMaxSize()) {

@@ -36,8 +36,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.windowsizeclass.WindowSizeClass
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.window.core.layout.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -84,7 +83,7 @@ fun ProfileScreen(
     onAddHome: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
-    if (windowSize.widthSizeClass != WindowWidthSizeClass.Compact) {
+    if (windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)) {
         TabletSettingsLayout(
             userName = userName,
             userEmail = userEmail,

@@ -2,8 +2,7 @@ package com.grupo4.smarthome.ui.screens.rooms
 
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.windowsizeclass.WindowSizeClass
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.window.core.layout.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -23,7 +22,7 @@ fun RoomsContent(
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val presentation = remember(state) { state.toPresentationState() }
-        val useListDetail = windowSize?.widthSizeClass == WindowWidthSizeClass.Expanded &&
+        val useListDetail = windowSize?.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND) == true &&
             maxWidth >= RoomsListDetailMinWidth &&
             maxWidth > maxHeight
 
@@ -34,7 +33,7 @@ fun RoomsContent(
         }
 
         when {
-            windowSize == null || windowSize.widthSizeClass == WindowWidthSizeClass.Compact -> {
+            windowSize == null || !windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND) -> {
                 PhoneRoomsLayout(
                     state = state,
                     presentation = presentation,

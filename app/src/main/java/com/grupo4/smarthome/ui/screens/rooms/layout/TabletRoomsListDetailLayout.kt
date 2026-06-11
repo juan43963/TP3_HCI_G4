@@ -1,5 +1,6 @@
 package com.grupo4.smarthome.ui.screens.rooms.layout
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -9,7 +10,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -30,7 +30,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.layout.AnimatedPane
+import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
+import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
+import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -57,7 +64,9 @@ import com.grupo4.smarthome.ui.screens.rooms.components.RoomsTopBar
 import com.grupo4.smarthome.ui.theme.BrandIndigoDark
 import com.grupo4.smarthome.ui.theme.BorderDefault
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun TabletRoomsListDetailLayout(
     state: RoomsUiState,
@@ -65,91 +74,92 @@ fun TabletRoomsListDetailLayout(
     callbacks: RoomsCallbacks,
     modifier: Modifier = Modifier,
 ) {
-    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
-        val canUseTwoPane = maxWidth >= ListDetailMinScreenWidth && maxWidth > maxHeight
-        if (!canUseTwoPane) {
-            if (presentation.selectedRoom != null) {
-                TabletRoomDetailLayout(
-                    state = state,
-                    presentation = presentation,
-                    callbacks = callbacks,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            } else {
-                TabletRoomsLayout(
-                    state = state,
-                    presentation = presentation,
-                    callbacks = callbacks,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            }
-            return@BoxWithConstraints
-        }
+    // §13: componente canónico lista-detalle. Maneja el back y preserva el estado de los
+    // paneles ante cambios de configuración a través del navigator.
+    val navigator = rememberListDetailPaneScaffoldNavigator<String>()
+    val scope = rememberCoroutineScope()
+    BackHandler(navigator.canNavigateBack()) {
+        scope.launch { navigator.navigateBack() }
+    }
 
-        Row(
+    // La selección sigue viviendo en el RoomsViewModel (fuente de verdad); además navegamos al
+    // panel de detalle para que, cuando el scaffold colapsa a un solo panel, se muestre el detalle.
+    val listCallbacks = remember(callbacks, navigator, scope) {
+        callbacks.copy(
+            onSelectedRoomChange = { id ->
+                callbacks.onSelectedRoomChange(id)
+                if (id != null) {
+                    scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, id) }
+                }
+            },
+        )
+    }
+
+    Row(
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+    ) {
+        TabletMainSidebar(
+            selectedDestination = TabletSidebarDestination.Rooms,
+            compact = false,
+            onNavigateHome = callbacks.onNavigateHome,
+            onNavigateRoutines = callbacks.onNavigateRoutines,
+            onNavigateRooms = {},
+            onNavigateHistory = callbacks.onNavigateHistory,
+            onAddClick = callbacks.onAddClick,
+        )
+
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background),
         ) {
-            TabletMainSidebar(
-                selectedDestination = TabletSidebarDestination.Rooms,
-                compact = false,
-                onNavigateHome = callbacks.onNavigateHome,
-                onNavigateRoutines = callbacks.onNavigateRoutines,
-                onNavigateRooms = {},
-                onNavigateHistory = callbacks.onNavigateHistory,
-                onAddClick = callbacks.onAddClick,
+            RoomsTopBar(
+                searchQuery = state.searchQuery,
+                onSearchChange = callbacks.onSearchChange,
+                onAvatarClick = callbacks.onAvatarClick,
+                onNotificationsClick = callbacks.onNotificationsClick,
+                notificationCount = state.unreadNotificationCount,
+                searchPlaceholder = stringResource(R.string.rooms_list_detail_search_placeholder),
+                modifier = Modifier.padding(
+                    start = 28.dp,
+                    top = 22.dp,
+                    end = 28.dp,
+                    bottom = 14.dp,
+                ),
             )
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background),
-            ) {
-                RoomsTopBar(
-                    searchQuery = state.searchQuery,
-                    onSearchChange = callbacks.onSearchChange,
-                    onAvatarClick = callbacks.onAvatarClick,
-                    onNotificationsClick = callbacks.onNotificationsClick,
-                    notificationCount = state.unreadNotificationCount,
-                    searchPlaceholder = stringResource(R.string.rooms_list_detail_search_placeholder),
-                    modifier = Modifier.padding(
-                        start = 28.dp,
-                        top = 22.dp,
-                        end = 28.dp,
-                        bottom = 14.dp,
-                    ),
+            if (state.isLoading) {
+                ListDetailLoadingState(modifier = Modifier.fillMaxSize())
+            } else {
+                ListDetailPaneScaffold(
+                    directive = navigator.scaffoldDirective,
+                    value = navigator.scaffoldValue,
+                    listPane = {
+                        AnimatedPane {
+                            RoomsListPanel(
+                                state = state,
+                                presentation = presentation,
+                                callbacks = listCallbacks,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        }
+                    },
+                    detailPane = {
+                        AnimatedPane {
+                            RoomDetailPanel(
+                                state = state,
+                                presentation = presentation,
+                                callbacks = callbacks,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(start = 28.dp, end = 28.dp, bottom = 28.dp),
                 )
-
-                if (state.isLoading) {
-                    ListDetailLoadingState(modifier = Modifier.fillMaxSize())
-                } else {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(start = 28.dp, end = 28.dp, bottom = 28.dp),
-                        horizontalArrangement = Arrangement.spacedBy(24.dp),
-                    ) {
-                        RoomsListPanel(
-                            state = state,
-                            presentation = presentation,
-                            callbacks = callbacks,
-                            modifier = Modifier
-                                .weight(0.40f)
-                                .widthIn(min = ListPaneMinWidth)
-                                .fillMaxHeight(),
-                        )
-                        RoomDetailPanel(
-                            state = state,
-                            presentation = presentation,
-                            callbacks = callbacks,
-                            modifier = Modifier
-                                .weight(0.60f)
-                                .widthIn(min = DetailPaneMinWidth)
-                                .fillMaxHeight(),
-                        )
-                    }
-                }
             }
         }
     }
@@ -513,7 +523,3 @@ private fun ListDetailLoadingState(modifier: Modifier = Modifier) {
         }
     }
 }
-
-private val ListDetailMinScreenWidth = 1200.dp
-private val ListPaneMinWidth = 360.dp
-private val DetailPaneMinWidth = 520.dp

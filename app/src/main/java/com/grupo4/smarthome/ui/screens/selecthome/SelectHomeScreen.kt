@@ -31,8 +31,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.windowsizeclass.WindowSizeClass
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.window.core.layout.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -90,7 +89,7 @@ fun SelectHomeScreen(
     onConfirmDelete: () -> Unit = {},
     onConfirmShare: (String) -> Unit = {},
 ) {
-    if (windowSize.widthSizeClass == WindowWidthSizeClass.Compact) {
+    if (!windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)) {
         PhoneSelectHomeLayout(
             userName = userName,
             homes = homes,

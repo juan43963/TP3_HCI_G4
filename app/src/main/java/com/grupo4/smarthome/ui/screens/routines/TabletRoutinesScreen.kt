@@ -33,12 +33,20 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.layout.AnimatedPane
+import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
+import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
+import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -377,6 +385,7 @@ private fun TabletRoutinesHeaderActions(onAddRoutine: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 private fun TabletRoutinesTwoPane(
     routines: List<RoutineUi>,
@@ -392,61 +401,73 @@ private fun TabletRoutinesTwoPane(
     onDeleteRoutine: (String) -> Unit = {},
     detailFor: (String) -> RoutineDetailUi? = { null },
 ) {
-    Row(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(
-            modifier = Modifier
-                .weight(0.42f)
-                .fillMaxHeight(),
-            contentPadding = PaddingValues(
-                start = contentPadding,
-                end = contentPadding,
-                top = 8.dp,
-                bottom = 28.dp,
-            ),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            item {
-                TabletRoutinesHeader()
-            }
-            item {
-                RoutinesTabletSearchBar(modifier = Modifier.fillMaxWidth())
-            }
-            item {
-                CategoryFilter(
-                    routines = routines,
-                    selectedCategory = selectedCategory,
-                    onCategorySelected = onCategorySelected,
-                )
-            }
-            lazyItems(items = visibleRoutines, key = { it.id }) { routine ->
-                MasterRoutineCard(
-                    routine = routine,
-                    selected = routine.id == selectedRoutine.id,
-                    onClick = { onRoutineSelected(routine) },
-                    onExecute = { onExecuteRoutine(routine.id) },
-                )
-            }
-        }
-
-        Box(
-            modifier = Modifier
-                .width(1.dp)
-                .fillMaxHeight()
-                .background(MaterialTheme.colorScheme.outlineVariant),
-        )
-
-        TabletRoutineDetailPane(
-            routine = selectedRoutine,
-            detail = detailFor(selectedRoutine.id),
-            onAddAction = onAddRoutine,
-            onSaveRoutine = onSaveRoutine,
-            onDeleteRoutine = { onDeleteRoutine(selectedRoutine.id) },
-            contentPadding = contentPadding,
-            modifier = Modifier
-                .weight(0.58f)
-                .fillMaxHeight(),
-        )
+    // §13: lista-detalle canónico. La selección sigue en el estado de la pantalla; el navigator
+    // gestiona el back y la visibilidad del panel cuando el scaffold colapsa a un solo panel.
+    val navigator = rememberListDetailPaneScaffoldNavigator<String>()
+    val scope = rememberCoroutineScope()
+    BackHandler(navigator.canNavigateBack()) {
+        scope.launch { navigator.navigateBack() }
     }
+
+    ListDetailPaneScaffold(
+        directive = navigator.scaffoldDirective,
+        value = navigator.scaffoldValue,
+        modifier = Modifier.fillMaxSize(),
+        listPane = {
+            AnimatedPane {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(
+                        start = contentPadding,
+                        end = contentPadding,
+                        top = 8.dp,
+                        bottom = 28.dp,
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
+                ) {
+                    item {
+                        TabletRoutinesHeader()
+                    }
+                    item {
+                        RoutinesTabletSearchBar(modifier = Modifier.fillMaxWidth())
+                    }
+                    item {
+                        CategoryFilter(
+                            routines = routines,
+                            selectedCategory = selectedCategory,
+                            onCategorySelected = onCategorySelected,
+                        )
+                    }
+                    lazyItems(items = visibleRoutines, key = { it.id }) { routine ->
+                        MasterRoutineCard(
+                            routine = routine,
+                            selected = routine.id == selectedRoutine.id,
+                            onClick = {
+                                onRoutineSelected(routine)
+                                scope.launch {
+                                    navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, routine.id)
+                                }
+                            },
+                            onExecute = { onExecuteRoutine(routine.id) },
+                        )
+                    }
+                }
+            }
+        },
+        detailPane = {
+            AnimatedPane {
+                TabletRoutineDetailPane(
+                    routine = selectedRoutine,
+                    detail = detailFor(selectedRoutine.id),
+                    onAddAction = onAddRoutine,
+                    onSaveRoutine = onSaveRoutine,
+                    onDeleteRoutine = { onDeleteRoutine(selectedRoutine.id) },
+                    contentPadding = contentPadding,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+        },
+    )
 }
 
 @Composable

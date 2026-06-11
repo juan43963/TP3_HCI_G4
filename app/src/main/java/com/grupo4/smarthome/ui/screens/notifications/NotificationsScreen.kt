@@ -25,8 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.windowsizeclass.WindowSizeClass
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.window.core.layout.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -65,7 +64,7 @@ fun NotificationsScreen(
     selectedHomeName: String = "Casa Principal",
     modifier: Modifier = Modifier,
 ) {
-    val isTablet = windowSize.widthSizeClass != WindowWidthSizeClass.Compact
+    val isTablet = windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
     val unread = remember(notifications) { notifications.filter { !it.read } }
     val earlier = remember(notifications) { notifications.filter { it.read } }
 
