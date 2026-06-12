@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.data.model.HomeType
 import com.grupo4.smarthome.ui.components.SmartHomeWordmark
+import com.grupo4.smarthome.ui.components.SmartHomeWordmarkSize
 import com.grupo4.smarthome.ui.screens.selecthome.SelectableHome
 import com.grupo4.smarthome.ui.theme.ErrorRed
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
@@ -104,7 +105,10 @@ fun PhoneHomeDrawerContent(
                 .fillMaxHeight()
                 .padding(horizontal = 24.dp, vertical = 28.dp),
         ) {
-            SmartHomeWordmark(modifier = Modifier.fillMaxWidth())
+            SmartHomeWordmark(
+                modifier = Modifier.fillMaxWidth(),
+                size = SmartHomeWordmarkSize.Large,
+            )
 
             Spacer(modifier = Modifier.height(30.dp))
 
@@ -170,6 +174,7 @@ fun PhoneHomeDrawerContent(
                 },
                 contentColor = ErrorRed,
                 backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                centerContent = true,
             )
         }
     }
@@ -313,6 +318,7 @@ private fun DrawerActionRow(
     } else {
         MaterialTheme.colorScheme.surface
     },
+    centerContent: Boolean = false,
 ) {
     Row(
         modifier = modifier
@@ -322,7 +328,11 @@ private fun DrawerActionRow(
             .clickable(onClick = onClick)
             .padding(horizontal = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = if (centerContent) {
+            Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
+        } else {
+            Arrangement.spacedBy(12.dp)
+        },
     ) {
         Icon(
             imageVector = icon,
@@ -335,7 +345,7 @@ private fun DrawerActionRow(
             style = MaterialTheme.typography.labelLarge,
             fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.SemiBold,
             color = contentColor,
-            modifier = Modifier.weight(1f),
+            modifier = if (centerContent) Modifier else Modifier.weight(1f),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )

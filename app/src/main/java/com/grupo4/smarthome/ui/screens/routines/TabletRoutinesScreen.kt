@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -52,16 +53,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.components.LocalOpenDrawer
+import com.grupo4.smarthome.ui.components.TabletMainSidebar
+import com.grupo4.smarthome.ui.components.TabletPanelSurface
+import com.grupo4.smarthome.ui.components.TabletSidebarDestination
 import com.grupo4.smarthome.ui.screens.dashboard.DashboardCallbacks
 import com.grupo4.smarthome.ui.screens.dashboard.components.DashboardTopBar
 import com.grupo4.smarthome.ui.screens.dashboard.layout.DashboardScaffold
-import com.grupo4.smarthome.ui.screens.dashboard.layout.SidebarDestination
-import com.grupo4.smarthome.ui.screens.dashboard.layout.TabletSidebar
-import com.grupo4.smarthome.ui.screens.dashboard.layout.TabletQuickActionsOverlay
+import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneQuickAddFab
+import com.grupo4.smarthome.ui.util.isPhoneLandscape
 import com.grupo4.smarthome.ui.theme.BrandIndigoDark
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
@@ -75,6 +79,7 @@ fun TabletRoutinesScreen(
     onCreateDevice: () -> Unit = {},
     onNavigateHome: () -> Unit = {},
     onNavigateRooms: () -> Unit = {},
+    onNavigateHistory: () -> Unit = {},
     onRoutineClick: (String) -> Unit = {},
     onExecuteRoutine: (String) -> Unit = {},
     onSaveRoutine: (id: String, name: String, time24h: String, days: List<Boolean>, enabled: Boolean) -> Unit = { _, _, _, _, _ -> },
@@ -84,12 +89,12 @@ fun TabletRoutinesScreen(
     infoMessage: String? = null,
     onDismissError: () -> Unit = {},
     onDismissInfo: () -> Unit = {},
+    onQuickAddClick: () -> Unit = onAddRoutine,
     modifier: Modifier = Modifier,
 ) {
     val openDrawer = LocalOpenDrawer.current
     var selectedCategory by remember { mutableStateOf<RoutineCategory?>(null) }
     var selectedRoutineId by remember(routines) { mutableStateOf(routines.firstOrNull()?.id) }
-    var quickAddMenuExpanded by remember { mutableStateOf(false) }
     val visibleRoutines = remember(selectedCategory, routines) {
         if (selectedCategory == null) routines
         else routines.filter { it.category == selectedCategory }
@@ -115,28 +120,32 @@ fun TabletRoutinesScreen(
         onCreateDevice = onCreateDevice,
         onCreateRoutine = onAddRoutine,
         onQuickAddClick = onAddRoutine,
+        onHistoryClick = onNavigateHistory,
     )
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        val phoneLandscape = isPhoneLandscape(maxWidth, maxHeight)
         val portraitLike = maxWidth < 900.dp
         val contentPadding = if (portraitLike) 24.dp else 32.dp
 
         DashboardScaffold(
             sidebar = {
-                TabletSidebar(
-                    callbacks = callbacks,
-                    compact = portraitLike,
-                    selected = SidebarDestination.Routines,
-                    quickAddMenuExpanded = quickAddMenuExpanded,
-                    onQuickAddMenuExpandedChange = { quickAddMenuExpanded = it },
+                TabletMainSidebar(
+                    selectedDestination = TabletSidebarDestination.Routines,
+                    compact = portraitLike || phoneLandscape,
+                    onNavigateHome = callbacks.onNavigateHome,
+                    onNavigateRoutines = callbacks.onNavigateRoutines,
+                    onNavigateRooms = callbacks.onNavigateRooms,
+                    onNavigateHistory = callbacks.onHistoryClick,
                 )
             },
             topBar = {
                 DashboardTopBar(
-                    selectedHomeName = stringResource(R.string.dashboard_home_main),
+                    selectedHomeName = "",
                     onHomeSelectorClick = openDrawer,
                     onSearchClick = {},
                     onProfileClick = onProfileClick,
+                    useCompactHomeMenu = true,
                     modifier = Modifier.padding(
                         start = contentPadding,
                         top = 24.dp,
@@ -146,7 +155,7 @@ fun TabletRoutinesScreen(
                 )
             },
             content = {
-                if (routines.isEmpty() && !portraitLike) {
+                if (routines.isEmpty() && !portraitLike && !phoneLandscape) {
                     TabletRoutinesEmptyTwoPane(
                         routines = routines,
                         selectedCategory = selectedCategory,
@@ -179,6 +188,7 @@ fun TabletRoutinesScreen(
                         onRoutineSelected = { selectedRoutineId = it.id },
                         onAddRoutine = onAddRoutine,
                         contentPadding = contentPadding,
+                        forceSinglePane = phoneLandscape,
                         onExecuteRoutine = onExecuteRoutine,
                         onSaveRoutine = onSaveRoutine,
                         onDeleteRoutine = onDeleteRoutine,
@@ -188,16 +198,6 @@ fun TabletRoutinesScreen(
             },
         )
 
-        TabletQuickActionsOverlay(
-            visible = quickAddMenuExpanded,
-            compact = portraitLike,
-            onAddRoom = callbacks.onCreateRoom,
-            onAddDevice = callbacks.onCreateDevice,
-            onAddRoutine = callbacks.onCreateRoutine,
-            onDismiss = { quickAddMenuExpanded = false },
-        )
-
-        // Feedback no bloqueante (ejecución / errores)
         val snackbarHostState = remember { SnackbarHostState() }
         val executedTemplate = stringResource(R.string.routines_executed)
         LaunchedEffect(errorMessage) {
@@ -216,6 +216,17 @@ fun TabletRoutinesScreen(
             hostState = snackbarHostState,
             modifier = Modifier.align(Alignment.BottomCenter),
         )
+
+        if (phoneLandscape) {
+            PhoneQuickAddFab(
+                onClick = onQuickAddClick,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .navigationBarsPadding()
+                    .padding(16.dp),
+                contentDescriptionRes = R.string.quick_add_fab_open,
+            )
+        }
     }
 }
 
@@ -251,6 +262,7 @@ private fun TabletRoutinesGrid(
                 routines = routines,
                 selectedCategory = selectedCategory,
                 onCategorySelected = onCategorySelected,
+                roomsStyle = true,
             )
         }
         if (routines.isEmpty()) {
@@ -258,7 +270,7 @@ private fun TabletRoutinesGrid(
                 RoutinesEmptyStateCard(
                     onCreateRoutineClick = onAddRoutine,
                     dashed = true,
-                    visual = RoutinesEmptyVisual.Search,
+                    visual = RoutinesEmptyVisual.Home,
                 )
             }
         } else {
@@ -281,58 +293,45 @@ private fun TabletRoutinesEmptyTwoPane(
     onAddRoutine: () -> Unit,
     contentPadding: androidx.compose.ui.unit.Dp,
 ) {
-    Row(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(start = contentPadding, end = contentPadding, bottom = 28.dp),
+        horizontalArrangement = Arrangement.spacedBy(20.dp),
+    ) {
+        TabletPanelSurface(
             modifier = Modifier
                 .weight(0.42f)
                 .fillMaxHeight(),
-            contentPadding = PaddingValues(
-                start = contentPadding,
-                end = contentPadding,
-                top = 8.dp,
-                bottom = 28.dp,
-            ),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            item {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
                 TabletRoutinesHeaderActions(onAddRoutine = onAddRoutine)
-            }
-            item {
-                RoutinesTabletSearchBar(modifier = Modifier.fillMaxWidth())
-            }
-            item {
                 CategoryFilter(
                     routines = routines,
                     selectedCategory = selectedCategory,
                     onCategorySelected = onCategorySelected,
+                    roomsStyle = true,
                 )
-            }
-            item {
                 RoutinesEmptyStateCard(
                     onCreateRoutineClick = onAddRoutine,
                     dashed = true,
-                    visual = RoutinesEmptyVisual.Search,
+                    visual = RoutinesEmptyVisual.Home,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
                 )
             }
         }
 
-        Box(
-            modifier = Modifier
-                .width(1.dp)
-                .fillMaxHeight()
-                .background(MaterialTheme.colorScheme.outlineVariant),
-        )
-
-        Box(
+        TabletPanelSurface(
             modifier = Modifier
                 .weight(0.58f)
-                .fillMaxHeight()
-                .padding(
-                    start = contentPadding,
-                    top = 8.dp,
-                    end = contentPadding,
-                    bottom = 28.dp,
-                ),
+                .fillMaxHeight(),
         ) {
             RoutinesEmptyDetailPane()
         }
@@ -341,48 +340,31 @@ private fun TabletRoutinesEmptyTwoPane(
 
 @Composable
 private fun TabletRoutinesHeaderActions(onAddRoutine: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.Top,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        TabletRoutinesHeader(modifier = Modifier.weight(1f))
-        IconButton(
-            onClick = {},
-            modifier = Modifier
-                .size(48.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)),
-        ) {
-            Icon(
-                imageVector = SmartHomeIcons.Rename,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(20.dp),
-            )
-        }
-        Button(
-            onClick = onAddRoutine,
-            modifier = Modifier.height(48.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = BrandIndigoDark,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-            ),
-            contentPadding = PaddingValues(horizontal = 16.dp),
-        ) {
-            Icon(
-                imageVector = SmartHomeIcons.Add,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp),
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = stringResource(R.string.dashboard_create_routine),
-                fontWeight = FontWeight.Bold,
-            )
-        }
-    }
+    TabletRoutinesHeader(
+        actions = {
+            Button(
+                onClick = onAddRoutine,
+                modifier = Modifier.height(40.dp),
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = BrandIndigoDark,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                ),
+                contentPadding = PaddingValues(horizontal = 12.dp),
+            ) {
+                Icon(
+                    imageVector = SmartHomeIcons.Add,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = stringResource(R.string.routines_create_short),
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        },
+    )
 }
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
@@ -396,127 +378,116 @@ private fun TabletRoutinesTwoPane(
     onRoutineSelected: (RoutineUi) -> Unit,
     onAddRoutine: () -> Unit,
     contentPadding: androidx.compose.ui.unit.Dp,
+    forceSinglePane: Boolean = false,
     onExecuteRoutine: (String) -> Unit = {},
     onSaveRoutine: (id: String, name: String, time24h: String, days: List<Boolean>, enabled: Boolean) -> Unit = { _, _, _, _, _ -> },
     onDeleteRoutine: (String) -> Unit = {},
     detailFor: (String) -> RoutineDetailUi? = { null },
 ) {
-    // §13: lista-detalle canónico. La selección sigue en el estado de la pantalla; el navigator
-    // gestiona el back y la visibilidad del panel cuando el scaffold colapsa a un solo panel.
     val navigator = rememberListDetailPaneScaffoldNavigator<String>()
     val scope = rememberCoroutineScope()
     BackHandler(navigator.canNavigateBack()) {
         scope.launch { navigator.navigateBack() }
     }
 
+    val directive = navigator.scaffoldDirective.let { base ->
+        if (forceSinglePane) base.copy(maxHorizontalPartitions = 1) else base
+    }
+
     ListDetailPaneScaffold(
-        directive = navigator.scaffoldDirective,
+        directive = directive,
         value = navigator.scaffoldValue,
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(start = contentPadding, end = contentPadding, bottom = 28.dp),
         listPane = {
             AnimatedPane {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(
-                        start = contentPadding,
-                        end = contentPadding,
-                        top = 8.dp,
-                        bottom = 28.dp,
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(14.dp),
-                ) {
-                    item {
-                        TabletRoutinesHeader()
-                    }
-                    item {
-                        RoutinesTabletSearchBar(modifier = Modifier.fillMaxWidth())
-                    }
-                    item {
-                        CategoryFilter(
-                            routines = routines,
-                            selectedCategory = selectedCategory,
-                            onCategorySelected = onCategorySelected,
-                        )
-                    }
-                    lazyItems(items = visibleRoutines, key = { it.id }) { routine ->
-                        MasterRoutineCard(
-                            routine = routine,
-                            selected = routine.id == selectedRoutine.id,
-                            onClick = {
-                                onRoutineSelected(routine)
-                                scope.launch {
-                                    navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, routine.id)
-                                }
-                            },
-                            onExecute = { onExecuteRoutine(routine.id) },
-                        )
+                TabletPanelSurface(modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp),
+                    ) {
+                        item {
+                            TabletRoutinesHeader()
+                        }
+                        item {
+                            CategoryFilter(
+                                routines = routines,
+                                selectedCategory = selectedCategory,
+                                onCategorySelected = onCategorySelected,
+                                roomsStyle = true,
+                            )
+                        }
+                        lazyItems(items = visibleRoutines, key = { it.id }) { routine ->
+                            MasterRoutineCard(
+                                routine = routine,
+                                selected = routine.id == selectedRoutine.id,
+                                onClick = {
+                                    onRoutineSelected(routine)
+                                    scope.launch {
+                                        navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, routine.id)
+                                    }
+                                },
+                                onExecute = { onExecuteRoutine(routine.id) },
+                            )
+                        }
                     }
                 }
             }
         },
         detailPane = {
             AnimatedPane {
-                TabletRoutineDetailPane(
-                    routine = selectedRoutine,
-                    detail = detailFor(selectedRoutine.id),
-                    onAddAction = onAddRoutine,
-                    onSaveRoutine = onSaveRoutine,
-                    onDeleteRoutine = { onDeleteRoutine(selectedRoutine.id) },
-                    contentPadding = contentPadding,
-                    modifier = Modifier.fillMaxSize(),
-                )
+                TabletPanelSurface(modifier = Modifier.fillMaxSize()) {
+                    TabletRoutineDetailPane(
+                        routine = selectedRoutine,
+                        detail = detailFor(selectedRoutine.id),
+                        onAddAction = onAddRoutine,
+                        onSaveRoutine = onSaveRoutine,
+                        onDeleteRoutine = { onDeleteRoutine(selectedRoutine.id) },
+                        contentPadding = 20.dp,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
             }
         },
     )
 }
 
 @Composable
-private fun TabletRoutinesHeader(modifier: Modifier = Modifier) {
-    Column(modifier = modifier) {
-        Text(
-            text = stringResource(R.string.routines_header_title),
-            style = MaterialTheme.typography.headlineMedium.copy(
-                fontWeight = FontWeight.ExtraBold,
-            ),
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = stringResource(R.string.routines_header_subtitle),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun RoutinesTabletSearchBar(
+private fun TabletRoutinesHeader(
     modifier: Modifier = Modifier,
-    onClick: () -> Unit = {},
+    actions: (@Composable () -> Unit)? = null,
 ) {
-    Surface(
-        modifier = modifier
-            .height(48.dp)
-            .clip(RoundedCornerShape(999.dp))
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(999.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        shadowElevation = 1.dp,
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Icon(
-                imageVector = SmartHomeIcons.Search,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(22.dp),
-            )
+    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+        val compact = maxWidth < 760.dp
+
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.routines_header_title),
+                    modifier = Modifier.weight(1f),
+                    style = if (compact) {
+                        MaterialTheme.typography.titleLarge
+                    } else {
+                        MaterialTheme.typography.headlineMedium
+                    },
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (actions != null) {
+                    actions()
+                }
+            }
+            Spacer(modifier = Modifier.height(10.dp))
             Text(
-                text = stringResource(R.string.routines_search_placeholder),
+                text = stringResource(R.string.routines_header_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -534,7 +505,6 @@ private fun TabletRoutineDetailPane(
     contentPadding: androidx.compose.ui.unit.Dp,
     modifier: Modifier = Modifier,
 ) {
-    // Preferimos el detalle derivado del dominio (acciones/categoría reales); si falta, caemos al de RoutineUi
     val detail = detail ?: remember(routine.id) { routine.toDetailUi() }
     var enabled by remember(routine.id) { mutableStateOf(detail.enabled) }
     var name by remember(routine.id) { mutableStateOf(detail.name) }

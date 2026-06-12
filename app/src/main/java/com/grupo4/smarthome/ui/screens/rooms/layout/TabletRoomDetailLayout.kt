@@ -32,7 +32,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
+import com.grupo4.smarthome.ui.components.LocalOpenDrawer
 import com.grupo4.smarthome.ui.components.TabletMainSidebar
+import com.grupo4.smarthome.ui.util.isPhoneLandscape
 import com.grupo4.smarthome.ui.components.TabletSidebarDestination
 import com.grupo4.smarthome.ui.screens.rooms.RoomsCallbacks
 import com.grupo4.smarthome.ui.screens.rooms.RoomsPresentationState
@@ -40,6 +42,7 @@ import com.grupo4.smarthome.ui.screens.rooms.RoomsUiState
 import com.grupo4.smarthome.ui.screens.rooms.components.DeviceCard
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsEditIconButton
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsEmptyState
+import com.grupo4.smarthome.ui.screens.rooms.components.RoomsNoDevicesEmptyState
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsTopBar
 import com.grupo4.smarthome.ui.theme.BrandIndigoDark
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
@@ -52,9 +55,12 @@ fun TabletRoomDetailLayout(
     modifier: Modifier = Modifier,
 ) {
     val room = presentation.selectedRoom ?: return
+    val openDrawer = LocalOpenDrawer.current
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val portraitLike = maxWidth < 900.dp
+        val phoneLandscape = isPhoneLandscape(maxWidth, maxHeight)
+        val railCompact = portraitLike || phoneLandscape
         val contentPadding = if (portraitLike) 24.dp else 32.dp
         val deviceCardMinWidth = if (portraitLike) 340.dp else 420.dp
         val deviceCardHeight = if (state.editDevicesMode) 336.dp else 272.dp
@@ -66,12 +72,11 @@ fun TabletRoomDetailLayout(
         ) {
             TabletMainSidebar(
                 selectedDestination = TabletSidebarDestination.Rooms,
-                compact = portraitLike,
+                compact = railCompact,
                 onNavigateHome = callbacks.onNavigateHome,
                 onNavigateRoutines = callbacks.onNavigateRoutines,
                 onNavigateRooms = callbacks.onBackToRooms,
                 onNavigateHistory = callbacks.onNavigateHistory,
-                onAddClick = { callbacks.onAddDeviceClick(room.id) },
             )
             Column(
                 modifier = Modifier
@@ -85,6 +90,9 @@ fun TabletRoomDetailLayout(
                     onNotificationsClick = callbacks.onNotificationsClick,
                     notificationCount = state.unreadNotificationCount,
                     searchPlaceholder = stringResource(R.string.rooms_devices_search_placeholder),
+                    showHomeSelector = true,
+                    onHomeSelectorClick = openDrawer,
+                    useCompactHomeMenu = true,
                     modifier = Modifier.padding(
                         start = contentPadding,
                         top = 24.dp,
@@ -117,11 +125,9 @@ fun TabletRoomDetailLayout(
                     }
                     if (!presentation.hasDevicesInSelectedRoom) {
                         item(span = { GridItemSpan(maxLineSpan) }) {
-                            RoomsEmptyState(
-                                title = stringResource(R.string.rooms_empty_devices_title),
-                                description = stringResource(R.string.rooms_empty_devices_description),
-                                buttonLabel = stringResource(R.string.rooms_add_device),
-                                onButtonClick = { callbacks.onAddDeviceClick(room.id) },
+                            RoomsNoDevicesEmptyState(
+                                onAddDevice = { callbacks.onAddDeviceClick(room.id) },
+                                addButtonLabel = stringResource(R.string.rooms_add_device),
                             )
                         }
                     } else if (presentation.hasNoDeviceResults) {
@@ -275,8 +281,6 @@ private fun RoomDetailActions(
         horizontalArrangement = Arrangement.spacedBy(if (compact) 8.dp else 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // Acción secundaria a la izquierda: solo icono (lápiz), igual que el
-        // botón de editar de la columna izquierda.
         RoomsEditIconButton(
             onClick = onEditDevicesToggle,
             contentDescription = stringResource(
@@ -284,7 +288,6 @@ private fun RoomDetailActions(
             ),
             size = if (compact) 40.dp else 48.dp,
         )
-        // Acción primaria a la derecha: agregar dispositivo.
         Button(
             onClick = onAddDevice,
             modifier = Modifier.height(if (compact) 40.dp else 48.dp),

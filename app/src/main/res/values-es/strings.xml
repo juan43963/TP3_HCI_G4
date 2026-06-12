@@ -8,12 +8,10 @@
     <string name="nav_profile">Perfil</string>
     <string name="nav_history">Historial</string>
 
-    <!-- Profile menu (dropdown del avatar) -->
     <string name="profile_menu_settings">Configuración</string>
     <string name="profile_menu_history">Historial</string>
     <string name="profile_menu_logout">Cerrar sesión</string>
 
-    <!-- Historial -->
     <string name="history_title">Historial</string>
     <string name="history_subtitle">Acciones realizadas con tus dispositivos</string>
     <string name="history_refresh_content_description">Actualizar historial</string>
@@ -22,7 +20,6 @@
     <string name="history_device_metadata">%1$s · %2$s</string>
     <string name="history_empty_title">Sin actividad</string>
     <string name="history_empty_description">Todavía no se registraron acciones para este dispositivo.</string>
-    <!-- Historial — RF13 (logs reales de dispositivos) -->
     <string name="history_loading">Cargando historial...</string>
     <string name="history_retry">Reintentar</string>
     <string name="history_unknown_device">Dispositivo</string>
@@ -43,7 +40,6 @@
     <string name="history_action_set_volume">Volumen ajustado</string>
     <string name="history_action_set_mode">Modo cambiado</string>
 
-    <!-- Welcome -->
     <string name="welcome_brand_smart">Smart</string>
     <string name="welcome_brand_home">Home</string>
     <string name="welcome_title">Tu casa,\nsiempre a un toque\nde distancia</string>
@@ -53,14 +49,12 @@
     <string name="welcome_cta_login">Ya tengo cuenta</string>
     <string name="welcome_hero_content_description">Persona usando SmartHome en su cocina</string>
 
-    <!-- Auth placeholders (temporales hasta tener las pantallas reales) -->
     <string name="auth_login_placeholder">Login — próximamente</string>
     <string name="auth_register_placeholder">Registro — próximamente</string>
     <string name="auth_recover_password_placeholder">Recuperar contraseña — próximamente</string>
     <string name="auth_verify_account_placeholder">Verificar cuenta — próximamente</string>
     <string name="auth_change_password_placeholder">Cambiar contraseña — próximamente</string>
 
-    <!-- Login -->
     <string name="login_title">Iniciá sesión</string>
     <string name="login_no_account_question">¿No tenés cuenta?</string>
     <string name="login_register_link">Registrate</string>
@@ -71,7 +65,6 @@
     <string name="login_cta_submit">Ingresar</string>
     <string name="login_cta_submitting">Ingresando...</string>
 
-    <!-- Register -->
     <string name="register_step_personal">Datos personales</string>
     <string name="register_step_password">Contraseña</string>
     <string name="register_title">Creá tu cuenta</string>
@@ -91,7 +84,6 @@
     <string name="register_show_password">Mostrar contraseña</string>
     <string name="register_hide_password">Ocultar contraseña</string>
 
-    <!-- Verify account -->
     <string name="verify_title">Verificá tu cuenta</string>
     <string name="verify_subtitle">Te enviamos un código de verificación a</string>
     <string name="verify_change_email">Cambiar email</string>
@@ -104,13 +96,11 @@
     <string name="verify_back_to_login">Volver a iniciar sesión</string>
     <string name="verify_icon_content_description">Sobre con código de verificación</string>
 
-    <!-- Settings -->
     <string name="settings_title">Configuración</string>
     <string name="settings_subtitle">Administrá tu perfil y preferencias de la aplicación.</string>
     <string name="settings_section_profile">Perfil</string>
     <string name="settings_field_name">Nombre</string>
     <string name="settings_field_email">Email</string>
-    <!-- Edición de nombre del perfil (RNF3) -->
     <string name="profile_edit_name">Editar nombre</string>
     <string name="profile_save">Guardar</string>
     <string name="profile_saving">Guardando...</string>
@@ -119,6 +109,10 @@
     <string name="settings_section_security">Seguridad</string>
     <string name="settings_change_password">Cambiar contraseña</string>
     <string name="settings_change_password_description">Actualizá tu contraseña periódicamente para mantener tu cuenta segura.</string>
+    <string name="topbar_back_content_description">Volver</string>
+    <string name="modal_close_content_description">Cerrar</string>
+    <string name="settings_section_account">Cuenta</string>
+    <string name="settings_logout_description">Cerrá la sesión de tu cuenta en este dispositivo.</string>
     <string name="settings_section_accessibility">Accesibilidad</string>
     <string name="settings_section_accessibility_description">Personalizá cómo se ve la aplicación.</string>
     <string name="settings_theme_label">Tema</string>
@@ -134,7 +128,6 @@
     <string name="settings_theme_dark_description">Tonos profundos para ambientes con poca luz.</string>
     <string name="settings_theme_system_description">Sigue la apariencia del dispositivo.</string>
 
-    <!-- Recover password (RF3) -->
     <string name="recover_title">¿Olvidaste tu contraseña?</string>
     <string name="recover_subtitle">Ingresá el email asociado a tu cuenta y te enviaremos un enlace para crear una nueva contraseña.</string>
     <string name="recover_field_email_label">Email</string>
@@ -149,7 +142,6 @@
     <string name="recover_resend_question">¿No recibiste el email?</string>
     <string name="recover_resend_link">Reenviar</string>
 
-    <!-- Change password (RF4) -->
     <string name="change_pwd_title">Crear nueva contraseña</string>
     <string name="change_pwd_subtitle_prefix">Pegá el código que recibiste por email y elegí tu nueva contraseña para</string>
     <string name="change_pwd_subtitle_suffix"></string>
@@ -164,7 +156,6 @@
     <string name="change_pwd_cta_submitting">Creando...</string>
     <string name="change_pwd_back_to_login">Volver a iniciar sesión</string>
 
-    <!-- Cambio de contraseña autenticado (RF4) -->
     <string name="auth_change_pwd_title">Cambiar contraseña</string>
     <string name="auth_change_pwd_subtitle">Ingresá tu contraseña actual y elegí una nueva.</string>
     <string name="auth_change_pwd_current_label">Contraseña actual</string>
@@ -180,7 +171,6 @@
     <string name="auth_change_pwd_success">Contraseña cambiada con éxito.</string>
     <string name="auth_change_pwd_error_current_wrong">La contraseña actual es incorrecta.</string>
 
-    <!-- Select Home -->
     <string name="select_home_search_placeholder">Buscar hogar</string>
     <string name="select_home_welcome_title">¡Bienvenido,\n%1$s!</string>
     <string name="select_home_welcome_title_inline">¡Bienvenido, %1$s!</string>
@@ -214,7 +204,6 @@
     <string name="select_home_share_close">Cerrar</string>
     <string name="select_home_dialog_cancel">Cancelar</string>
 
-    <!-- Dashboard -->
     <string name="dashboard_title">Inicio</string>
     <string name="dashboard_subtitle">Todo tu hogar, en un solo lugar.</string>
     <string name="dashboard_search_placeholder">Buscar dispositivos, habitaciones, rutinas…</string>
@@ -255,7 +244,6 @@
     <string name="dashboard_search_close_content_description">Cerrar búsqueda</string>
     <string name="dashboard_fab_content_description">Agregar</string>
 
-    <!-- Quick Actions FAB -->
     <string name="quick_add_fab_open">Abrir acciones rápidas</string>
     <string name="quick_add_fab_close">Cerrar acciones rápidas</string>
     <string name="quick_add_close_short">Cerrar</string>
@@ -271,7 +259,6 @@
     <string name="dashboard_settings">Ajustes</string>
     <string name="dashboard_logout">Cerrar sesión</string>
 
-    <!-- Add Home -->
     <string name="add_home_title">Agregar nuevo hogar</string>
     <string name="add_home_step">Paso 1 de 1</string>
     <string name="add_home_subtitle">Definí los datos básicos. Podrás editarlos cuando quieras.</string>
@@ -300,7 +287,6 @@
     <string name="add_home_photo_label">Foto</string>
     <string name="add_home_gallery_button">Subir desde galería</string>
 
-    <!-- Rooms -->
     <string name="rooms_search_placeholder">Buscar habitaciones...</string>
     <string name="rooms_devices_search_placeholder">Buscar dispositivos...</string>
     <string name="rooms_list_detail_search_placeholder">Buscar habitaciones o dispositivos…</string>
@@ -329,7 +315,7 @@
     <string name="rooms_empty_description">Aún no hay habitaciones en este hogar.</string>
     <string name="rooms_empty_cta">Crear habitación</string>
     <string name="rooms_empty_home_title">Sin habitaciones todavía</string>
-    <string name="rooms_empty_home_description">Creá tu primera habitación para empezar a organizar tus dispositivos.</string>
+    <string name="rooms_empty_home_description">Creá tu primera habitación para organizar tus dispositivos y hacer tu hogar más inteligente.</string>
     <string name="rooms_empty_home_help">Ver cómo funciona</string>
     <string name="rooms_empty_detail_title">Cuando crees o selecciones una habitación,</string>
     <string name="rooms_empty_detail_description">acá vas a ver sus dispositivos y controles.</string>
@@ -355,8 +341,8 @@
     <string name="rooms_add_device_short">Agregar</string>
     <string name="rooms_add_content_description">Agregar en habitaciones</string>
     <string name="rooms_edit_devices">Editar dispositivos</string>
-    <string name="rooms_empty_devices_title">Esta habitación no tiene dispositivos</string>
-    <string name="rooms_empty_devices_description">Agregá dispositivos para empezar a controlarlos desde acá.</string>
+    <string name="rooms_empty_devices_title">Detalle de dispositivos</string>
+    <string name="rooms_empty_devices_description">Cuando agregues dispositivos a esta habitación, aparecerán acá para que puedas verlos y controlarlos.</string>
     <string name="rooms_select_or_create_room_title">Seleccioná o creá una habitación</string>
     <string name="rooms_select_or_create_room_description">Seleccioná o creá una habitación para ver sus dispositivos.</string>
     <string name="rooms_no_room_selected_title">No hay una habitación seleccionada</string>
@@ -416,7 +402,7 @@
     <string name="rooms_device_type_fridge">Heladera</string>
     <string name="rooms_retry">Reintentar</string>
 
-    <!-- Routines -->
+    <string name="routines_edit">Editar</string>
     <string name="routines_header_title">Rutinas Automatizadas</string>
     <string name="routines_header_subtitle">Creá y gestioná rutinas para automatizar tu hogar.</string>
     <string name="routines_filter_label">Filtrar por categoría</string>
@@ -433,14 +419,13 @@
     <string name="routines_favorite_content_description">Marcar como favorita</string>
     <string name="routines_play_content_description">Ejecutar rutina</string>
     <string name="routines_add_content_description">Crear rutina</string>
-    <string name="routines_empty_title">Sin rutinas</string>
+    <string name="routines_empty_title">Sin rutinas todavía</string>
     <string name="routines_empty_description">Todavía no hay rutinas para mostrar.</string>
     <string name="routines_empty_create_first">Crear primera rutina</string>
     <string name="routines_empty_detail_title">Detalle de la rutina</string>
     <string name="routines_empty_detail_description">Cuando selecciones o crees una rutina, acá vas a ver su configuración, horario y acciones.</string>
     <string name="routines_empty_detail_action">Seleccioná o crea una rutina</string>
 
-    <!-- Create routine flow -->
     <string name="create_routine_step_one_label">NUEVA RUTINA · PASO 1 DE 2</string>
     <string name="create_routine_step_two_label">NUEVA RUTINA · PASO 2 DE 2</string>
     <string name="create_routine_details_title">Detalles y programación</string>
@@ -497,7 +482,6 @@
     <string name="create_routine_back_description">Volver</string>
     <string name="create_routine_close_description">Cerrar</string>
 
-    <!-- Routine detail -->
     <string name="routine_detail_title">Detalle de rutina</string>
     <string name="routine_detail_back">Volver</string>
     <string name="routine_detail_more_options">Más opciones</string>
@@ -513,20 +497,16 @@
     <string name="routine_detail_save">Guardar cambios</string>
     <string name="routine_detail_reorder">Reordenar acción</string>
     <string name="action_cancel">Cancelar</string>
-    <!-- Rename dialog -->
     <string name="routine_rename_title">Renombrar rutina</string>
     <string name="routine_rename_label">Nombre de la rutina</string>
     <string name="routine_rename_placeholder">Ej: Buenos días</string>
     <string name="routine_rename_confirm">Guardar</string>
-    <!-- Delete dialog -->
     <string name="routine_delete_title">Eliminar rutina</string>
     <string name="routine_delete_message">¿Seguro que querés eliminar “%1$s”? Esta acción no se puede deshacer.</string>
     <string name="routine_delete_confirm">Eliminar</string>
-    <!-- Schedule dialog -->
     <string name="routine_schedule_title">Editar horario</string>
     <string name="routine_schedule_subtitle">Elegí la hora en la que se ejecuta la rutina.</string>
     <string name="routine_schedule_confirm">Guardar</string>
-    <!-- Days dialog -->
     <string name="routine_days_title">Editar días</string>
     <string name="routine_days_subtitle">Seleccioná los días en los que se repite la rutina.</string>
     <string name="routine_days_confirm">Guardar</string>
@@ -556,8 +536,15 @@
         <item quantity="one">%1$d de %2$d activo</item>
         <item quantity="other">%1$d de %2$d activos</item>
     </plurals>
+    <plurals name="rooms_devices_count">
+        <item quantity="one">%1$d dispositivo</item>
+        <item quantity="other">%1$d dispositivos</item>
+    </plurals>
+    <plurals name="rooms_active_count">
+        <item quantity="one">%1$d activo</item>
+        <item quantity="other">%1$d activos</item>
+    </plurals>
 
-    <!-- Notificaciones -->
     <string name="nav_notifications">Notificaciones</string>
     <string name="notifications_open_content_description">Abrir notificaciones</string>
     <string name="notifications_badge_overflow">9+</string>
@@ -575,7 +562,6 @@
     <string name="notifications_invitation_accept">Aceptar</string>
     <string name="notifications_invitation_reject">Rechazar</string>
 
-    <!-- Categorías de notificaciones -->
     <string name="notifications_category_security">Seguridad</string>
     <string name="notifications_category_security_description">Puertas y alarmas de tu hogar.</string>
     <string name="notifications_category_devices">Dispositivos</string>
@@ -585,7 +571,6 @@
     <string name="notifications_category_home">Hogar</string>
     <string name="notifications_category_home_description">Miembros, invitaciones y novedades del hogar.</string>
 
-    <!-- Configuración de notificaciones -->
     <string name="notification_settings_title">Notificaciones</string>
     <string name="notification_settings_subtitle">Elegí qué notificaciones querés recibir.</string>
     <string name="notification_settings_section_general">General</string>
@@ -599,17 +584,14 @@
     <string name="notification_settings_note">SmartHome nunca te avisa por acciones que vos mismo realizás. Las notificaciones con la app cerrada quedan fuera del alcance de este trabajo (requieren Firebase Cloud Messaging).</string>
     <string name="notification_settings_section_settings_subtitle">Tipos y avisos</string>
 
-    <!-- Mensajes de error de los ViewModels -->
     <string name="error_network">No se pudo conectar con el servidor.</string>
     <string name="error_validation">Revisá los datos ingresados.</string>
     <string name="error_server_generic">El servidor no pudo completar la operación.</string>
     <string name="error_session_expired">Tu sesión expiró. Volvé a iniciar sesión.</string>
     <string name="error_not_found">No se encontró el recurso solicitado.</string>
     <string name="error_unknown">Ocurrió un error inesperado.</string>
-    <!-- Login -->
     <string name="error_login_invalid_credentials">Email o contraseña incorrectos.</string>
     <string name="error_login_server">El servidor no pudo iniciar la sesión.</string>
-    <!-- Registro -->
     <string name="error_name_required">Ingresá tu nombre.</string>
     <string name="error_email_required">Ingresá tu email.</string>
     <string name="error_email_invalid">Ingresá un email válido.</string>
@@ -617,15 +599,12 @@
     <string name="error_passwords_mismatch">Las contraseñas no coinciden.</string>
     <string name="error_register_email_taken">Ese email ya está registrado.</string>
     <string name="error_register_server">El servidor no pudo crear la cuenta.</string>
-    <!-- Verificación / recuperación -->
     <string name="error_invalid_or_expired_code">El código no es válido o ya expiró.</string>
     <string name="error_account_already_verified">La cuenta ya está verificada.</string>
     <string name="error_recover_account_not_found">No encontramos una cuenta con ese email.</string>
-    <!-- Compartir hogar -->
     <string name="error_share_already_shared">La casa ya está compartida con ese usuario.</string>
     <string name="error_share_user_not_found">No existe un usuario con ese email.</string>
     <string name="error_share_generic">No se pudo compartir la casa.</string>
-    <!-- Hogar activo requerido -->
     <string name="routines_no_active_home">Seleccioná un hogar para ver sus rutinas.</string>
     <string name="rooms_no_active_home">Seleccioná un hogar para ver sus habitaciones.</string>
 </resources>

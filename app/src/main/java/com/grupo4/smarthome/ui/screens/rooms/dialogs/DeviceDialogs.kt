@@ -49,6 +49,8 @@ import androidx.compose.ui.window.DialogProperties
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.data.model.Device
 import com.grupo4.smarthome.data.model.DeviceType
+import com.grupo4.smarthome.ui.components.ModalCloseButton
+import com.grupo4.smarthome.ui.components.ModalHeader
 import com.grupo4.smarthome.ui.screens.rooms.PendingDevice
 import com.grupo4.smarthome.ui.screens.rooms.components.deviceTypeIcon
 import com.grupo4.smarthome.ui.screens.rooms.components.deviceTypeLabel
@@ -87,7 +89,7 @@ fun AddDevicesToRoomDialog(
             shadowElevation = 8.dp,
         ) {
             Column {
-                AddDevicesHeader(step = step, roomName = roomName)
+                AddDevicesHeader(step = step, roomName = roomName, onDismiss = onDismiss)
                 Column(
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(18.dp),
@@ -178,10 +180,11 @@ fun EditDeviceDialog(
             shadowElevation = 8.dp,
         ) {
             Column {
-                DeviceDialogHeader(
+                ModalHeader(
                     icon = deviceTypeIcon(device.type),
                     title = stringResource(R.string.rooms_dialog_edit_device_title),
                     subtitle = stringResource(R.string.rooms_dialog_edit_device_subtitle),
+                    onDismiss = onDismiss,
                 )
                 Column(
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 20.dp),
@@ -236,7 +239,8 @@ fun DeleteDeviceDialog(
             color = MaterialTheme.colorScheme.surface,
             shadowElevation = 8.dp,
         ) {
-            Column(modifier = Modifier.padding(24.dp)) {
+            Box {
+              Column(modifier = Modifier.padding(24.dp)) {
                 Box(
                     modifier = Modifier
                         .size(54.dp)
@@ -285,6 +289,11 @@ fun DeleteDeviceDialog(
                         Text(text = stringResource(R.string.rooms_delete), fontWeight = FontWeight.Bold)
                     }
                 }
+              }
+              ModalCloseButton(
+                  onDismiss = onDismiss,
+                  modifier = Modifier.align(Alignment.TopEnd).padding(8.dp),
+              )
             }
         }
     }
@@ -294,62 +303,25 @@ fun DeleteDeviceDialog(
 private fun AddDevicesHeader(
     step: Int,
     roomName: String,
+    onDismiss: () -> Unit,
 ) {
-    val title = stringResource(
-        if (step == 1) R.string.rooms_add_devices_step_one_title
-        else R.string.rooms_add_devices_step_two_title,
+    ModalHeader(
+        icon = SmartHomeIcons.Devices,
+        eyebrow = stringResource(
+            if (step == 1) R.string.rooms_add_devices_step_one_label
+            else R.string.rooms_add_devices_step_two_label,
+        ),
+        title = stringResource(
+            if (step == 1) R.string.rooms_add_devices_step_one_title
+            else R.string.rooms_add_devices_step_two_title,
+        ),
+        subtitle = if (step == 1) {
+            stringResource(R.string.rooms_add_devices_step_one_subtitle, roomName)
+        } else {
+            stringResource(R.string.rooms_add_devices_step_two_subtitle)
+        },
+        onDismiss = onDismiss,
     )
-    val subtitle = if (step == 1) {
-        stringResource(R.string.rooms_add_devices_step_one_subtitle, roomName)
-    } else {
-        stringResource(R.string.rooms_add_devices_step_two_subtitle)
-    }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primaryContainer)
-            .padding(22.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
-    ) {
-        Box(
-            modifier = Modifier
-                .size(52.dp)
-                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(14.dp)),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = SmartHomeIcons.Devices,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-            )
-        }
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = stringResource(
-                    if (step == 1) R.string.rooms_add_devices_step_one_label
-                    else R.string.rooms_add_devices_step_two_label,
-                ),
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
 }
 
 @Composable
@@ -775,49 +747,6 @@ private fun AddDevicesFooter(
                     softWrap = false,
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun DeviceDialogHeader(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    subtitle: String,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primaryContainer)
-            .padding(22.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
-    ) {
-        Box(
-            modifier = Modifier
-                .size(52.dp)
-                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(14.dp)),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-            )
-        }
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
     }
 }

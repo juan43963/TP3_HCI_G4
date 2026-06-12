@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.components.NotificationsBellButton
 import com.grupo4.smarthome.ui.screens.dashboard.components.DashboardAvatarButton
+import com.grupo4.smarthome.ui.screens.dashboard.components.HomeSelector
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
 @Composable
@@ -37,12 +38,22 @@ fun RoomsTopBar(
     modifier: Modifier = Modifier,
     onNotificationsClick: (() -> Unit)? = null,
     notificationCount: Int = 0,
+    showHomeSelector: Boolean = false,
+    onHomeSelectorClick: () -> Unit = {},
+    useCompactHomeMenu: Boolean = false,
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        if (showHomeSelector) {
+            HomeSelector(
+                homeName = "",
+                onClick = onHomeSelectorClick,
+                useCompactMenu = useCompactHomeMenu,
+            )
+        }
         RoomsSearchField(
             query = searchQuery,
             onQueryChange = onSearchChange,

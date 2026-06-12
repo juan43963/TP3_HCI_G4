@@ -11,17 +11,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import com.grupo4.smarthome.R
 
+enum class SmartHomeWordmarkSize { Compact, Regular, Large }
 
 @Composable
 fun SmartHomeWordmark(
     modifier: Modifier = Modifier,
     compact: Boolean = false,
+    size: SmartHomeWordmarkSize = if (compact) SmartHomeWordmarkSize.Compact else SmartHomeWordmarkSize.Regular,
     horizontalArrangement: Arrangement.Horizontal = Arrangement.Center,
 ) {
-    val textStyle = if (compact) {
-        MaterialTheme.typography.titleMedium
-    } else {
-        MaterialTheme.typography.titleLarge
+    val textStyle = when (size) {
+        SmartHomeWordmarkSize.Compact -> MaterialTheme.typography.titleMedium
+        SmartHomeWordmarkSize.Regular -> MaterialTheme.typography.titleLarge
+        SmartHomeWordmarkSize.Large -> MaterialTheme.typography.headlineSmall
     }
     Row(
         verticalAlignment = Alignment.CenterVertically,

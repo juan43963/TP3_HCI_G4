@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.data.model.Room
 import com.grupo4.smarthome.data.model.RoomType
+import com.grupo4.smarthome.ui.components.SectionEditIconButton
 import com.grupo4.smarthome.ui.theme.BorderDefault
 import com.grupo4.smarthome.ui.theme.BrandIndigoDark
 import com.grupo4.smarthome.ui.theme.StarActive
@@ -63,13 +64,12 @@ fun RoomsHeader(
     onCreateRoomClick: () -> Unit,
     onEditRoomsToggle: () -> Unit,
     modifier: Modifier = Modifier,
+    showEditButton: Boolean = true,
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
-        // Acciones compactas (Editar como icon button) cuando el header es angosto.
         val compactActions = maxWidth < 760.dp
 
         Column(modifier = Modifier.fillMaxWidth()) {
-            // Fila 1: título a la izquierda, acciones a la derecha (misma fila).
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -84,17 +84,16 @@ fun RoomsHeader(
                     compact = compactActions,
                     onCreateRoomClick = onCreateRoomClick,
                     onEditRoomsToggle = onEditRoomsToggle,
+                    showEditButton = showEditButton,
                 )
             }
 
-            // Fila 2: subtítulo.
             Spacer(modifier = Modifier.height(10.dp))
             Text(
                 text = stringResource(R.string.rooms_header_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            // Fila 3: métricas compactas.
             Spacer(modifier = Modifier.height(12.dp))
             RoomsSummaryMetrics(
                 totalActiveDevices = totalActiveDevices,
@@ -126,8 +125,6 @@ fun RoomsSummaryMetrics(
     activeRoomsCount: Int,
     modifier: Modifier = Modifier,
 ) {
-    // Métricas inline (ícono + texto), sin fondo ni borde, para que no se
-    // confundan con los chips de filtro por categoría.
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -189,6 +186,7 @@ private fun RoomsHeaderActions(
     onCreateRoomClick: () -> Unit,
     onEditRoomsToggle: () -> Unit,
     modifier: Modifier = Modifier,
+    showEditButton: Boolean = true,
 ) {
     Row(
         modifier = modifier,
@@ -202,32 +200,34 @@ private fun RoomsHeaderActions(
                 else -> R.string.rooms_edit_rooms
             },
         )
-        if (compact) {
-            RoomsEditIconButton(
-                onClick = onEditRoomsToggle,
-                contentDescription = editLabel,
-            )
-        } else {
-            OutlinedButton(
-                onClick = onEditRoomsToggle,
-                modifier = Modifier.height(48.dp),
-                shape = RoundedCornerShape(10.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
-                contentPadding = ButtonDefaults.compactContentPadding(false),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.primary,
-                ),
-            ) {
-                Icon(
-                    imageVector = com.grupo4.smarthome.ui.theme.SmartHomeIcons.Edit,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
+        if (showEditButton) {
+            if (compact) {
+                RoomsEditIconButton(
+                    onClick = onEditRoomsToggle,
+                    contentDescription = editLabel,
                 )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = editLabel,
-                    fontWeight = FontWeight.Bold,
-                )
+            } else {
+                OutlinedButton(
+                    onClick = onEditRoomsToggle,
+                    modifier = Modifier.height(48.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+                    contentPadding = ButtonDefaults.compactContentPadding(false),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary,
+                    ),
+                ) {
+                    Icon(
+                        imageVector = com.grupo4.smarthome.ui.theme.SmartHomeIcons.Edit,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = editLabel,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
             }
         }
         Button(
@@ -262,11 +262,6 @@ private fun ButtonDefaults.compactContentPadding(compact: Boolean) =
         vertical = 0.dp,
     )
 
-/**
- * Botón de editar como solo icono (lápiz) con fondo lila suave, reutilizado en
- * el header de Rooms y en el header de detalle de habitación para mantener la
- * misma acción secundaria liviana en toda la vista.
- */
 @Composable
 fun RoomsEditIconButton(
     onClick: () -> Unit,
@@ -274,21 +269,12 @@ fun RoomsEditIconButton(
     modifier: Modifier = Modifier,
     size: Dp = 40.dp,
 ) {
-    FilledTonalIconButton(
+    SectionEditIconButton(
         onClick = onClick,
-        modifier = modifier.size(size),
-        shape = RoundedCornerShape(10.dp),
-        colors = IconButtonDefaults.filledTonalIconButtonColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
-            contentColor = MaterialTheme.colorScheme.primary,
-        ),
-    ) {
-        Icon(
-            imageVector = com.grupo4.smarthome.ui.theme.SmartHomeIcons.Edit,
-            contentDescription = contentDescription,
-            modifier = Modifier.size(18.dp),
-        )
-    }
+        contentDescription = contentDescription,
+        modifier = modifier,
+        size = size,
+    )
 }
 
 @Composable
@@ -300,30 +286,44 @@ fun RoomsFilterChips(
     modifier: Modifier = Modifier,
     compact: Boolean = false,
     showCounts: Boolean = true,
+    showCategoryLabel: Boolean = false,
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(if (compact) 8.dp else 12.dp),
-    ) {
-        RoomsFilterChip(
-            label = stringResource(R.string.rooms_filter_all),
-            count = totalRooms,
-            selected = selectedRoomType == null,
-            onClick = { onFilterSelected(null) },
-            compact = compact,
-            showCount = showCounts,
-        )
-        RoomType.entries.forEach { type ->
+    Column(modifier = modifier) {
+        if (showCategoryLabel) {
+            Text(
+                text = stringResource(R.string.routines_filter_label),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(if (compact) 8.dp else 12.dp),
+        ) {
             RoomsFilterChip(
-                label = roomTypeLabel(type),
-                count = filterCounts[type] ?: 0,
-                selected = selectedRoomType == type,
-                onClick = { onFilterSelected(type) },
+                label = stringResource(R.string.rooms_filter_all),
+                count = totalRooms,
+                selected = selectedRoomType == null,
+                onClick = { onFilterSelected(null) },
                 compact = compact,
                 showCount = showCounts,
             )
+            RoomType.entries
+                .filter { (filterCounts[it] ?: 0) > 0 || it == selectedRoomType }
+                .forEach { type ->
+                    RoomsFilterChip(
+                        label = roomTypeLabel(type),
+                        count = filterCounts[type] ?: 0,
+                        selected = selectedRoomType == type,
+                        onClick = { onFilterSelected(type) },
+                        compact = compact,
+                        showCount = showCounts,
+                    )
+                }
         }
     }
 }
@@ -456,10 +456,9 @@ fun RoomCard(
                     room = room,
                     onToggleFavorite = onToggleFavorite,
                 )
-                RoomDevicesProgress(
-                    activeDevices = room.devicesActive,
+                RoomCompactMetrics(
                     totalDevices = room.devicesTotal,
-                    isCompact = true,
+                    activeDevices = room.devicesActive,
                 )
             } else {
                 Row(
@@ -582,6 +581,55 @@ private fun RoomCardCompactContent(
             isFavorite = room.isFavorite,
             compact = true,
             onToggleFavorite = onToggleFavorite,
+            buttonSize = 44.dp,
+            iconSize = 26.dp,
+        )
+    }
+}
+
+@Composable
+private fun RoomCompactMetrics(
+    totalDevices: Int,
+    activeDevices: Int,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(18.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        RoomCompactMetric(
+            icon = com.grupo4.smarthome.ui.theme.SmartHomeIcons.Devices,
+            text = pluralStringResource(R.plurals.rooms_devices_count, totalDevices, totalDevices),
+        )
+        RoomCompactMetric(
+            icon = com.grupo4.smarthome.ui.theme.SmartHomeIcons.Active,
+            text = pluralStringResource(R.plurals.rooms_active_count, activeDevices, activeDevices),
+        )
+    }
+}
+
+@Composable
+private fun RoomCompactMetric(
+    icon: ImageVector,
+    text: String,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(16.dp),
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }
@@ -614,8 +662,10 @@ private fun RoomFavoriteButton(
     isFavorite: Boolean,
     compact: Boolean,
     onToggleFavorite: () -> Unit,
+    buttonSize: Dp = if (compact) 32.dp else 34.dp,
+    iconSize: Dp = if (compact) 20.dp else 24.dp,
 ) {
-    IconButton(onClick = onToggleFavorite, modifier = Modifier.size(if (compact) 32.dp else 34.dp)) {
+    IconButton(onClick = onToggleFavorite, modifier = Modifier.size(buttonSize)) {
         Icon(
             imageVector = if (isFavorite) {
                 com.grupo4.smarthome.ui.theme.SmartHomeIcons.Favorite
@@ -624,7 +674,7 @@ private fun RoomFavoriteButton(
             },
             contentDescription = stringResource(R.string.rooms_favorite_content_description),
             tint = if (isFavorite) StarActive else MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(if (compact) 20.dp else 24.dp),
+            modifier = Modifier.size(iconSize),
         )
     }
 }
@@ -660,50 +710,6 @@ private fun RoomCardCopy(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-        }
-    }
-}
-
-/**
- * Estado de dispositivos activos integrado en la card: texto con contexto
- * ("3 de 4 activos" / "Sin dispositivos vinculados") y una mini barra de
- * progreso sutil. Reemplaza al badge "4/4" en la variante compacta.
- */
-@Composable
-fun RoomDevicesProgress(
-    activeDevices: Int,
-    totalDevices: Int,
-    isCompact: Boolean,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(5.dp),
-    ) {
-        RoomDevicesSummaryText(
-            activeDevices = activeDevices,
-            totalDevices = totalDevices,
-        )
-        if (totalDevices > 0) {
-            val progress = (activeDevices.toFloat() / totalDevices.toFloat()).coerceIn(0f, 1f)
-            // Barra fina y discreta: sin gradiente, color violeta apagado.
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(3.dp)
-                    .clip(RoundedCornerShape(999.dp))
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)),
-            ) {
-                if (progress > 0f) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(progress)
-                            .fillMaxHeight()
-                            .clip(RoundedCornerShape(999.dp))
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)),
-                    )
-                }
-            }
         }
     }
 }

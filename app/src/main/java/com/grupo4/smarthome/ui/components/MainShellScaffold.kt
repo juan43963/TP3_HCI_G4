@@ -13,10 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
-/**
- * Standard layout for main app screens (Dashboard, SelectHome, Rooms, Routines, Profile…).
- * Pulls the burger handler from [LocalOpenDrawer] (provided by `SmartHomeApp`).
- */
 @Composable
 fun MainShellScaffold(
     title: String?,
@@ -25,6 +21,7 @@ fun MainShellScaffold(
     modifier: Modifier = Modifier,
     onNotificationsClick: (() -> Unit)? = null,
     notificationCount: Int = 0,
+    onBackClick: (() -> Unit)? = null,
     floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
 ) {
@@ -45,6 +42,7 @@ fun MainShellScaffold(
                 onProfileClick = onProfileClick,
                 onNotificationsClick = onNotificationsClick,
                 notificationCount = notificationCount,
+                onBackClick = onBackClick,
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(background)

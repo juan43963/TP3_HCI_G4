@@ -39,6 +39,7 @@ fun DashboardTopBar(
     modifier: Modifier = Modifier,
     onNotificationsClick: (() -> Unit)? = null,
     notificationCount: Int = 0,
+    useCompactHomeMenu: Boolean = false,
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
         val compact = maxWidth < 560.dp
@@ -53,6 +54,7 @@ fun DashboardTopBar(
                     HomeSelector(
                         homeName = selectedHomeName,
                         onClick = onHomeSelectorClick,
+                        useCompactMenu = useCompactHomeMenu,
                         modifier = Modifier.weight(1f),
                     )
                     if (onNotificationsClick != null) {
@@ -77,6 +79,7 @@ fun DashboardTopBar(
                 HomeSelector(
                     homeName = selectedHomeName,
                     onClick = onHomeSelectorClick,
+                    useCompactMenu = useCompactHomeMenu,
                 )
                 DashboardSearchBar(
                     onClick = onSearchClick,

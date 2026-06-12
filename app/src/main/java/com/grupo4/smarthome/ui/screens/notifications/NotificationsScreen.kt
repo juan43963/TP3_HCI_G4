@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.components.MainShellScaffold
 import com.grupo4.smarthome.ui.components.TabletMainSidebar
+import com.grupo4.smarthome.ui.util.isPhoneLandscape
 import com.grupo4.smarthome.ui.components.TabletSidebarDestination
 import com.grupo4.smarthome.ui.screens.dashboard.components.DashboardTopBar
 import com.grupo4.smarthome.ui.screens.dashboard.layout.DashboardScaffold
@@ -60,7 +61,7 @@ fun NotificationsScreen(
     onNavigateRooms: () -> Unit = {},
     onNavigateHistory: () -> Unit = {},
     onHomeSelectorClick: () -> Unit = {},
-    onQuickAddClick: () -> Unit = {},
+    onBack: () -> Unit = {},
     selectedHomeName: String = "Casa Principal",
     modifier: Modifier = Modifier,
 ) {
@@ -71,18 +72,18 @@ fun NotificationsScreen(
     if (isTablet) {
         BoxWithConstraints(modifier = modifier.fillMaxSize()) {
             val portraitLike = maxWidth < 900.dp
+            val railCompact = portraitLike || isPhoneLandscape(maxWidth, maxHeight)
             val contentPadding = if (portraitLike) 24.dp else 32.dp
 
             DashboardScaffold(
                 sidebar = {
                     TabletMainSidebar(
                         selectedDestination = TabletSidebarDestination.Notifications,
-                        compact = portraitLike,
+                        compact = railCompact,
                         onNavigateHome = onNavigateHome,
                         onNavigateRoutines = onNavigateRoutines,
                         onNavigateRooms = onNavigateRooms,
                         onNavigateHistory = onNavigateHistory,
-                        onAddClick = onQuickAddClick,
                     )
                 },
                 topBar = {
@@ -91,6 +92,7 @@ fun NotificationsScreen(
                         onHomeSelectorClick = onHomeSelectorClick,
                         onSearchClick = onSearchClick,
                         onProfileClick = onProfileClick,
+                        useCompactHomeMenu = true,
                         modifier = Modifier.padding(
                             start = contentPadding,
                             top = 24.dp,
@@ -120,9 +122,10 @@ fun NotificationsScreen(
         }
     } else {
         MainShellScaffold(
-            title = null,
+            title = stringResource(R.string.notifications_title),
             onSearchClick = onSearchClick,
             onProfileClick = onProfileClick,
+            onBackClick = onBack,
             modifier = modifier,
         ) { innerPadding ->
             NotificationsFeed(
@@ -132,6 +135,7 @@ fun NotificationsScreen(
                 onMarkAllRead = onMarkAllRead,
                 onAcceptInvitation = onAcceptInvitation,
                 onRejectInvitation = onRejectInvitation,
+                showHeaderTitle = false,
                 contentPadding = PaddingValues(
                     start = 16.dp,
                     end = 16.dp,
@@ -153,6 +157,7 @@ private fun NotificationsFeed(
     onAcceptInvitation: (String) -> Unit,
     onRejectInvitation: (String) -> Unit,
     contentPadding: PaddingValues,
+    showHeaderTitle: Boolean = true,
     modifier: Modifier = Modifier,
     itemModifier: Modifier = Modifier,
 ) {
@@ -170,6 +175,7 @@ private fun NotificationsFeed(
             NotificationsHeader(
                 hasUnread = unread.isNotEmpty(),
                 onMarkAllRead = onMarkAllRead,
+                showTitle = showHeaderTitle,
                 modifier = itemModifier,
             )
         }
@@ -210,14 +216,17 @@ private fun NotificationsHeader(
     hasUnread: Boolean,
     onMarkAllRead: () -> Unit,
     modifier: Modifier = Modifier,
+    showTitle: Boolean = true,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
-        Text(
-            text = stringResource(R.string.notifications_title),
-            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Spacer(modifier = Modifier.height(4.dp))
+        if (showTitle) {
+            Text(
+                text = stringResource(R.string.notifications_title),
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+        }
         Text(
             text = stringResource(R.string.notifications_subtitle),
             style = MaterialTheme.typography.bodyMedium,

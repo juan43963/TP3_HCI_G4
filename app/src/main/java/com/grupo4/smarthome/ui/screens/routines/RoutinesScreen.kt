@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -49,6 +50,8 @@ import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.components.MainShellScaffold
 import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneQuickAddFab
+import com.grupo4.smarthome.ui.screens.rooms.components.RoomsSelectedChipBorder
+import com.grupo4.smarthome.ui.screens.rooms.components.RoomsSelectedChipContainer
 import com.grupo4.smarthome.ui.theme.BrandIndigoDark
 import com.grupo4.smarthome.ui.theme.RoutineDay
 import com.grupo4.smarthome.ui.theme.RoutinePlay
@@ -56,11 +59,8 @@ import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 import com.grupo4.smarthome.ui.theme.StarActive
 
-/** Active day chips — vivid violet, distinct from the play button. */
 private val DayActiveColor = RoutineDay
-/** Play button — deep indigo (the main action). */
 private val PlayColor = RoutinePlay
-/** Selected filter chip — keeps the brand indigo so it reads apart from play/days. */
 private val FilterSelectedColor = BrandIndigoDark
 
 enum class RoutineCategory(val labelRes: Int, val icon: ImageVector) {
@@ -78,7 +78,6 @@ data class RoutineUi(
     val time: String,
     val actions: List<String>,
     val extraActions: Int,
-    /** 7 flags, Monday-first (L M M J V S D). */
     val days: List<Boolean>,
     val favorite: Boolean,
 )
@@ -92,10 +91,12 @@ fun RoutinesScreen(
     onRoutineClick: (String) -> Unit = {},
     onCreateRoom: () -> Unit = {},
     onCreateDevice: () -> Unit = {},
+    onQuickAddClick: () -> Unit = onAddRoutine,
     showQuickAddFab: Boolean = true,
     isTablet: Boolean = false,
     onNavigateHome: () -> Unit = {},
     onNavigateRooms: () -> Unit = {},
+    onNavigateHistory: () -> Unit = {},
     routines: List<RoutineUi> = sampleRoutines,
     isLoading: Boolean = false,
     errorMessage: String? = null,
@@ -117,6 +118,7 @@ fun RoutinesScreen(
             onCreateDevice = onCreateDevice,
             onNavigateHome = onNavigateHome,
             onNavigateRooms = onNavigateRooms,
+            onNavigateHistory = onNavigateHistory,
             onRoutineClick = onRoutineClick,
             onExecuteRoutine = onExecuteRoutine,
             onSaveRoutine = onSaveRoutine,
@@ -126,6 +128,7 @@ fun RoutinesScreen(
             infoMessage = infoMessage,
             onDismissError = onDismissError,
             onDismissInfo = onDismissInfo,
+            onQuickAddClick = onQuickAddClick,
         )
         return
     }
@@ -154,13 +157,11 @@ fun RoutinesScreen(
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
             when {
-                // Carga inicial sin contenido todavía: loader simple
                 routines.isEmpty() && isLoading -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     }
                 }
-                // Sin contenido + error: estado accionable con reintentar
                 routines.isEmpty() && errorMessage != null -> {
                     RoutinesErrorState(message = errorMessage, onRetry = onRetry)
                 }
@@ -221,7 +222,6 @@ fun RoutinesScreen(
                 }
             }
 
-            // Feedback no bloqueante (ejecución / errores en mutaciones con contenido visible)
             val snackbarHostState = remember { SnackbarHostState() }
             val executedTemplate = stringResource(R.string.routines_executed)
             LaunchedEffect(errorMessage) {
@@ -302,37 +302,51 @@ internal fun CategoryFilter(
     routines: List<RoutineUi>,
     selectedCategory: RoutineCategory?,
     onCategorySelected: (RoutineCategory?) -> Unit,
+    roomsStyle: Boolean = false,
 ) {
     val presentCategories = remember(routines) {
         RoutineCategory.entries.filter { cat -> routines.any { it.category == cat } }
     }
-    Column {
-        Text(
-            text = stringResource(R.string.routines_filter_label),
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            FilterChip(
-                label = stringResource(R.string.routines_filter_all),
-                count = routines.size,
-                selected = selectedCategory == null,
-                onClick = { onCategorySelected(null) },
+    BoxWithConstraints {
+        val compact = roomsStyle && maxWidth < 760.dp
+        Column {
+            Text(
+                text = stringResource(R.string.routines_filter_label),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            presentCategories.forEach { category ->
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(
+                    when {
+                        !roomsStyle -> 10.dp
+                        compact -> 8.dp
+                        else -> 12.dp
+                    },
+                ),
+            ) {
                 FilterChip(
-                    label = stringResource(category.labelRes),
-                    count = routines.count { it.category == category },
-                    selected = selectedCategory == category,
-                    onClick = { onCategorySelected(category) },
+                    label = stringResource(R.string.routines_filter_all),
+                    count = routines.size,
+                    selected = selectedCategory == null,
+                    onClick = { onCategorySelected(null) },
+                    roomsStyle = roomsStyle,
+                    compact = compact,
                 )
+                presentCategories.forEach { category ->
+                    FilterChip(
+                        label = stringResource(category.labelRes),
+                        count = routines.count { it.category == category },
+                        selected = selectedCategory == category,
+                        onClick = { onCategorySelected(category) },
+                        roomsStyle = roomsStyle,
+                        compact = compact,
+                    )
+                }
             }
         }
     }
@@ -344,7 +358,20 @@ private fun FilterChip(
     count: Int,
     selected: Boolean,
     onClick: () -> Unit,
+    roomsStyle: Boolean = false,
+    compact: Boolean = false,
 ) {
+    if (roomsStyle) {
+        RoomsStyleFilterChip(
+            label = label,
+            count = count,
+            selected = selected,
+            onClick = onClick,
+            compact = compact,
+        )
+        return
+    }
+
     val containerColor = if (selected) FilterSelectedColor else MaterialTheme.colorScheme.surface
     val contentColor = if (selected) Color.White else MaterialTheme.colorScheme.onSurface
 
@@ -389,6 +416,68 @@ private fun FilterChip(
 }
 
 @Composable
+private fun RoomsStyleFilterChip(
+    label: String,
+    count: Int,
+    selected: Boolean,
+    onClick: () -> Unit,
+    compact: Boolean = false,
+) {
+    val containerColor = if (selected) RoomsSelectedChipContainer else MaterialTheme.colorScheme.surface
+    val contentColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+
+    Surface(
+        modifier = Modifier
+            .height(if (compact) 36.dp else 44.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(999.dp),
+        color = containerColor,
+        border = if (selected) {
+            BorderStroke(1.dp, RoomsSelectedChipBorder)
+        } else {
+            BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+        },
+        shadowElevation = if (selected || compact) 0.dp else 1.dp,
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = if (compact) 12.dp else 18.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(if (compact) 6.dp else 8.dp),
+        ) {
+            Text(
+                text = label,
+                style = if (compact) {
+                    MaterialTheme.typography.labelMedium
+                } else {
+                    MaterialTheme.typography.labelLarge
+                },
+                fontWeight = FontWeight.SemiBold,
+                color = contentColor,
+            )
+            Box(
+                modifier = Modifier
+                    .background(
+                        color = if (selected) {
+                            MaterialTheme.colorScheme.surface
+                        } else {
+                            MaterialTheme.colorScheme.surfaceVariant
+                        },
+                        shape = CircleShape,
+                    )
+                    .padding(horizontal = if (compact) 6.dp else 8.dp, vertical = 2.dp),
+            ) {
+                Text(
+                    text = count.toString(),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = contentColor,
+                )
+            }
+        }
+    }
+}
+
+@Composable
 internal fun RoutineCard(routine: RoutineUi, onClick: () -> Unit = {}, onExecute: () -> Unit = {}) {
     Surface(
         modifier = Modifier
@@ -400,7 +489,6 @@ internal fun RoutineCard(routine: RoutineUi, onClick: () -> Unit = {}, onExecute
         shadowElevation = 1.dp,
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Header: icon + title/category + favorite star
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -441,7 +529,6 @@ internal fun RoutineCard(routine: RoutineUi, onClick: () -> Unit = {}, onExecute
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Time
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -462,7 +549,6 @@ internal fun RoutineCard(routine: RoutineUi, onClick: () -> Unit = {}, onExecute
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Actions
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 routine.actions.forEach { action ->
                     Row(
@@ -494,7 +580,6 @@ internal fun RoutineCard(routine: RoutineUi, onClick: () -> Unit = {}, onExecute
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Days + play
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,

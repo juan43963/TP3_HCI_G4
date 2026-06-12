@@ -69,6 +69,7 @@ fun ProfileScreen(
     themePreference: ThemePreference = ThemePreference.SYSTEM,
     onThemePreferenceChange: (ThemePreference) -> Unit = {},
     onChangePassword: () -> Unit = {},
+    onLogout: () -> Unit = {},
     onProfileAvatarClick: () -> Unit = {},
     onOpenNotificationSettings: () -> Unit = {},
     notificationPreferences: NotificationPreferences = NotificationPreferences(),
@@ -76,6 +77,7 @@ fun ProfileScreen(
     onNotificationsClick: () -> Unit = {},
     unreadNotificationCount: Int = 0,
     enteredFromHome: Boolean = false,
+    onBack: () -> Unit = {},
     onNavigateHome: () -> Unit = {},
     onNavigateRooms: () -> Unit = {},
     onNavigateRoutines: () -> Unit = {},
@@ -92,6 +94,7 @@ fun ProfileScreen(
             themePreference = themePreference,
             onThemePreferenceChange = onThemePreferenceChange,
             onChangePassword = onChangePassword,
+            onLogout = onLogout,
             onProfileAvatarClick = onProfileAvatarClick,
             notificationPreferences = notificationPreferences,
             onNotificationPreferencesChange = onNotificationPreferencesChange,
@@ -115,10 +118,12 @@ fun ProfileScreen(
         themePreference = themePreference,
         onThemePreferenceChange = onThemePreferenceChange,
         onChangePassword = onChangePassword,
+        onLogout = onLogout,
         onProfileAvatarClick = onProfileAvatarClick,
         onOpenNotificationSettings = onOpenNotificationSettings,
         onNotificationsClick = onNotificationsClick,
         unreadNotificationCount = unreadNotificationCount,
+        onBack = onBack,
         modifier = modifier,
     )
 }
@@ -133,9 +138,11 @@ private fun PhoneProfileLayout(
     onProfileAvatarClick: () -> Unit,
     isSavingName: Boolean = false,
     onSaveName: (String) -> Unit = {},
+    onLogout: () -> Unit = {},
     onOpenNotificationSettings: () -> Unit = {},
     onNotificationsClick: () -> Unit = {},
     unreadNotificationCount: Int = 0,
+    onBack: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     MainShellScaffold(
@@ -144,6 +151,7 @@ private fun PhoneProfileLayout(
         onProfileClick = onProfileAvatarClick,
         onNotificationsClick = onNotificationsClick,
         notificationCount = unreadNotificationCount,
+        onBackClick = onBack,
         modifier = modifier,
     ) { innerPadding ->
         Column(
@@ -168,7 +176,51 @@ private fun PhoneProfileLayout(
                 themePreference = themePreference,
                 onThemePreferenceChange = onThemePreferenceChange,
             )
+            AccountSection(onLogout = onLogout)
             Spacer(modifier = Modifier.height(20.dp))
+        }
+    }
+}
+
+@Composable
+internal fun AccountSection(onLogout: () -> Unit) {
+    SectionCard(title = stringResource(R.string.settings_section_account)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .clickable(onClick = onLogout)
+                .padding(vertical = 12.dp, horizontal = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.errorContainer),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = SmartHomeIcons.Logout,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.dashboard_logout),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.error,
+                )
+                Text(
+                    text = stringResource(R.string.settings_logout_description),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }
@@ -231,7 +283,6 @@ private fun ProfileSection(
     var editing by rememberSaveable { mutableStateOf(false) }
     var draftName by rememberSaveable(userName) { mutableStateOf(userName) }
 
-    // Cerramos el editor cuando el guardado terminó y el estado ya refleja el nombre nuevo
     LaunchedEffect(isSavingName) {
         if (!isSavingName && editing && draftName.trim() == userName.trim()) {
             editing = false

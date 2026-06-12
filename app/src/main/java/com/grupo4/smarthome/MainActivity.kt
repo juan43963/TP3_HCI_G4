@@ -67,6 +67,8 @@ import com.grupo4.smarthome.ui.auth.verify.VerifyAccountViewModelFactory
 import com.grupo4.smarthome.ui.auth.welcome.WelcomeScreen
 import com.grupo4.smarthome.ui.auth.welcome.WelcomeScreenTablet
 import com.grupo4.smarthome.ui.components.AppDrawerOverlay
+import com.grupo4.smarthome.ui.components.HomeSwitcherState
+import com.grupo4.smarthome.ui.components.LocalHomeSwitcher
 import com.grupo4.smarthome.ui.components.LocalOpenDrawer
 import com.grupo4.smarthome.ui.components.QuickActionsOverlay
 import com.grupo4.smarthome.ui.navigation.AuthScreen
@@ -119,7 +121,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
-        // Mantener el splash hasta resolver si hay sesión guardada o no
         val sessionManager = (application as SmartHomeApplication).appContainer.sessionManager
         splashScreen.setKeepOnScreenCondition {
             sessionManager.sessionState.value is SessionState.Loading
@@ -143,8 +144,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// Sentinela para `selectedHomeId`: marca que la preferencia de casa activa todavía no se cargó
-// desde DataStore (distinto de `null` = no hay casa seleccionada).
 private const val LOADING_HOME_ID = " __loading_home__"
 
 @Composable
@@ -159,29 +158,21 @@ fun SmartHomeApp(
     val currentDestination = navBackStackEntry?.destination
     val currentRoute = currentDestination?.route
     val currentBaseRoute = currentRoute?.substringBefore('?')
-    val isSelectHomeRoute = currentBaseRoute == Screen.SELECT_HOME_ROUTE
-    val isRoutineDetailRoute = currentBaseRoute?.startsWith(Screen.ROUTINE_DETAIL_ROUTE) == true
-    val isChangePasswordRoute = currentBaseRoute == Screen.CHANGE_PASSWORD_ROUTE
     val isMainRoute = currentBaseRoute != null && currentBaseRoute !in AuthScreen.routes
 
     var isDrawerVisible by remember(currentBaseRoute) { mutableStateOf(false) }
     var showAddHome by rememberSaveable { mutableStateOf(false) }
 
-    // ViewModel de casas a nivel Activity: lo comparten SelectHome y el AddHomeOverlay (fuera del NavHost)
     val homesApplication = LocalContext.current.applicationContext as SmartHomeApplication
 
-    // La pantalla de arranque depende de si hay sesión guardada; mientras carga no componemos nada
     val sessionState by homesApplication.appContainer.sessionManager.sessionState
         .collectAsStateWithLifecycle()
 
-    // Casa seleccionada persistida (DataStore). El sentinela distingue "todavía no cargó la
-    // preferencia" de "no hay casa seleccionada" (null), para elegir bien el destino inicial.
     val loadingHomeId = LOADING_HOME_ID
     val storedHomeId by homesApplication.appContainer.preferencesDataStore.selectedHomeId
         .collectAsStateWithLifecycle(initialValue = loadingHomeId)
     val hasSelectedHome = storedHomeId != loadingHomeId && !storedHomeId.isNullOrBlank()
 
-    // Esperamos a resolver sesión y, si está autenticado, también la preferencia de casa activa.
     if (sessionState is SessionState.Loading ||
         (sessionState is SessionState.Authenticated && storedHomeId == loadingHomeId)
     ) {
@@ -189,7 +180,6 @@ fun SmartHomeApp(
         return
     }
     val startDestination = when {
-        // Si ya hay una casa seleccionada, entramos directo al dashboard (no a la gestión de hogares)
         sessionState is SessionState.Authenticated && hasSelectedHome -> Screen.Home.route
         sessionState is SessionState.Authenticated -> Screen.SELECT_HOME_ROUTE
         else -> AuthScreen.Welcome.route
@@ -224,7 +214,6 @@ fun SmartHomeApp(
         roomsViewModel.onHomeChanged(selectHomeUiState.activeHomeId)
     }
 
-    // ViewModel de rutinas a nivel Activity: lo comparten lista, detalle y overlays de creación
     val routinesViewModel: RoutinesViewModel = viewModel(
         factory = remember(homesApplication) {
             RoutinesViewModelFactory(
@@ -308,7 +297,13 @@ fun SmartHomeApp(
     }
     val closeDrawer: () -> Unit = { isDrawerVisible = false }
 
-    // Estado de notificaciones in-app (badge en la campana + centro de notificaciones).
+    val performLogout: () -> Unit = {
+        logoutScope.launch { authRepository.logout() }
+        navController.navigate(AuthScreen.Welcome.route) {
+            popUpTo(0) { inclusive = true }
+        }
+    }
+
     var notifications by remember { mutableStateOf(sampleNotifications) }
     var notificationPreferences by rememberSaveable(stateSaver = NotificationPreferencesSaver) {
         mutableStateOf(NotificationPreferences())
@@ -345,15 +340,32 @@ fun SmartHomeApp(
         notifications = notifications.filterNot { it.id == id }
     }
 
-    val showBottomBar = currentBaseRoute != null &&
-        currentBaseRoute !in AuthScreen.routes &&
-        !isSelectHomeRoute &&
-        !isRoutineDetailRoute &&
-        !isChangePasswordRoute &&
+    val showBottomBar = !isTablet &&
         !isDrawerVisible &&
-        !isTablet
+        Screen.isMainDestination(currentBaseRoute)
 
-    CompositionLocalProvider(LocalOpenDrawer provides openDrawer) {
+    val onBack: () -> Unit = {
+        if (!navController.navigateUp()) {
+            navController.navigate(Screen.Home.route) {
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+    }
+
+    val homeSwitcherState = HomeSwitcherState(
+        homes = selectHomeUiState.orderedDrawerHomes,
+        activeHomeId = selectHomeUiState.activeHomeId,
+        onHomeSelected = { selectHomeViewModel.selectHome(it) },
+        onEditHome = { selectHomeViewModel.openRenameDialog(it) },
+        onShareHome = { selectHomeViewModel.openShareDialog(it) },
+        onAddHome = { showAddHome = true },
+    )
+
+    CompositionLocalProvider(
+        LocalOpenDrawer provides openDrawer,
+        LocalHomeSwitcher provides homeSwitcherState,
+    ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Scaffold(
                 contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -364,7 +376,7 @@ fun SmartHomeApp(
                             contentColor = MaterialTheme.colorScheme.primary,
                         ) {
                             Screen.items.forEach { screen ->
-                                val selected = currentDestination.hierarchy.any { it.route == screen.route }
+                                val selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
                                 NavigationBarItem(
                                     selected = selected,
                                     onClick = {
@@ -418,8 +430,6 @@ fun SmartHomeApp(
                     Unit
                 }
                 val onLoginSuccess = {
-                    // Si ya había una casa seleccionada persistida, vamos directo al dashboard;
-                    // si no, a la selección/gestión de hogares para elegir o crear una.
                     val target = if (hasSelectedHome) Screen.Home.route else Screen.SELECT_HOME_ROUTE
                     navController.navigate(target) {
                         popUpTo(AuthScreen.Welcome.route) { inclusive = true }
@@ -677,6 +687,7 @@ fun SmartHomeApp(
                     onCreateRoom = openCreateRoom,
                     onCreateDevice = openCreateDevice,
                     onAddRoutine = if (isTablet) openCreateRoutine else openQuickActions,
+                    onQuickAddClick = openQuickActions,
                     showQuickAddFab = !isTablet && !showQuickActions && !showCreateRoom &&
                         !showCreateDevice && !showCreateRoutine,
                     isTablet = isTablet,
@@ -688,6 +699,12 @@ fun SmartHomeApp(
                     },
                     onNavigateRooms = {
                         navController.navigate(Screen.Rooms.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onNavigateHistory = {
+                        navController.navigate(Screen.History.route) {
                             launchSingleTop = true
                             restoreState = true
                         }
@@ -723,7 +740,6 @@ fun SmartHomeApp(
                 val routineId = backStackEntry.arguments?.getString("routineId").orEmpty()
                 val routine = routinesUiState.routines.firstOrNull { it.id == routineId }
                 if (routine == null) {
-                    // La rutina ya no existe (p.ej. tras borrarla): volvemos al listado
                     LaunchedEffect(routineId) { navController.popBackStack() }
                 } else {
                     RoutineDetailScreen(
@@ -777,12 +793,14 @@ fun SmartHomeApp(
                     onChangePassword = {
                         navController.navigate(Screen.CHANGE_PASSWORD_ROUTE)
                     },
+                    onLogout = performLogout,
                     onOpenNotificationSettings = openNotificationSettings,
                     notificationPreferences = notificationPreferences,
                     onNotificationPreferencesChange = { notificationPreferences = it },
                     onNotificationsClick = openNotifications,
                     unreadNotificationCount = unreadNotificationCount,
                     enteredFromHome = enteredFromHome,
+                    onBack = onBack,
                     onNavigateHome = {
                         navController.navigate(Screen.Home.route) {
                             launchSingleTop = true
@@ -847,8 +865,6 @@ fun SmartHomeApp(
                 }
                 val historyViewModel: HistoryViewModel = viewModel(factory = historyFactory)
                 val historyUiState by historyViewModel.uiState.collectAsStateWithLifecycle()
-                // Cruzamos los logs con el catálogo de dispositivos del hogar activo para mostrar
-                // nombre/habitación/icono en vez del deviceId crudo.
                 val historyEntries = remember(historyUiState.logs, roomsUiState.rooms) {
                     historyUiState.logs.toHistoryEntries(context, roomsUiState.rooms)
                 }
@@ -862,6 +878,7 @@ fun SmartHomeApp(
                     errorMessage = historyUiState.errorMessage?.let { stringResource(it) },
                     onRefresh = historyViewModel::load,
                     onRetry = historyViewModel::load,
+                    onBack = onBack,
                     selectedHomeName = activeHomeName,
                     onProfileClick = {
                         navController.navigate(Screen.Profile.route) {
@@ -899,6 +916,9 @@ fun SmartHomeApp(
                     onMarkAllRead = markAllNotificationsRead,
                     onAcceptInvitation = acceptInvitation,
                     onRejectInvitation = rejectInvitation,
+                    onBack = onBack,
+                    selectedHomeName = activeHomeName,
+                    onHomeSelectorClick = openDrawer,
                     onProfileClick = {
                         navController.navigate(Screen.Profile.route) {
                             launchSingleTop = true
@@ -935,6 +955,7 @@ fun SmartHomeApp(
                     windowSize = windowSize,
                     preferences = notificationPreferences,
                     onPreferencesChange = { notificationPreferences = it },
+                    onBack = onBack,
                     onProfileClick = {
                         navController.navigate(Screen.Profile.route) {
                             launchSingleTop = true
@@ -997,12 +1018,7 @@ fun SmartHomeApp(
                                 launchSingleTop = true
                             }
                         },
-                        onLogout = {
-                            logoutScope.launch { authRepository.logout() }
-                            navController.navigate(AuthScreen.Welcome.route) {
-                                popUpTo(0) { inclusive = true }
-                            }
-                        },
+                        onLogout = performLogout,
                         onClose = closeDrawer,
                     )
                 }
@@ -1019,9 +1035,6 @@ fun SmartHomeApp(
                 },
             )
 
-            // Diálogos de editar/compartir/eliminar hogar: render único a nivel Activity, driven por el
-            // SelectHomeViewModel compartido. Funcionan desde SelectHomeScreen (tablet) y desde el drawer
-            // de teléfono sin duplicarse.
             HomeActionDialogs(
                 dialog = selectHomeUiState.dialog,
                 isProcessing = selectHomeUiState.isProcessingAction,
@@ -1040,8 +1053,6 @@ fun SmartHomeApp(
                 onAddRoom = openCreateRoom,
                 onAddDevice = openCreateDevice,
                 onAddRoutine = openCreateRoutine,
-                // Lift the overlay above the bottom NavigationBar (M3 default height
-                // 80.dp) so its close FAB stays where the "+" FAB was.
                 bottomBarPadding = if (showBottomBar) 80.dp else 0.dp,
             )
 

@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.data.model.SharedUser
+import com.grupo4.smarthome.ui.components.ModalCloseButton
 import com.grupo4.smarthome.ui.theme.ErrorBg
 import com.grupo4.smarthome.ui.theme.ErrorRed
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
@@ -82,7 +83,6 @@ internal fun HomeActionDialogs(
     }
 }
 
-// Contenedor común: misma tarjeta redondeada y fondo que el resto de la app
 @Composable
 private fun DialogCard(
     onDismiss: () -> Unit,
@@ -97,8 +97,16 @@ private fun DialogCard(
             color = MaterialTheme.colorScheme.background,
             shadowElevation = 6.dp,
         ) {
-            Column(modifier = Modifier.padding(24.dp)) {
-                content()
+            Box {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    content()
+                }
+                ModalCloseButton(
+                    onDismiss = onDismiss,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp),
+                )
             }
         }
     }
@@ -339,8 +347,6 @@ private fun SharedUserRow(user: SharedUser) {
         }
     }
 }
-
-// --- Helpers de estilo compartidos ---
 
 @Composable
 private fun DialogFieldLabel(text: String) {

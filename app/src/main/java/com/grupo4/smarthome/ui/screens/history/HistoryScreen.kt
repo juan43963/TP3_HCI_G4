@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -50,6 +51,8 @@ import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.components.MainShellScaffold
 import com.grupo4.smarthome.ui.components.TabletMainSidebar
+import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneQuickAddFab
+import com.grupo4.smarthome.ui.util.isPhoneLandscape
 import com.grupo4.smarthome.ui.components.TabletSidebarDestination
 import com.grupo4.smarthome.ui.screens.dashboard.components.DashboardTopBar
 import com.grupo4.smarthome.ui.screens.dashboard.layout.DashboardScaffold
@@ -91,6 +94,7 @@ fun HistoryScreen(
     onSearchClick: () -> Unit = {},
     onQuickAddClick: () -> Unit = {},
     onNotificationsClick: () -> Unit = {},
+    onBack: () -> Unit = {},
     unreadNotificationCount: Int = 0,
     selectedHomeName: String = "Casa Principal",
     entries: List<HistoryEntryUi> = sampleHistory,
@@ -137,11 +141,12 @@ fun HistoryScreen(
         )
     } else {
         MainShellScaffold(
-            title = null,
+            title = stringResource(R.string.history_title),
             onSearchClick = onSearchClick,
             onProfileClick = onProfileClick,
             onNotificationsClick = onNotificationsClick,
             notificationCount = unreadNotificationCount,
+            onBackClick = onBack,
             modifier = modifier,
         ) { innerPadding ->
             HistoryFeed(
@@ -156,6 +161,7 @@ fun HistoryScreen(
                 onLoadMore = onLoadMore,
                 errorMessage = errorMessage,
                 onRetry = onRetry,
+                showHeaderTitle = false,
                 contentPadding = PaddingValues(
                     start = 16.dp,
                     end = 16.dp,
@@ -195,18 +201,19 @@ private fun TabletHistoryLayout(
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val portraitLike = maxWidth < 900.dp
+        val phoneLandscape = isPhoneLandscape(maxWidth, maxHeight)
+        val railCompact = portraitLike || phoneLandscape
         val contentPadding = if (portraitLike) 24.dp else 32.dp
 
         DashboardScaffold(
             sidebar = {
                 TabletMainSidebar(
                     selectedDestination = TabletSidebarDestination.History,
-                    compact = portraitLike,
+                    compact = railCompact,
                     onNavigateHome = onNavigateHome,
                     onNavigateRoutines = onNavigateRoutines,
                     onNavigateRooms = onNavigateRooms,
                     onNavigateHistory = {},
-                    onAddClick = onQuickAddClick,
                 )
             },
             topBar = {
@@ -217,6 +224,7 @@ private fun TabletHistoryLayout(
                     onProfileClick = onProfileClick,
                     onNotificationsClick = onNotificationsClick,
                     notificationCount = unreadNotificationCount,
+                    useCompactHomeMenu = true,
                     modifier = Modifier.padding(
                         start = contentPadding,
                         top = 24.dp,
@@ -248,6 +256,17 @@ private fun TabletHistoryLayout(
                 )
             },
         )
+
+        if (phoneLandscape) {
+            PhoneQuickAddFab(
+                onClick = onQuickAddClick,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .navigationBarsPadding()
+                    .padding(16.dp),
+                contentDescriptionRes = R.string.quick_add_fab_open,
+            )
+        }
     }
 }
 
@@ -265,6 +284,7 @@ private fun HistoryFeed(
     errorMessage: String?,
     onRetry: () -> Unit,
     contentPadding: PaddingValues,
+    showHeaderTitle: Boolean = true,
     modifier: Modifier = Modifier,
     itemModifier: Modifier = Modifier,
 ) {
@@ -295,6 +315,7 @@ private fun HistoryFeed(
         item {
             HistoryHeader(
                 onRefresh = onRefresh,
+                showTitle = showHeaderTitle,
                 modifier = itemModifier,
             )
         }
@@ -335,20 +356,26 @@ private fun HistoryFeed(
 }
 
 @Composable
-private fun HistoryHeader(onRefresh: () -> Unit, modifier: Modifier = Modifier) {
+private fun HistoryHeader(
+    onRefresh: () -> Unit,
+    modifier: Modifier = Modifier,
+    showTitle: Boolean = true,
+) {
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = stringResource(R.string.history_title),
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.ExtraBold,
-                ),
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Spacer(modifier = Modifier.height(4.dp))
+            if (showTitle) {
+                Text(
+                    text = stringResource(R.string.history_title),
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                    ),
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+            }
             Text(
                 text = stringResource(R.string.history_subtitle),
                 style = MaterialTheme.typography.bodyMedium,

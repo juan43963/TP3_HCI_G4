@@ -66,6 +66,7 @@ import com.grupo4.smarthome.ui.screens.rooms.components.RoomCardVariant
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsEditIconButton
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsFilterChips
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsHomeEmptyState
+import com.grupo4.smarthome.ui.screens.rooms.components.RoomsNoDevicesEmptyState
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsSummaryMetrics
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsSoftBorder
 import com.grupo4.smarthome.ui.theme.BrandIndigoDark
@@ -199,6 +200,7 @@ private fun PhoneRoomsList(
                 roomsCount = presentation.totalRooms,
                 editMode = state.editRoomsMode,
                 onEditRoomsToggle = callbacks.onEditRoomsToggle,
+                showEditButton = !presentation.isEmptyHome,
             )
         }
         item {
@@ -276,11 +278,10 @@ private fun PhoneRoomDetail(
         when {
             !presentation.hasDevicesInSelectedRoom -> {
                 item {
-                    PhoneRoomsEmptyState(
-                        title = stringResource(R.string.rooms_empty_devices_title),
-                        description = stringResource(R.string.rooms_empty_devices_description),
-                        buttonLabel = stringResource(R.string.rooms_add_device),
-                        onButtonClick = { callbacks.onAddDeviceClick(room.id) },
+                    RoomsNoDevicesEmptyState(
+                        compact = true,
+                        onAddDevice = { callbacks.onAddDeviceClick(room.id) },
+                        addButtonLabel = stringResource(R.string.rooms_add_device),
                     )
                 }
             }
@@ -320,6 +321,7 @@ private fun PhoneRoomsHeader(
     roomsCount: Int,
     editMode: Boolean,
     onEditRoomsToggle: () -> Unit,
+    showEditButton: Boolean = true,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(
@@ -341,10 +343,12 @@ private fun PhoneRoomsHeader(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            PhoneEditAction(
-                editMode = editMode,
-                onClick = onEditRoomsToggle,
-            )
+            if (showEditButton) {
+                PhoneEditAction(
+                    editMode = editMode,
+                    onClick = onEditRoomsToggle,
+                )
+            }
         }
         RoomsSummaryMetrics(
             totalActiveDevices = totalActiveDevices,

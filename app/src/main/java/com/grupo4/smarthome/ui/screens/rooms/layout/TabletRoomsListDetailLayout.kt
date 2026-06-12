@@ -46,7 +46,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.data.model.Room
+import com.grupo4.smarthome.ui.components.LocalOpenDrawer
 import com.grupo4.smarthome.ui.components.TabletMainSidebar
+import com.grupo4.smarthome.ui.components.TabletPanelSurface
 import com.grupo4.smarthome.ui.components.TabletSidebarDestination
 import com.grupo4.smarthome.ui.screens.rooms.RoomsCallbacks
 import com.grupo4.smarthome.ui.screens.rooms.RoomsPresentationState
@@ -55,11 +57,11 @@ import com.grupo4.smarthome.ui.screens.rooms.components.DeviceCard
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomCard
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomCardVariant
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsEditIconButton
-import com.grupo4.smarthome.ui.screens.rooms.components.RoomsEmptyDetailPlaceholder
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsEmptyState
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsFilterChips
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsHeader
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsHomeEmptyState
+import com.grupo4.smarthome.ui.screens.rooms.components.RoomsNoDevicesEmptyState
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsTopBar
 import com.grupo4.smarthome.ui.theme.BrandIndigoDark
 import com.grupo4.smarthome.ui.theme.BorderDefault
@@ -74,16 +76,13 @@ fun TabletRoomsListDetailLayout(
     callbacks: RoomsCallbacks,
     modifier: Modifier = Modifier,
 ) {
-    // §13: componente canónico lista-detalle. Maneja el back y preserva el estado de los
-    // paneles ante cambios de configuración a través del navigator.
     val navigator = rememberListDetailPaneScaffoldNavigator<String>()
     val scope = rememberCoroutineScope()
+    val openDrawer = LocalOpenDrawer.current
     BackHandler(navigator.canNavigateBack()) {
         scope.launch { navigator.navigateBack() }
     }
 
-    // La selección sigue viviendo en el RoomsViewModel (fuente de verdad); además navegamos al
-    // panel de detalle para que, cuando el scaffold colapsa a un solo panel, se muestre el detalle.
     val listCallbacks = remember(callbacks, navigator, scope) {
         callbacks.copy(
             onSelectedRoomChange = { id ->
@@ -107,7 +106,6 @@ fun TabletRoomsListDetailLayout(
             onNavigateRoutines = callbacks.onNavigateRoutines,
             onNavigateRooms = {},
             onNavigateHistory = callbacks.onNavigateHistory,
-            onAddClick = callbacks.onAddClick,
         )
 
         Column(
@@ -122,6 +120,9 @@ fun TabletRoomsListDetailLayout(
                 onNotificationsClick = callbacks.onNotificationsClick,
                 notificationCount = state.unreadNotificationCount,
                 searchPlaceholder = stringResource(R.string.rooms_list_detail_search_placeholder),
+                showHomeSelector = true,
+                onHomeSelectorClick = openDrawer,
+                useCompactHomeMenu = true,
                 modifier = Modifier.padding(
                     start = 28.dp,
                     top = 22.dp,
@@ -185,6 +186,7 @@ private fun RoomsListPanel(
                 editMode = state.editRoomsMode,
                 onCreateRoomClick = callbacks.onCreateRoomClick,
                 onEditRoomsToggle = callbacks.onEditRoomsToggle,
+                showEditButton = !presentation.isEmptyHome,
             )
             RoomsFilterChips(
                 selectedRoomType = state.selectedRoomType,
@@ -192,6 +194,7 @@ private fun RoomsListPanel(
                 totalRooms = presentation.totalRooms,
                 onFilterSelected = callbacks.onFilterSelected,
                 compact = true,
+                showCategoryLabel = true,
             )
             when {
                 presentation.isEmptyHome -> {
@@ -252,7 +255,10 @@ private fun RoomDetailPanel(
     ListDetailPanelSurface(modifier = modifier) {
         if (room == null) {
             if (presentation.isEmptyHome) {
-                RoomsEmptyDetailPlaceholder(modifier = Modifier.fillMaxSize())
+                RoomsNoDevicesEmptyState(
+                    card = false,
+                    modifier = Modifier.fillMaxSize(),
+                )
             } else {
                 NoRoomSelectedState(
                     isEmptyHome = false,
@@ -280,11 +286,9 @@ private fun RoomDetailPanel(
 
             when {
                 !presentation.hasDevicesInListDetailSelectedRoom -> {
-                    RoomsEmptyState(
-                        title = stringResource(R.string.rooms_empty_devices_title),
-                        description = stringResource(R.string.rooms_empty_devices_description),
-                        buttonLabel = stringResource(R.string.rooms_add_device),
-                        onButtonClick = { callbacks.onAddDeviceClick(room.id) },
+                    RoomsNoDevicesEmptyState(
+                        onAddDevice = { callbacks.onAddDeviceClick(room.id) },
+                        addButtonLabel = stringResource(R.string.rooms_add_device),
                     )
                 }
                 presentation.hasNoListDetailDeviceResults -> {
@@ -338,8 +342,6 @@ private fun ListDetailRoomHeader(
         val compactActions = maxWidth < 620.dp
 
         Column(modifier = Modifier.fillMaxWidth()) {
-            // Fila 1: título de la habitación + acciones (mismo nivel, como el
-            // bloque izquierdo de Rooms).
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -361,14 +363,12 @@ private fun ListDetailRoomHeader(
                     onEditDevicesToggle = onEditDevicesToggle,
                 )
             }
-            // Fila 2: subtítulo.
             Spacer(modifier = Modifier.height(10.dp))
             Text(
                 text = stringResource(R.string.rooms_detail_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            // Fila 3: resumen de dispositivos activos.
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = stringResource(R.string.rooms_detail_summary, activeDevices, devicesTotal),
@@ -393,8 +393,6 @@ private fun RoomDetailActions(
         horizontalArrangement = Arrangement.spacedBy(if (compact) 8.dp else 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // Acción secundaria a la izquierda: solo icono (lápiz), igual que el
-        // botón de editar de la columna izquierda.
         RoomsEditIconButton(
             onClick = onEditDevicesToggle,
             contentDescription = stringResource(
@@ -402,7 +400,6 @@ private fun RoomDetailActions(
             ),
             size = if (compact) 40.dp else 44.dp,
         )
-        // Acción primaria a la derecha: agregar dispositivo.
         Button(
             onClick = onAddDevice,
             modifier = Modifier.height(if (compact) 40.dp else 44.dp),
@@ -493,14 +490,7 @@ private fun ListDetailPanelSurface(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(18.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, BorderDefault.copy(alpha = 0.72f)),
-        shadowElevation = 1.dp,
-        content = content,
-    )
+    TabletPanelSurface(modifier = modifier, content = content)
 }
 
 @Composable

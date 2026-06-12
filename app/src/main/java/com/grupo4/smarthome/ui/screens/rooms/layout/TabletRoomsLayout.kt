@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -24,8 +25,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
+import com.grupo4.smarthome.ui.components.LocalOpenDrawer
 import com.grupo4.smarthome.ui.components.TabletMainSidebar
+import com.grupo4.smarthome.ui.util.isPhoneLandscape
 import com.grupo4.smarthome.ui.components.TabletSidebarDestination
+import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneQuickAddFab
 import com.grupo4.smarthome.ui.screens.rooms.RoomsCallbacks
 import com.grupo4.smarthome.ui.screens.rooms.RoomsPresentationState
 import com.grupo4.smarthome.ui.screens.rooms.RoomsUiState
@@ -43,8 +47,11 @@ fun TabletRoomsLayout(
     callbacks: RoomsCallbacks,
     modifier: Modifier = Modifier,
 ) {
+    val openDrawer = LocalOpenDrawer.current
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val portraitLike = maxWidth < 900.dp
+        val phoneLandscape = isPhoneLandscape(maxWidth, maxHeight)
+        val railCompact = portraitLike || phoneLandscape
         val contentPadding = if (portraitLike) 24.dp else 32.dp
 
         Row(
@@ -54,12 +61,11 @@ fun TabletRoomsLayout(
         ) {
             TabletMainSidebar(
                 selectedDestination = TabletSidebarDestination.Rooms,
-                compact = portraitLike,
+                compact = railCompact,
                 onNavigateHome = callbacks.onNavigateHome,
                 onNavigateRoutines = callbacks.onNavigateRoutines,
                 onNavigateRooms = {},
                 onNavigateHistory = callbacks.onNavigateHistory,
-                onAddClick = callbacks.onAddClick,
             )
             Column(
                 modifier = Modifier
@@ -73,6 +79,9 @@ fun TabletRoomsLayout(
                     onNotificationsClick = callbacks.onNotificationsClick,
                     notificationCount = state.unreadNotificationCount,
                     searchPlaceholder = stringResource(R.string.rooms_search_placeholder),
+                    showHomeSelector = true,
+                    onHomeSelectorClick = openDrawer,
+                    useCompactHomeMenu = true,
                     modifier = Modifier.padding(
                         start = contentPadding,
                         top = 24.dp,
@@ -102,6 +111,7 @@ fun TabletRoomsLayout(
                                 editMode = state.editRoomsMode,
                                 onCreateRoomClick = callbacks.onCreateRoomClick,
                                 onEditRoomsToggle = callbacks.onEditRoomsToggle,
+                                showEditButton = !presentation.isEmptyHome,
                             )
                         }
                         item(span = { GridItemSpan(maxLineSpan) }) {
@@ -111,6 +121,7 @@ fun TabletRoomsLayout(
                                 totalRooms = presentation.totalRooms,
                                 onFilterSelected = callbacks.onFilterSelected,
                                 modifier = Modifier.fillMaxWidth(),
+                                showCategoryLabel = true,
                             )
                         }
                         if (presentation.isEmptyHome) {
@@ -147,6 +158,17 @@ fun TabletRoomsLayout(
                     }
                 }
             }
+        }
+
+        if (phoneLandscape) {
+            PhoneQuickAddFab(
+                onClick = callbacks.onAddClick,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .navigationBarsPadding()
+                    .padding(16.dp),
+                contentDescriptionRes = R.string.quick_add_fab_open,
+            )
         }
     }
 }

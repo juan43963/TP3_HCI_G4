@@ -60,6 +60,7 @@ import com.grupo4.smarthome.ui.screens.dashboard.DashboardCallbacks
 import com.grupo4.smarthome.ui.screens.dashboard.components.DashboardTopBar
 import com.grupo4.smarthome.ui.screens.dashboard.layout.DashboardScaffold
 import com.grupo4.smarthome.ui.screens.dashboard.layout.TabletSidebar
+import com.grupo4.smarthome.ui.util.isPhoneLandscape
 import com.grupo4.smarthome.ui.screens.notifications.NotificationPreferenceSections
 import com.grupo4.smarthome.ui.screens.notifications.NotificationPreferences
 import com.grupo4.smarthome.ui.screens.selecthome.layout.SelectHomeSidebar
@@ -70,14 +71,6 @@ import com.grupo4.smarthome.ui.theme.ThemePreference
 
 private enum class SettingsSection { PROFILE, SECURITY, NOTIFICATIONS, ACCESSIBILITY }
 
-/**
- * Tablet settings (Configuración) screen.
- *
- * The chrome (sidebar + top bar) is reused from the existing flows and depends on
- * where the user came from:
- *  - [enteredFromHome] = true  → reached from inside a home → [TabletSidebar] + [DashboardTopBar].
- *  - [enteredFromHome] = false → reached from the home picker → [SelectHomeSidebar] + [SelectHomeTopBar].
- */
 @Composable
 fun TabletSettingsLayout(
     userName: String,
@@ -87,6 +80,7 @@ fun TabletSettingsLayout(
     themePreference: ThemePreference,
     onThemePreferenceChange: (ThemePreference) -> Unit,
     onChangePassword: () -> Unit,
+    onLogout: () -> Unit = {},
     onProfileAvatarClick: () -> Unit,
     notificationPreferences: NotificationPreferences = NotificationPreferences(),
     onNotificationPreferencesChange: (NotificationPreferences) -> Unit = {},
@@ -102,6 +96,7 @@ fun TabletSettingsLayout(
 ) {
     val openDrawer = LocalOpenDrawer.current
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        val phoneLandscape = isPhoneLandscape(maxWidth, maxHeight)
         val portraitLike = maxWidth < 900.dp
         val contentPadding = if (portraitLike) 24.dp else 32.dp
 
@@ -114,10 +109,9 @@ fun TabletSettingsLayout(
                             onNavigateRooms = onNavigateRooms,
                             onNavigateRoutines = onNavigateRoutines,
                             onHistoryClick = onNavigateHistory,
-                            onQuickAddClick = onAddHome,
                         ),
                         compact = portraitLike,
-                        quickAddMenuEnabled = false,
+                        iconOnly = phoneLandscape,
                     )
                 } else {
                     SelectHomeSidebar(
@@ -143,6 +137,7 @@ fun TabletSettingsLayout(
                         onProfileClick = onProfileAvatarClick,
                         onNotificationsClick = onNotificationsClick,
                         notificationCount = unreadNotificationCount,
+                        useCompactHomeMenu = true,
                         modifier = topBarModifier,
                     )
                 } else {
@@ -161,6 +156,7 @@ fun TabletSettingsLayout(
                     themePreference = themePreference,
                     onThemePreferenceChange = onThemePreferenceChange,
                     onChangePassword = onChangePassword,
+                    onLogout = onLogout,
                     notificationPreferences = notificationPreferences,
                     onNotificationPreferencesChange = onNotificationPreferencesChange,
                     contentPadding = contentPadding,
@@ -180,6 +176,7 @@ private fun SettingsContent(
     themePreference: ThemePreference,
     onThemePreferenceChange: (ThemePreference) -> Unit,
     onChangePassword: () -> Unit,
+    onLogout: () -> Unit,
     notificationPreferences: NotificationPreferences,
     onNotificationPreferencesChange: (NotificationPreferences) -> Unit,
     contentPadding: androidx.compose.ui.unit.Dp,
@@ -229,7 +226,6 @@ private fun SettingsContent(
                 )
             }
         } else {
-            // Narrow tablet (portrait): stack list above detail.
             SettingsNavList(
                 selectedSection = selectedSection,
                 onSectionSelected = { selectedSection = it },
@@ -250,6 +246,9 @@ private fun SettingsContent(
                 modifier = Modifier.fillMaxWidth(),
             )
         }
+
+        Spacer(modifier = Modifier.height(24.dp))
+        AccountSection(onLogout = onLogout)
     }
 }
 

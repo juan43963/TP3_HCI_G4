@@ -9,12 +9,10 @@
     <string name="nav_profile">Profile</string>
     <string name="nav_history">History</string>
 
-    <!-- Profile menu (avatar dropdown) -->
     <string name="profile_menu_settings">Settings</string>
     <string name="profile_menu_history">History</string>
     <string name="profile_menu_logout">Log out</string>
 
-    <!-- History -->
     <string name="history_title">History</string>
     <string name="history_subtitle">Actions performed with your devices</string>
     <string name="history_refresh_content_description">Refresh history</string>
@@ -43,7 +41,6 @@
     <string name="history_action_set_volume">Volume changed</string>
     <string name="history_action_set_mode">Mode changed</string>
 
-    <!-- Welcome -->
     <string name="welcome_brand_smart">Smart</string>
     <string name="welcome_brand_home">Home</string>
     <string name="welcome_title">Your home,\nalways just a tap\naway</string>
@@ -53,14 +50,12 @@
     <string name="welcome_cta_login">I already have an account</string>
     <string name="welcome_hero_content_description">Person using SmartHome in their kitchen</string>
 
-    <!-- Auth placeholders (temporary until the real screens exist) -->
     <string name="auth_login_placeholder">Login — coming soon</string>
     <string name="auth_register_placeholder">Sign up — coming soon</string>
     <string name="auth_recover_password_placeholder">Recover password — coming soon</string>
     <string name="auth_verify_account_placeholder">Verify account — coming soon</string>
     <string name="auth_change_password_placeholder">Change password — coming soon</string>
 
-    <!-- Login -->
     <string name="login_title">Sign in</string>
     <string name="login_no_account_question">Don\'t have an account?</string>
     <string name="login_register_link">Sign up</string>
@@ -71,7 +66,6 @@
     <string name="login_cta_submit">Sign in</string>
     <string name="login_cta_submitting">Signing in...</string>
 
-    <!-- Register -->
     <string name="register_step_personal">Personal details</string>
     <string name="register_step_password">Password</string>
     <string name="register_title">Create your account</string>
@@ -91,7 +85,6 @@
     <string name="register_show_password">Show password</string>
     <string name="register_hide_password">Hide password</string>
 
-    <!-- Verify account -->
     <string name="verify_title">Verify your account</string>
     <string name="verify_subtitle">We sent a verification code to</string>
     <string name="verify_change_email">Change email</string>
@@ -104,13 +97,11 @@
     <string name="verify_back_to_login">Back to sign in</string>
     <string name="verify_icon_content_description">Envelope with verification code</string>
 
-    <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="settings_subtitle">Manage your profile and app preferences.</string>
     <string name="settings_section_profile">Profile</string>
     <string name="settings_field_name">Name</string>
     <string name="settings_field_email">Email</string>
-    <!-- Profile name editing (RNF3) -->
     <string name="profile_edit_name">Edit name</string>
     <string name="profile_save">Save</string>
     <string name="profile_saving">Saving...</string>
@@ -119,6 +110,10 @@
     <string name="settings_section_security">Security</string>
     <string name="settings_change_password">Change password</string>
     <string name="settings_change_password_description">Update your password regularly to keep your account secure.</string>
+    <string name="topbar_back_content_description">Back</string>
+    <string name="modal_close_content_description">Close</string>
+    <string name="settings_section_account">Account</string>
+    <string name="settings_logout_description">Sign out of your account on this device.</string>
     <string name="settings_section_accessibility">Accessibility</string>
     <string name="settings_section_accessibility_description">Customize how the app looks.</string>
     <string name="settings_theme_label">Theme</string>
@@ -134,7 +129,6 @@
     <string name="settings_theme_dark_description">Deep tones for low-light environments.</string>
     <string name="settings_theme_system_description">Follows the device appearance.</string>
 
-    <!-- Recover password (RF3) -->
     <string name="recover_title">Forgot your password?</string>
     <string name="recover_subtitle">Enter the email associated with your account and we\'ll send you a link to create a new password.</string>
     <string name="recover_field_email_label">Email</string>
@@ -149,7 +143,6 @@
     <string name="recover_resend_question">Didn\'t get the email?</string>
     <string name="recover_resend_link">Resend</string>
 
-    <!-- Change password (RF4) -->
     <string name="change_pwd_title">Create new password</string>
     <string name="change_pwd_subtitle_prefix">Paste the code you received by email and choose your new password for</string>
     <string name="change_pwd_subtitle_suffix"></string>
@@ -164,7 +157,6 @@
     <string name="change_pwd_cta_submitting">Creating...</string>
     <string name="change_pwd_back_to_login">Back to sign in</string>
 
-    <!-- Authenticated change password (RF4) -->
     <string name="auth_change_pwd_title">Change password</string>
     <string name="auth_change_pwd_subtitle">Enter your current password and choose a new one.</string>
     <string name="auth_change_pwd_current_label">Current password</string>
@@ -180,7 +172,6 @@
     <string name="auth_change_pwd_success">Password changed successfully.</string>
     <string name="auth_change_pwd_error_current_wrong">The current password is incorrect.</string>
 
-    <!-- Select Home -->
     <string name="select_home_search_placeholder">Search home</string>
     <string name="select_home_welcome_title">Welcome,\n%1$s!</string>
     <string name="select_home_welcome_title_inline">Welcome, %1$s!</string>
@@ -214,7 +205,6 @@
     <string name="select_home_share_close">Close</string>
     <string name="select_home_dialog_cancel">Cancel</string>
 
-    <!-- Dashboard -->
     <string name="dashboard_title">Home</string>
     <string name="dashboard_subtitle">Your whole home, in one place.</string>
     <string name="dashboard_search_placeholder">Search devices, rooms, routines…</string>
@@ -255,7 +245,6 @@
     <string name="dashboard_search_close_content_description">Close search</string>
     <string name="dashboard_fab_content_description">Add</string>
 
-    <!-- Quick Actions FAB -->
     <string name="quick_add_fab_open">Open quick actions</string>
     <string name="quick_add_fab_close">Close quick actions</string>
     <string name="quick_add_close_short">Close</string>
@@ -271,7 +260,6 @@
     <string name="dashboard_settings">Settings</string>
     <string name="dashboard_logout">Log out</string>
 
-    <!-- Add Home -->
     <string name="add_home_title">Add new home</string>
     <string name="add_home_step">Step 1 of 1</string>
     <string name="add_home_subtitle">Set the basics. You can edit them anytime.</string>
@@ -300,7 +288,6 @@
     <string name="add_home_photo_label">Photo</string>
     <string name="add_home_gallery_button">Upload from gallery</string>
 
-    <!-- Rooms -->
     <string name="rooms_search_placeholder">Search rooms...</string>
     <string name="rooms_devices_search_placeholder">Search devices...</string>
     <string name="rooms_list_detail_search_placeholder">Search rooms or devices…</string>
@@ -329,7 +316,7 @@
     <string name="rooms_empty_description">There are no rooms in this home yet.</string>
     <string name="rooms_empty_cta">Create room</string>
     <string name="rooms_empty_home_title">No rooms yet</string>
-    <string name="rooms_empty_home_description">Create your first room to start organizing your devices.</string>
+    <string name="rooms_empty_home_description">Create your first room to organize your devices and make your home smarter.</string>
     <string name="rooms_empty_home_help">See how it works</string>
     <string name="rooms_empty_detail_title">When you create or select a room,</string>
     <string name="rooms_empty_detail_description">you\'ll see its devices and controls here.</string>
@@ -355,8 +342,8 @@
     <string name="rooms_add_device_short">Add</string>
     <string name="rooms_add_content_description">Add in rooms</string>
     <string name="rooms_edit_devices">Edit devices</string>
-    <string name="rooms_empty_devices_title">This room has no devices</string>
-    <string name="rooms_empty_devices_description">Add devices to start controlling them from here.</string>
+    <string name="rooms_empty_devices_title">Device details</string>
+    <string name="rooms_empty_devices_description">When you add devices to this room, they’ll appear here so you can view and control them.</string>
     <string name="rooms_select_or_create_room_title">Select or create a room</string>
     <string name="rooms_select_or_create_room_description">Select or create a room to see its devices.</string>
     <string name="rooms_no_room_selected_title">No room selected</string>
@@ -416,7 +403,7 @@
     <string name="rooms_device_type_fridge">Fridge</string>
     <string name="rooms_retry">Retry</string>
 
-    <!-- Routines -->
+    <string name="routines_edit">Edit</string>
     <string name="routines_header_title">Automated routines</string>
     <string name="routines_header_subtitle">Create and manage routines to automate your home.</string>
     <string name="routines_filter_label">Filter by category</string>
@@ -433,14 +420,14 @@
     <string name="routines_favorite_content_description">Mark as favorite</string>
     <string name="routines_play_content_description">Run routine</string>
     <string name="routines_add_content_description">Create routine</string>
-    <string name="routines_empty_title">No routines</string>
+    <string name="routines_create_short">Create</string>
+    <string name="routines_empty_title">No routines yet</string>
     <string name="routines_empty_description">There are no routines to show yet.</string>
     <string name="routines_empty_create_first">Create first routine</string>
     <string name="routines_empty_detail_title">Routine details</string>
     <string name="routines_empty_detail_description">When you select or create a routine, you\'ll see its configuration, schedule and actions here.</string>
     <string name="routines_empty_detail_action">Select or create a routine</string>
 
-    <!-- Create routine flow -->
     <string name="create_routine_step_one_label">NEW ROUTINE · STEP 1 OF 2</string>
     <string name="create_routine_step_two_label">NEW ROUTINE · STEP 2 OF 2</string>
     <string name="create_routine_details_title">Details and schedule</string>
@@ -497,7 +484,6 @@
     <string name="create_routine_back_description">Back</string>
     <string name="create_routine_close_description">Close</string>
 
-    <!-- Routine detail -->
     <string name="routine_detail_title">Routine details</string>
     <string name="routine_detail_back">Back</string>
     <string name="routine_detail_more_options">More options</string>
@@ -513,20 +499,16 @@
     <string name="routine_detail_save">Save changes</string>
     <string name="routine_detail_reorder">Reorder action</string>
     <string name="action_cancel">Cancel</string>
-    <!-- Rename dialog -->
     <string name="routine_rename_title">Rename routine</string>
     <string name="routine_rename_label">Routine name</string>
     <string name="routine_rename_placeholder">E.g.: Good morning</string>
     <string name="routine_rename_confirm">Save</string>
-    <!-- Delete dialog -->
     <string name="routine_delete_title">Delete routine</string>
     <string name="routine_delete_message">Are you sure you want to delete \"%1$s\"? This action can\'t be undone.</string>
     <string name="routine_delete_confirm">Delete</string>
-    <!-- Schedule dialog -->
     <string name="routine_schedule_title">Edit schedule</string>
     <string name="routine_schedule_subtitle">Choose the time the routine runs.</string>
     <string name="routine_schedule_confirm">Save</string>
-    <!-- Days dialog -->
     <string name="routine_days_title">Edit days</string>
     <string name="routine_days_subtitle">Select the days the routine repeats.</string>
     <string name="routine_days_confirm">Save</string>
@@ -556,8 +538,15 @@
         <item quantity="one">%1$d of %2$d active</item>
         <item quantity="other">%1$d of %2$d active</item>
     </plurals>
+    <plurals name="rooms_devices_count">
+        <item quantity="one">%1$d device</item>
+        <item quantity="other">%1$d devices</item>
+    </plurals>
+    <plurals name="rooms_active_count">
+        <item quantity="one">%1$d active</item>
+        <item quantity="other">%1$d active</item>
+    </plurals>
 
-    <!-- Notifications -->
     <string name="nav_notifications">Notifications</string>
     <string name="notifications_open_content_description">Open notifications</string>
     <string name="notifications_badge_overflow">9+</string>
@@ -575,7 +564,6 @@
     <string name="notifications_invitation_accept">Accept</string>
     <string name="notifications_invitation_reject">Decline</string>
 
-    <!-- Notification categories -->
     <string name="notifications_category_security">Security</string>
     <string name="notifications_category_security_description">Doors and alarms in your home.</string>
     <string name="notifications_category_devices">Devices</string>
@@ -585,7 +573,6 @@
     <string name="notifications_category_home">Home</string>
     <string name="notifications_category_home_description">Members, invitations and home news.</string>
 
-    <!-- Notification settings -->
     <string name="notification_settings_title">Notifications</string>
     <string name="notification_settings_subtitle">Choose which notifications you want to receive.</string>
     <string name="notification_settings_section_general">General</string>
@@ -599,17 +586,14 @@
     <string name="notification_settings_note">SmartHome never alerts you for actions you perform yourself. Notifications with the app closed are out of scope for this project (they require Firebase Cloud Messaging).</string>
     <string name="notification_settings_section_settings_subtitle">Types and alerts</string>
 
-    <!-- ViewModel error messages -->
     <string name="error_network">Couldn\'t connect to the server.</string>
     <string name="error_validation">Check the information you entered.</string>
     <string name="error_server_generic">The server couldn\'t complete the operation.</string>
     <string name="error_session_expired">Your session expired. Please sign in again.</string>
     <string name="error_not_found">The requested resource wasn\'t found.</string>
     <string name="error_unknown">An unexpected error occurred.</string>
-    <!-- Login -->
     <string name="error_login_invalid_credentials">Incorrect email or password.</string>
     <string name="error_login_server">The server couldn\'t sign you in.</string>
-    <!-- Register -->
     <string name="error_name_required">Enter your name.</string>
     <string name="error_email_required">Enter your email.</string>
     <string name="error_email_invalid">Enter a valid email.</string>
@@ -617,15 +601,12 @@
     <string name="error_passwords_mismatch">Passwords don\'t match.</string>
     <string name="error_register_email_taken">That email is already registered.</string>
     <string name="error_register_server">The server couldn\'t create the account.</string>
-    <!-- Verification / recovery -->
     <string name="error_invalid_or_expired_code">The code is invalid or has expired.</string>
     <string name="error_account_already_verified">The account is already verified.</string>
     <string name="error_recover_account_not_found">We couldn\'t find an account with that email.</string>
-    <!-- Share home -->
     <string name="error_share_already_shared">The home is already shared with that user.</string>
     <string name="error_share_user_not_found">There\'s no user with that email.</string>
     <string name="error_share_generic">Couldn\'t share the home.</string>
-    <!-- Active home required -->
     <string name="routines_no_active_home">Select a home to see its routines.</string>
     <string name="rooms_no_active_home">Select a home to see its rooms.</string>
 </resources>

@@ -63,6 +63,7 @@ object SmartHomeIcons {
     val Rooms = Icons.Outlined.MeetingRoom
     val Routines = Icons.Outlined.Bolt
     val Devices = Icons.Default.Devices
+    val Active = Icons.Outlined.Bolt
     val Search = Icons.Default.Search
     val Add = Icons.Default.Add
     val Check = Icons.Default.Check

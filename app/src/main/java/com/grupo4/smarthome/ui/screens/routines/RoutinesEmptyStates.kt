@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,7 +22,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -58,7 +58,7 @@ internal fun RoutinesEmptyStateCard(
     visual: RoutinesEmptyVisual = RoutinesEmptyVisual.Home,
 ) {
     val shape = RoundedCornerShape(22.dp)
-    val borderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
+    val borderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.26f)
     val cardModifier = Modifier
         .fillMaxWidth()
         .heightIn(
@@ -67,6 +67,10 @@ internal fun RoutinesEmptyStateCard(
                 dashed -> 360.dp
                 else -> 460.dp
             },
+        )
+        .then(
+            if (dashed) Modifier.fillMaxHeight()
+            else Modifier
         )
         .clip(shape)
         .background(MaterialTheme.colorScheme.surface)
@@ -88,26 +92,30 @@ internal fun RoutinesEmptyStateCard(
             contentAlignment = Alignment.Center,
         ) {
             Column(
+                modifier = Modifier.widthIn(max = 420.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(if (compact) 12.dp else 14.dp),
+                verticalArrangement = Arrangement.spacedBy(if (compact) 18.dp else 22.dp),
             ) {
                 if (visual == RoutinesEmptyVisual.Search) {
                     RoutineSearchIllustration(size = if (compact) 132.dp else 120.dp)
                 } else {
-                    RoutineHomeIllustration(size = if (compact) 168.dp else 132.dp)
+                    RoutineHomeIllustration(size = if (compact) 168.dp else 196.dp)
                 }
                 Text(
                     text = stringResource(R.string.routines_empty_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.ExtraBold,
+                    modifier = Modifier.fillMaxWidth(),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,
                 )
                 Text(
                     text = stringResource(R.string.routines_empty_description),
-                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.fillMaxWidth(),
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
+                    lineHeight = MaterialTheme.typography.bodyLarge.lineHeight,
                 )
                 Button(
                     onClick = onCreateRoutineClick,
@@ -159,33 +167,17 @@ internal fun RoutinesEmptyDetailPane(
                 Text(
                     text = stringResource(R.string.routines_empty_detail_title),
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.ExtraBold,
+                    fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,
                 )
                 Text(
                     text = stringResource(R.string.routines_empty_detail_description),
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
+                    lineHeight = MaterialTheme.typography.bodyLarge.lineHeight,
                 )
-                OutlinedButton(
-                    onClick = {},
-                    enabled = false,
-                    shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-                ) {
-                    Icon(
-                        imageVector = SmartHomeIcons.Play,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = stringResource(R.string.routines_empty_detail_action),
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
             }
         }
     }
@@ -199,49 +191,36 @@ private fun RoutineHomeIllustration(size: Dp) {
     ) {
         Box(
             modifier = Modifier
-                .size(size * 0.78f)
-                .dashedCircle(MaterialTheme.colorScheme.primary.copy(alpha = 0.28f)),
+                .size(size * 0.82f)
+                .dashedCircle(MaterialTheme.colorScheme.primary.copy(alpha = 0.24f)),
         )
         Box(
             modifier = Modifier
-                .size(size * 0.5f)
+                .size(size * 0.54f)
                 .background(
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.44f),
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
                     shape = CircleShape,
                 ),
         )
         Icon(
-            imageVector = SmartHomeIcons.Home,
+            imageVector = SmartHomeIcons.Lightbulb,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.56f),
-            modifier = Modifier.size(size * 0.34f),
+            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+            modifier = Modifier.size(size * 0.32f),
         )
-        Icon(
-            imageVector = SmartHomeIcons.Routines,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.82f),
-            modifier = Modifier.size(size * 0.13f),
+        RoutineIllustrationBubble(
+            icon = SmartHomeIcons.Routines,
+            size = size * 0.26f,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(end = size * 0.06f, top = size * 0.1f),
         )
         RoutineIllustrationBubble(
             icon = SmartHomeIcons.Schedule,
-            size = size * 0.22f,
+            size = size * 0.2f,
             modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(start = size * 0.04f, top = size * 0.08f),
-        )
-        RoutineIllustrationBubble(
-            icon = SmartHomeIcons.MorningRoutine,
-            size = size * 0.22f,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(end = size * 0.04f, top = size * 0.16f),
-        )
-        RoutineIllustrationBubble(
-            icon = SmartHomeIcons.NightRoutine,
-            size = size * 0.22f,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = size * 0.04f),
+                .align(Alignment.BottomStart)
+                .padding(start = size * 0.06f, bottom = size * 0.08f),
         )
     }
 }

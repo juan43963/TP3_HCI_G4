@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.components.MainShellScaffold
 import com.grupo4.smarthome.ui.components.TabletMainSidebar
+import com.grupo4.smarthome.ui.util.isPhoneLandscape
 import com.grupo4.smarthome.ui.components.TabletSidebarDestination
 import com.grupo4.smarthome.ui.screens.dashboard.components.DashboardTopBar
 import com.grupo4.smarthome.ui.screens.dashboard.layout.DashboardScaffold
@@ -56,7 +57,7 @@ fun NotificationSettingsScreen(
     onNavigateRooms: () -> Unit = {},
     onNavigateHistory: () -> Unit = {},
     onHomeSelectorClick: () -> Unit = {},
-    onQuickAddClick: () -> Unit = {},
+    onBack: () -> Unit = {},
     selectedHomeName: String = "Casa Principal",
     modifier: Modifier = Modifier,
 ) {
@@ -65,18 +66,18 @@ fun NotificationSettingsScreen(
     if (isTablet) {
         BoxWithConstraints(modifier = modifier.fillMaxSize()) {
             val portraitLike = maxWidth < 900.dp
+            val railCompact = portraitLike || isPhoneLandscape(maxWidth, maxHeight)
             val contentPadding = if (portraitLike) 24.dp else 32.dp
 
             DashboardScaffold(
                 sidebar = {
                     TabletMainSidebar(
                         selectedDestination = TabletSidebarDestination.Notifications,
-                        compact = portraitLike,
+                        compact = railCompact,
                         onNavigateHome = onNavigateHome,
                         onNavigateRoutines = onNavigateRoutines,
                         onNavigateRooms = onNavigateRooms,
                         onNavigateHistory = onNavigateHistory,
-                        onAddClick = onQuickAddClick,
                     )
                 },
                 topBar = {
@@ -85,6 +86,7 @@ fun NotificationSettingsScreen(
                         onHomeSelectorClick = onHomeSelectorClick,
                         onSearchClick = onSearchClick,
                         onProfileClick = onProfileClick,
+                        useCompactHomeMenu = true,
                         modifier = Modifier.padding(
                             start = contentPadding,
                             top = 24.dp,
@@ -109,6 +111,7 @@ fun NotificationSettingsScreen(
             title = stringResource(R.string.notification_settings_title),
             onSearchClick = onSearchClick,
             onProfileClick = onProfileClick,
+            onBackClick = onBack,
             modifier = modifier,
         ) { innerPadding ->
             NotificationSettingsContent(
@@ -173,11 +176,6 @@ private fun NotificationSettingsContent(
     }
 }
 
-/**
- * Tarjetas de preferencias de notificación (General, Tipos, En la aplicación y la nota).
- * Se reutiliza tanto en la pantalla dedicada de teléfono como embebido en la
- * Configuración de tablet, para no duplicar la lógica de los toggles.
- */
 @Composable
 fun NotificationPreferenceSections(
     preferences: NotificationPreferences,

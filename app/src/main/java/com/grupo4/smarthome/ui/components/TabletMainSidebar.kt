@@ -3,7 +3,6 @@ package com.grupo4.smarthome.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,8 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -29,7 +26,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
-import com.grupo4.smarthome.ui.theme.BrandIndigoDark
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
 enum class TabletSidebarDestination {
@@ -48,7 +44,6 @@ fun TabletMainSidebar(
     onNavigateRoutines: () -> Unit,
     onNavigateRooms: () -> Unit,
     onNavigateHistory: () -> Unit,
-    onAddClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val width = if (compact) 76.dp else 236.dp
@@ -100,14 +95,6 @@ fun TabletMainSidebar(
                     onClick = onNavigateHistory,
                 )
             }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            TabletSidebarAddButton(
-                onClick = onAddClick,
-                compact = compact,
-                modifier = Modifier.fillMaxWidth(),
-            )
         }
     }
 }
@@ -200,50 +187,5 @@ private fun TabletSidebarNavItem(
                 maxLines = 1,
             )
         }
-    }
-}
-
-@Composable
-private fun TabletSidebarAddButton(
-    onClick: () -> Unit,
-    compact: Boolean,
-    modifier: Modifier = Modifier,
-) {
-    if (compact) {
-        Surface(
-            modifier = modifier
-                .height(52.dp)
-                .clickable(onClick = onClick),
-            shape = RoundedCornerShape(999.dp),
-            color = BrandIndigoDark,
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = SmartHomeIcons.Add,
-                    contentDescription = stringResource(R.string.dashboard_add),
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                )
-            }
-        }
-        return
-    }
-
-    Button(
-        onClick = onClick,
-        modifier = modifier.height(52.dp),
-        shape = RoundedCornerShape(999.dp),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 18.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = BrandIndigoDark,
-            contentColor = MaterialTheme.colorScheme.onPrimary,
-        ),
-    ) {
-        Icon(imageVector = SmartHomeIcons.Add, contentDescription = null)
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = stringResource(R.string.dashboard_add),
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Bold,
-        )
     }
 }

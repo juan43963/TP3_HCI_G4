@@ -39,6 +39,8 @@ import androidx.compose.ui.window.DialogProperties
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.data.model.Room
 import com.grupo4.smarthome.data.model.RoomType
+import com.grupo4.smarthome.ui.components.ModalCloseButton
+import com.grupo4.smarthome.ui.components.ModalHeader
 import com.grupo4.smarthome.ui.screens.rooms.components.roomTypeIcon
 import com.grupo4.smarthome.ui.screens.rooms.components.roomTypeLabel
 import com.grupo4.smarthome.ui.theme.BrandIndigoDark
@@ -75,7 +77,7 @@ fun AddEditRoomDialog(
             shadowElevation = 8.dp,
         ) {
             Column {
-                DialogHeader(
+                ModalHeader(
                     icon = SmartHomeIcons.Rooms,
                     title = stringResource(
                         if (isEditing) R.string.rooms_dialog_edit_room_title
@@ -85,6 +87,7 @@ fun AddEditRoomDialog(
                         if (isEditing) R.string.rooms_dialog_edit_room_subtitle
                         else R.string.rooms_dialog_add_room_subtitle,
                     ),
+                    onDismiss = onDismiss,
                 )
                 Column(
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 20.dp),
@@ -161,7 +164,8 @@ fun DeleteRoomDialog(
             color = MaterialTheme.colorScheme.surface,
             shadowElevation = 8.dp,
         ) {
-            Column(modifier = Modifier.padding(24.dp)) {
+            Box {
+              Column(modifier = Modifier.padding(24.dp)) {
                 Box(
                     modifier = Modifier
                         .size(54.dp)
@@ -216,50 +220,12 @@ fun DeleteRoomDialog(
                         Text(text = stringResource(R.string.rooms_delete), fontWeight = FontWeight.Bold)
                     }
                 }
+              }
+              ModalCloseButton(
+                  onDismiss = onDismiss,
+                  modifier = Modifier.align(Alignment.TopEnd).padding(8.dp),
+              )
             }
-        }
-    }
-}
-
-@Composable
-private fun DialogHeader(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    subtitle: String,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primaryContainer)
-            .padding(22.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
-    ) {
-        Box(
-            modifier = Modifier
-                .size(52.dp)
-                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(14.dp)),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-            )
-        }
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
     }
 }

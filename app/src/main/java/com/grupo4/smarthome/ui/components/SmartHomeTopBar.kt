@@ -28,6 +28,7 @@ fun SmartHomeTopBar(
     modifier: Modifier = Modifier,
     onNotificationsClick: (() -> Unit)? = null,
     notificationCount: Int = 0,
+    onBackClick: (() -> Unit)? = null,
 ) {
     Row(
         modifier = modifier
@@ -36,12 +37,22 @@ fun SmartHomeTopBar(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        IconButton(onClick = onMenuClick) {
-            Icon(
-                imageVector = SmartHomeIcons.Menu,
-                contentDescription = stringResource(R.string.dashboard_menu_content_description),
-                tint = MaterialTheme.colorScheme.onSurface,
-            )
+        if (onBackClick != null) {
+            IconButton(onClick = onBackClick) {
+                Icon(
+                    imageVector = SmartHomeIcons.Back,
+                    contentDescription = stringResource(R.string.topbar_back_content_description),
+                    tint = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+        } else {
+            IconButton(onClick = onMenuClick) {
+                Icon(
+                    imageVector = SmartHomeIcons.Menu,
+                    contentDescription = stringResource(R.string.dashboard_menu_content_description),
+                    tint = MaterialTheme.colorScheme.onSurface,
+                )
+            }
         }
         if (title != null) {
             Text(

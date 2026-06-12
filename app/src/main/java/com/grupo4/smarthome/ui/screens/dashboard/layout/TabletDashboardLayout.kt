@@ -11,15 +11,13 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.components.LocalOpenDrawer
+import com.grupo4.smarthome.ui.components.TabletMainSidebar
+import com.grupo4.smarthome.ui.components.TabletSidebarDestination
 import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneQuickAddFab
 import com.grupo4.smarthome.ui.screens.dashboard.DashboardCallbacks
 import com.grupo4.smarthome.ui.screens.dashboard.DashboardPresentationState
@@ -28,6 +26,7 @@ import com.grupo4.smarthome.ui.screens.dashboard.components.DashboardBodyContent
 import com.grupo4.smarthome.ui.screens.dashboard.components.DashboardHeader
 import com.grupo4.smarthome.ui.screens.dashboard.components.DashboardTopBar
 import com.grupo4.smarthome.ui.screens.dashboard.components.WelcomeSummaryCard
+import com.grupo4.smarthome.ui.util.isPhoneLandscape
 
 @Composable
 fun TabletDashboardLayout(
@@ -38,17 +37,19 @@ fun TabletDashboardLayout(
 ) {
     val openDrawer = LocalOpenDrawer.current
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        val phoneLandscape = isPhoneLandscape(maxWidth, maxHeight)
         val portraitLike = maxWidth < 900.dp
         val contentPadding = if (portraitLike) 24.dp else 32.dp
-        var quickAddMenuExpanded by remember { mutableStateOf(false) }
 
         DashboardScaffold(
             sidebar = {
-                TabletSidebar(
-                    callbacks = callbacks,
-                    compact = portraitLike,
-                    quickAddMenuExpanded = quickAddMenuExpanded,
-                    onQuickAddMenuExpandedChange = { quickAddMenuExpanded = it },
+                TabletMainSidebar(
+                    selectedDestination = TabletSidebarDestination.Home,
+                    compact = portraitLike || phoneLandscape,
+                    onNavigateHome = callbacks.onNavigateHome,
+                    onNavigateRoutines = callbacks.onNavigateRoutines,
+                    onNavigateRooms = callbacks.onNavigateRooms,
+                    onNavigateHistory = callbacks.onHistoryClick,
                 )
             },
             topBar = {
@@ -59,6 +60,7 @@ fun TabletDashboardLayout(
                     onProfileClick = callbacks.onProfileClick,
                     onNotificationsClick = callbacks.onNotificationsClick,
                     notificationCount = state.unreadNotificationCount,
+                    useCompactHomeMenu = true,
                     modifier = Modifier.padding(
                         start = contentPadding,
                         top = 24.dp,
@@ -99,16 +101,7 @@ fun TabletDashboardLayout(
             },
         )
 
-        TabletQuickActionsOverlay(
-            visible = quickAddMenuExpanded,
-            compact = portraitLike,
-            onAddRoom = callbacks.onCreateRoom,
-            onAddDevice = callbacks.onCreateDevice,
-            onAddRoutine = callbacks.onCreateRoutine,
-            onDismiss = { quickAddMenuExpanded = false },
-        )
-
-        if (callbacks.showQuickAddFab) {
+        if (phoneLandscape) {
             PhoneQuickAddFab(
                 onClick = callbacks.onQuickAddClick,
                 modifier = Modifier
