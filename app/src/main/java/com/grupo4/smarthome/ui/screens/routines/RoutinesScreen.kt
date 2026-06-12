@@ -182,12 +182,11 @@ fun RoutinesScreen(
                             Column {
                                 Text(
                                     text = stringResource(R.string.routines_header_title),
-                                    style = MaterialTheme.typography.headlineMedium.copy(
-                                        fontWeight = FontWeight.ExtraBold,
-                                    ),
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.ExtraBold,
                                     color = MaterialTheme.colorScheme.onSurface,
                                 )
-                                Spacer(modifier = Modifier.height(4.dp))
+                                Spacer(modifier = Modifier.height(6.dp))
                                 Text(
                                     text = stringResource(R.string.routines_header_subtitle),
                                     style = MaterialTheme.typography.bodyMedium,
@@ -200,6 +199,7 @@ fun RoutinesScreen(
                                 routines = routines,
                                 selectedCategory = selectedCategory,
                                 onCategorySelected = { selectedCategory = it },
+                                roomsStyle = true,
                             )
                         }
                         if (routines.isEmpty()) {

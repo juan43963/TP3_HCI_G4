@@ -659,6 +659,15 @@ fun SmartHomeApp(
                             restoreState = true
                         }
                     },
+                    onRoomClick = { roomId ->
+                        roomsViewModel.onRoomClick(roomId)
+                        navController.navigate(Screen.Rooms.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onToggleRoomFavorite = homeViewModel::toggleRoomFavorite,
+                    onToggleRoutineFavorite = homeViewModel::toggleRoutineFavorite,
                     onNavigateProfile = {
                         navController.navigate(Screen.Profile.route) {
                             launchSingleTop = true

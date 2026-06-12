@@ -64,8 +64,6 @@ import com.grupo4.smarthome.R
 import com.grupo4.smarthome.data.model.Device
 import com.grupo4.smarthome.ui.components.ModalCloseButton
 import com.grupo4.smarthome.ui.theme.BrandIndigoDark
-import com.grupo4.smarthome.ui.theme.ErrorBg
-import com.grupo4.smarthome.ui.theme.ErrorBorder
 import com.grupo4.smarthome.ui.theme.ErrorRed
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 import java.util.concurrent.Executors
@@ -284,20 +282,21 @@ private fun InvalidBanner(
     modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        color = ErrorBg,
-        border = BorderStroke(1.dp, ErrorBorder),
-        shadowElevation = 2.dp,
+        modifier = modifier
+            .fillMaxWidth()
+            .widthIn(max = 420.dp),
+        shape = RoundedCornerShape(24.dp),
+        color = Color.Black.copy(alpha = 0.72f),
     ) {
         Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Box(
                 modifier = Modifier
-                    .size(48.dp)
-                    .background(Color.White, RoundedCornerShape(14.dp)),
+                    .size(52.dp)
+                    .background(ErrorRed.copy(alpha = 0.18f), CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
@@ -310,16 +309,19 @@ private fun InvalidBanner(
                 text = stringResource(R.string.scan_invalid_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = Color.White,
+                textAlign = TextAlign.Center,
             )
             Text(
                 text = stringResource(R.string.scan_invalid_description),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color.White.copy(alpha = 0.72f),
+                textAlign = TextAlign.Center,
             )
             Button(
                 onClick = onRetry,
-                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = BrandIndigoDark,
                     contentColor = MaterialTheme.colorScheme.onPrimary,

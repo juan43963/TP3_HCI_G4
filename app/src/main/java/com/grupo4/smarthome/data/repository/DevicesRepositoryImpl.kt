@@ -1,5 +1,6 @@
 package com.grupo4.smarthome.data.repository
 
+import android.util.Log
 import com.grupo4.smarthome.core.network.ApiJson
 import com.grupo4.smarthome.core.result.ApiError
 import com.grupo4.smarthome.core.result.AppResult
@@ -69,6 +70,7 @@ class DevicesRepositoryImpl(
         qrId: String?,
     ): AppResult<Device> =
         runCatching {
+            Log.d("CreateDeviceAudit", "CREATE_START roomId=$roomId type=$type name=$name deviceId=unknown ts=${System.currentTimeMillis()}")
             val catalog = ensureDeviceTypes() ?: return@runCatching catalogError()
             val typeId = catalog.typeIdFor(type)
                 ?: return@runCatching AppResult.Error(
@@ -93,6 +95,14 @@ class DevicesRepositoryImpl(
                 ?: return@runCatching AppResult.Error(
                     ApiError(ErrorKind.Unknown)
                 )
+            Log.d("CreateDeviceAudit", "CREATE_RESPONSE deviceId=${created.id} ts=${System.currentTimeMillis()}")
+
+            if (created.id.isNotBlank()) {
+                localActionTracker.record(created.id, NotificationKind.DEVICE_CREATED)
+                localActionTracker.record(created.id, NotificationKind.DEVICE_ACTION)
+                Log.d("CreateDeviceAudit", "CREATE_LOCAL_RECORD deviceId=${created.id} kind=DEVICE_CREATED ts=${System.currentTimeMillis()}")
+                Log.d("CreateDeviceAudit", "CREATE_LOCAL_RECORD deviceId=${created.id} kind=DEVICE_ACTION ts=${System.currentTimeMillis()}")
+            }
 
             // Sin id no se puede confirmar nada más: devolvemos lo creado tal como vino
             if (created.id.isBlank()) {
@@ -126,7 +136,6 @@ class DevicesRepositoryImpl(
                 afterAssociate?.firstOrNull { it.id == created.id } ?: created.copy(roomId = roomId)
             )
         }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
-            .recording(NotificationKind.DEVICE_CREATED)
 
     override suspend fun renameDevice(deviceId: String, name: String): AppResult<Device> =
         runCatching {
@@ -194,11 +203,6 @@ class DevicesRepositoryImpl(
             }
             refetchDevice(device.id, device.roomId, catalog)
         }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
-
-    private fun AppResult<Device>.recording(kind: NotificationKind): AppResult<Device> {
-        if (this is AppResult.Success) localActionTracker.record(data.id, kind)
-        return this
-    }
 
     override suspend fun getActionsFor(type: DeviceType): AppResult<List<DeviceActionInfo>> =
         runCatching {

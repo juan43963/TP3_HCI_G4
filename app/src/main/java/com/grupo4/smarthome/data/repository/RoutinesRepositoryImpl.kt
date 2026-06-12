@@ -5,6 +5,7 @@ import com.grupo4.smarthome.core.result.ApiError
 import com.grupo4.smarthome.core.result.AppResult
 import com.grupo4.smarthome.core.result.ErrorKind
 import com.grupo4.smarthome.core.result.ErrorMapper
+import com.grupo4.smarthome.data.model.NotificationKind
 import com.grupo4.smarthome.data.model.Routine
 import com.grupo4.smarthome.data.model.RoutineAction
 import com.grupo4.smarthome.data.model.RoutineCategory
@@ -23,6 +24,7 @@ import kotlinx.serialization.builtins.ListSerializer
 
 class RoutinesRepositoryImpl(
     private val routinesApi: RoutinesApi,
+    private val localActionTracker: LocalActionTracker = LocalActionTracker(),
 ) : RoutinesRepository {
     // Caché en memoria (ADR-0005): preserva category/time/days/favorite para reconstruir el PUT completo
     private var cachedRoutines: List<Routine> = emptyList()
@@ -115,6 +117,18 @@ class RoutinesRepositoryImpl(
 
     override suspend fun executeRoutine(routineId: String): AppResult<Unit> =
         runCatching {
+            val affectedDeviceIds = resolveRoutine(routineId)
+                ?.actions
+                ?.map { it.deviceId }
+                ?.filter { it.isNotBlank() }
+                .orEmpty()
+            if (affectedDeviceIds.isNotEmpty()) {
+                localActionTracker.recordAll(
+                    affectedDeviceIds,
+                    NotificationKind.DEVICE_ACTION,
+                    RoutineSuppressionWindowMillis,
+                )
+            }
             val response = routinesApi.executeRoutine(routineId)
             if (response.status.isSuccess()) {
                 AppResult.Success(Unit)
@@ -185,4 +199,8 @@ class RoutinesRepositoryImpl(
             .decodeFromString(ListSerializer(RoutineDto.serializer()), body)
             .filter { val owner = it.metadata.readRoutineHomeId(); owner.isEmpty() || owner == homeId }
             .map { it.toDomain() }
+
+    private companion object {
+        const val RoutineSuppressionWindowMillis = 15_000L
+    }
 }

@@ -220,6 +220,7 @@
     <string name="dashboard_favorite_rooms_subtitle">Accedé y controlá tus espacios más utilizados.</string>
     <string name="dashboard_favorite_routines_title">Rutinas favoritas</string>
     <string name="dashboard_favorite_routines_subtitle">Automatizá las acciones que más usás.</string>
+    <string name="dashboard_remove_favorite">Quitar de favoritos</string>
     <string name="dashboard_empty_home_title">Empezá organizando tu hogar</string>
     <string name="dashboard_empty_home_description">Creá tu primera habitación para agrupar tus dispositivos por espacios y empezar a controlar tu casa de forma más ordenada.</string>
     <string name="dashboard_empty_home_note">Más adelante vas a poder crear rutinas para automatizar acciones frecuentes.</string>

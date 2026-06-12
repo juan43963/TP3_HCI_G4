@@ -11,11 +11,21 @@ class LocalActionTracker(
     private val activeUntil = mutableMapOf<Key, Long>()
 
     @Synchronized
-    fun record(deviceId: String, kind: NotificationKind) {
+    fun record(deviceId: String, kind: NotificationKind, windowMillis: Long = this.windowMillis) {
         if (deviceId.isBlank()) return
         val now = clock()
         purge(now)
         activeUntil[Key(deviceId, kind)] = now + windowMillis
+    }
+
+    @Synchronized
+    fun recordAll(deviceIds: Collection<String>, kind: NotificationKind, windowMillis: Long = this.windowMillis) {
+        val now = clock()
+        purge(now)
+        for (deviceId in deviceIds) {
+            if (deviceId.isBlank()) continue
+            activeUntil[Key(deviceId, kind)] = now + windowMillis
+        }
     }
 
     @Synchronized

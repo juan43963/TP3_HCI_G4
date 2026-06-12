@@ -2,6 +2,7 @@ package com.grupo4.smarthome.ui.screens.dashboard.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -29,9 +31,13 @@ import com.grupo4.smarthome.ui.theme.StarActive
 fun FavoriteRoomPlaceholderCard(
     room: DashboardRoomPreview,
     modifier: Modifier = Modifier,
+    onClick: () -> Unit = {},
+    onToggleFavorite: () -> Unit = {},
 ) {
     Surface(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(14.dp),
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
@@ -71,12 +77,17 @@ fun FavoriteRoomPlaceholderCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                Icon(
-                    imageVector = SmartHomeIcons.Favorite,
-                    contentDescription = null,
-                    tint = StarActive,
-                    modifier = Modifier.size(18.dp),
-                )
+                IconButton(
+                    onClick = onToggleFavorite,
+                    modifier = Modifier.size(32.dp),
+                ) {
+                    Icon(
+                        imageVector = SmartHomeIcons.Favorite,
+                        contentDescription = stringResource(R.string.dashboard_remove_favorite),
+                        tint = StarActive,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
             }
             Text(
                 text = stringResource(R.string.dashboard_placeholder_status),

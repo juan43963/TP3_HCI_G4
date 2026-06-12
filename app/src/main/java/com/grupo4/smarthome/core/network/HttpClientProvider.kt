@@ -42,7 +42,7 @@ object HttpClientProvider {
         if (BuildConfig.DEBUG) {
             install(Logging) {
                 logger = Logger.DEFAULT
-                level = LogLevel.INFO
+                level = LogLevel.BODY
             }
         }
     }

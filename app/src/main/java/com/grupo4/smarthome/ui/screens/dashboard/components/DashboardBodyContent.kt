@@ -58,7 +58,11 @@ fun DashboardBodyContent(
                 DashboardAdaptiveGrid(
                     itemCount = presentation.favoriteRooms.size,
                     itemContent = { index ->
-                        FavoriteRoomPlaceholderCard(room = presentation.favoriteRooms[index])
+                        FavoriteRoomPlaceholderCard(
+                            room = presentation.favoriteRooms[index],
+                            onClick = { callbacks.onRoomClick(presentation.favoriteRooms[index].id) },
+                            onToggleFavorite = { callbacks.onToggleRoomFavorite(presentation.favoriteRooms[index].id) },
+                        )
                     },
                 )
             }
@@ -99,7 +103,12 @@ fun DashboardBodyContent(
                     DashboardAdaptiveGrid(
                         itemCount = presentation.favoriteRoutines.size,
                         itemContent = { index ->
-                            FavoriteRoutinePlaceholderCard(routine = presentation.favoriteRoutines[index])
+                            FavoriteRoutinePlaceholderCard(
+                                routine = presentation.favoriteRoutines[index],
+                                onToggleFavorite = {
+                                    callbacks.onToggleRoutineFavorite(presentation.favoriteRoutines[index].id)
+                                },
+                            )
                         },
                     )
                 }

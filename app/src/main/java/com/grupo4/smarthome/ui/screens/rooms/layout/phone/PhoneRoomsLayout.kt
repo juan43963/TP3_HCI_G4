@@ -210,7 +210,8 @@ private fun PhoneRoomsList(
                 totalRooms = presentation.totalRooms,
                 onFilterSelected = callbacks.onFilterSelected,
                 compact = true,
-                showCounts = false,
+                showCounts = true,
+                showCategoryLabel = true,
             )
         }
         when {
@@ -450,25 +451,12 @@ private fun PhoneEditAction(
     editMode: Boolean,
     onClick: () -> Unit,
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        RoomsEditIconButton(
-            onClick = onClick,
-            contentDescription = stringResource(
-                if (editMode) R.string.rooms_finish_editing else R.string.rooms_edit_rooms,
-            ),
-        )
-        Text(
-            text = stringResource(
-                if (editMode) R.string.rooms_finish_editing_short else R.string.rooms_edit_short,
-            ),
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.primary,
-        )
-    }
+    RoomsEditIconButton(
+        onClick = onClick,
+        contentDescription = stringResource(
+            if (editMode) R.string.rooms_finish_editing else R.string.rooms_edit_rooms,
+        ),
+    )
 }
 
 @Composable

@@ -221,6 +221,7 @@
     <string name="dashboard_favorite_rooms_subtitle">Access and control your most-used spaces.</string>
     <string name="dashboard_favorite_routines_title">Favorite routines</string>
     <string name="dashboard_favorite_routines_subtitle">Automate the actions you use most.</string>
+    <string name="dashboard_remove_favorite">Remove from favorites</string>
     <string name="dashboard_empty_home_title">Start by organizing your home</string>
     <string name="dashboard_empty_home_description">Create your first room to group your devices by space and start controlling your home in a more organized way.</string>
     <string name="dashboard_empty_home_note">Later you\'ll be able to create routines to automate frequent actions.</string>

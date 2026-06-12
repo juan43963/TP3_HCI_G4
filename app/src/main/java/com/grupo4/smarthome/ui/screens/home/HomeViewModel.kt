@@ -56,6 +56,36 @@ class HomeViewModel(
         homeId?.let { load(it) }
     }
 
+    fun toggleRoomFavorite(roomId: String) {
+        viewModelScope.launch {
+            when (val result = roomsRepository.toggleRoomFavorite(roomId)) {
+                is AppResult.Success -> _uiState.update { state ->
+                    state.copy(
+                        rooms = state.rooms.map {
+                            if (it.id == result.data.id) it.copy(isFavorite = result.data.isFavorite) else it
+                        },
+                    )
+                }
+                is AppResult.Error -> Unit
+            }
+        }
+    }
+
+    fun toggleRoutineFavorite(routineId: String) {
+        viewModelScope.launch {
+            when (val result = routinesRepository.toggleFavorite(routineId)) {
+                is AppResult.Success -> _uiState.update { state ->
+                    state.copy(
+                        routines = state.routines.map {
+                            if (it.id == result.data.id) it.copy(isFavorite = result.data.favorite) else it
+                        },
+                    )
+                }
+                is AppResult.Error -> Unit
+            }
+        }
+    }
+
     private fun load(homeId: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingRooms = true, isLoadingRoutines = true) }

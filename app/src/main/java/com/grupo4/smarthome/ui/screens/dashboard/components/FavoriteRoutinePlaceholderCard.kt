@@ -2,6 +2,7 @@ package com.grupo4.smarthome.ui.screens.dashboard.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,6 +31,7 @@ import com.grupo4.smarthome.ui.theme.StarActive
 fun FavoriteRoutinePlaceholderCard(
     routine: DashboardRoutinePreview,
     modifier: Modifier = Modifier,
+    onToggleFavorite: () -> Unit = {},
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -75,12 +77,13 @@ fun FavoriteRoutinePlaceholderCard(
             Box(
                 modifier = Modifier
                     .size(34.dp)
-                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                    .clickable(onClick = onToggleFavorite),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = SmartHomeIcons.Favorite,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.dashboard_remove_favorite),
                     tint = StarActive,
                     modifier = Modifier.size(17.dp),
                 )

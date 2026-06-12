@@ -70,7 +70,7 @@ class AppContainer(context: Context) {
 
     private val routinesApi: RoutinesApi = RoutinesApi(httpClient)
 
-    val routinesRepository: RoutinesRepository = RoutinesRepositoryImpl(routinesApi)
+    val routinesRepository: RoutinesRepository = RoutinesRepositoryImpl(routinesApi, localActionTracker)
 
     private val socketClient: SmartHomeSocketClient =
         SmartHomeSocketClient { sessionManager.currentToken() }
