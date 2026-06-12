@@ -26,5 +26,7 @@ sealed class Screen(
         const val SELECT_HOME_ROUTE = "select_home"
         const val ROUTINE_DETAIL_ROUTE = "routine_detail"
         const val CHANGE_PASSWORD_ROUTE = "change_password_auth"
+        const val SCAN_QR_ROUTE = "scan_qr"
+        const val DEVICE_DETAIL_ROUTE = "device_detail"
     }
 }

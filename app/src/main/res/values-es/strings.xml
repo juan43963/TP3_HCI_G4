@@ -607,4 +607,42 @@
     <string name="error_share_generic">No se pudo compartir la casa.</string>
     <string name="routines_no_active_home">Seleccioná un hogar para ver sus rutinas.</string>
     <string name="rooms_no_active_home">Seleccioná un hogar para ver sus habitaciones.</string>
+
+    <!-- QR scan -->
+    <string name="quick_add_scan">Escanear QR</string>
+    <string name="scan_title">Escanear QR</string>
+    <string name="scan_instruction">Escaneá el código QR del dispositivo</string>
+    <string name="scan_frame_content_description">Visor de la cámara</string>
+    <string name="scan_processing">Resolviendo dispositivo…</string>
+    <string name="scan_invalid_title">Código no reconocido</string>
+    <string name="scan_invalid_description">Ese QR no es de un dispositivo SmartHome. Probá con otro.</string>
+    <string name="scan_retry">Escanear de nuevo</string>
+    <string name="scan_permission_title">Necesitamos la cámara</string>
+    <string name="scan_permission_description">Permití el acceso a la cámara para escanear códigos QR de dispositivos.</string>
+    <string name="scan_permission_grant">Permitir cámara</string>
+    <string name="scan_permission_settings">Abrir ajustes</string>
+    <string name="scan_camera_unavailable_title">Cámara no disponible</string>
+    <string name="scan_camera_unavailable_description">No pudimos iniciar la cámara en este dispositivo.</string>
+
+    <!-- Device detail -->
+    <string name="device_detail_title">Dispositivo</string>
+    <string name="device_detail_room_label">Habitación</string>
+    <string name="device_detail_no_room">Sin asignar</string>
+    <string name="device_detail_not_found">No encontramos este dispositivo.</string>
+
+    <!-- Scanned device flow -->
+    <string name="scanned_device_title">Agregar dispositivo</string>
+    <string name="scanned_device_step_room_label">Paso 1 de 2 · Habitación</string>
+    <string name="scanned_device_step_device_label">Paso 2 de 2 · Dispositivo</string>
+    <string name="scanned_device_room_subtitle">¿Dónde querés agregarlo?</string>
+    <string name="scanned_device_device_subtitle">Poné un nombre al dispositivo en tu hogar.</string>
+    <string name="scanned_device_choose_room">Elegí una habitación</string>
+    <string name="scanned_device_no_rooms">Todavía no tenés habitaciones. Creá una para continuar.</string>
+    <string name="scanned_device_create_room">Crear nueva habitación</string>
+    <string name="scanned_device_new_room_tag">Habitación nueva</string>
+    <string name="scanned_device_room_required">Elegí o creá una habitación.</string>
+    <string name="scanned_device_type_label">Tipo</string>
+    <string name="scanned_device_pick_type">Este QR no incluyó un tipo. Elegí uno.</string>
+    <string name="scanned_device_type_required">Elegí un tipo de dispositivo.</string>
+    <string name="scanned_device_confirm">Agregar</string>
 </resources>

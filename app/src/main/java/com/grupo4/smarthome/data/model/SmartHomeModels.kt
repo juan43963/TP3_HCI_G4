@@ -52,6 +52,7 @@ data class Device(
     val temperature: Int? = null,
     val locked: Boolean? = null,
     val volume: Int? = null,
+    val qrId: String? = null,
 ) {
     val isActive: Boolean
         get() = when (type) {

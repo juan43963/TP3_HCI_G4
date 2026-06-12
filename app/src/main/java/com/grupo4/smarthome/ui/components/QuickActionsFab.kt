@@ -59,6 +59,7 @@ fun BoxScope.QuickActionsOverlay(
     onAddRoom: () -> Unit = onDismiss,
     onAddDevice: () -> Unit = onDismiss,
     onAddRoutine: () -> Unit = onDismiss,
+    onScanQr: () -> Unit = onDismiss,
     bottomBarPadding: Dp = 0.dp,
 ) {
     // Full-screen scrim
@@ -109,6 +110,11 @@ fun BoxScope.QuickActionsOverlay(
                 label = stringResource(R.string.quick_add_routine),
                 icon = SmartHomeIcons.Routines,
                 onClick = onAddRoutine,
+            )
+            QuickActionItem(
+                label = stringResource(R.string.quick_add_scan),
+                icon = SmartHomeIcons.ScanQr,
+                onClick = onScanQr,
             )
             FloatingActionButton(
                 onClick = onDismiss,

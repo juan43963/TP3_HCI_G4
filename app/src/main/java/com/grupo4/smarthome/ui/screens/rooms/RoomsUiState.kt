@@ -45,7 +45,14 @@ data class PendingDevice(
     val id: String,
     val type: DeviceType,
     val name: String,
+    val qrId: String? = null,
 )
+
+// Destino de habitación al dar de alta un dispositivo escaneado: una existente o una nueva a crear.
+sealed interface ScannedDeviceRoomTarget {
+    data class Existing(val roomId: String) : ScannedDeviceRoomTarget
+    data class New(val name: String, val type: RoomType) : ScannedDeviceRoomTarget
+}
 
 fun RoomsUiState.toPresentationState(): RoomsPresentationState {
     val normalizedQuery = searchQuery.trim().lowercase()

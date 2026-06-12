@@ -41,6 +41,7 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material.icons.outlined.NotificationsOff
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.SensorDoor
@@ -63,6 +64,7 @@ object SmartHomeIcons {
     val Rooms = Icons.Outlined.MeetingRoom
     val Routines = Icons.Outlined.Bolt
     val Devices = Icons.Default.Devices
+    val ScanQr = Icons.Outlined.QrCodeScanner
     val Active = Icons.Outlined.Bolt
     val Search = Icons.Default.Search
     val Add = Icons.Default.Add

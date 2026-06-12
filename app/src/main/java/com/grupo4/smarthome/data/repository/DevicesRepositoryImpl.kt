@@ -17,6 +17,7 @@ import com.grupo4.smarthome.data.remote.dto.device.DeviceLogDto
 import com.grupo4.smarthome.data.remote.dto.device.DeviceTypeDto
 import com.grupo4.smarthome.data.remote.dto.device.DeviceUpdateDto
 import com.grupo4.smarthome.data.remote.dto.room.EntityRefDto
+import com.grupo4.smarthome.data.remote.mapper.buildDeviceMetadata
 import com.grupo4.smarthome.data.remote.mapper.toDomain
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
@@ -63,6 +64,7 @@ class DevicesRepositoryImpl(
         roomId: String,
         type: DeviceType,
         name: String,
+        qrId: String?,
     ): AppResult<Device> =
         runCatching {
             val catalog = ensureDeviceTypes() ?: return@runCatching catalogError()
@@ -76,6 +78,7 @@ class DevicesRepositoryImpl(
                     name = name.trim(),
                     type = EntityRefDto(typeId),
                     room = EntityRefDto(roomId),
+                    metadata = buildDeviceMetadata(previous = null, qrId = qrId),
                 )
             )
             val body = response.bodyAsText()

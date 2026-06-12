@@ -97,8 +97,16 @@ import com.grupo4.smarthome.ui.screens.profile.ProfileViewModelFactory
 import com.grupo4.smarthome.ui.screens.rooms.RoomsScreen
 import com.grupo4.smarthome.ui.screens.rooms.RoomsViewModel
 import com.grupo4.smarthome.ui.screens.rooms.RoomsViewModelFactory
+import com.grupo4.smarthome.ui.screens.rooms.ScannedDeviceRoomTarget
 import com.grupo4.smarthome.ui.screens.rooms.dialogs.AddDevicesToRoomDialog
 import com.grupo4.smarthome.ui.screens.rooms.dialogs.AddEditRoomDialog
+import com.grupo4.smarthome.ui.screens.rooms.dialogs.AddScannedDeviceDialog
+import com.grupo4.smarthome.data.model.QrDevicePayload
+import com.grupo4.smarthome.ui.screens.device.DeviceDetailScreen
+import com.grupo4.smarthome.ui.screens.scan.ScanNavEvent
+import com.grupo4.smarthome.ui.screens.scan.ScanScreen
+import com.grupo4.smarthome.ui.screens.scan.ScanViewModel
+import com.grupo4.smarthome.ui.screens.scan.ScanViewModelFactory
 import com.grupo4.smarthome.ui.screens.routines.AddRoutineTabletOverlay
 import com.grupo4.smarthome.ui.screens.routines.CreateRoutineOverlay
 import com.grupo4.smarthome.ui.screens.routines.RoutineDetailScreen
@@ -114,8 +122,10 @@ import com.grupo4.smarthome.ui.theme.ThemePreference
 import com.grupo4.smarthome.ui.theme.ThemeViewModel
 import com.grupo4.smarthome.ui.theme.ThemeViewModelFactory
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import com.grupo4.smarthome.data.model.DeviceType
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -145,6 +155,23 @@ class MainActivity : ComponentActivity() {
 }
 
 private const val LOADING_HOME_ID = " __loading_home__"
+
+// Permite que el dispositivo escaneado pendiente de alta sobreviva a la rotación / muerte de proceso
+// vía rememberSaveable, sin volver Parcelable el modelo de dominio (se guarda como lista de strings).
+private val QrDevicePayloadSaver = listSaver<QrDevicePayload?, String?>(
+    save = { payload ->
+        if (payload == null) emptyList()
+        else listOf(payload.qrId, payload.type?.name, payload.suggestedName)
+    },
+    restore = { stored ->
+        if (stored.isEmpty()) null
+        else QrDevicePayload(
+            qrId = stored[0].orEmpty(),
+            type = stored.getOrNull(1)?.let(DeviceType::valueOf),
+            suggestedName = stored.getOrNull(2),
+        )
+    },
+)
 
 @Composable
 fun SmartHomeApp(
@@ -271,6 +298,11 @@ fun SmartHomeApp(
     var showCreateRoom by rememberSaveable { mutableStateOf(false) }
     var showCreateDevice by rememberSaveable { mutableStateOf(false) }
     var showCreateRoutine by rememberSaveable { mutableStateOf(false) }
+    // Dispositivo escaneado pendiente de alta; rememberSaveable para sobrevivir rotación (igual que
+    // el resto de overlays de creación). Abre AddScannedDeviceDialog.
+    var scannedPayload by rememberSaveable(stateSaver = QrDevicePayloadSaver) {
+        mutableStateOf<QrDevicePayload?>(null)
+    }
     val openQuickActions: () -> Unit = { showQuickActions = true }
     val openCreateRoom: () -> Unit = {
         showQuickActions = false
@@ -289,6 +321,10 @@ fun SmartHomeApp(
         showCreateRoom = false
         showCreateDevice = false
         showCreateRoutine = true
+    }
+    val openScanQr: () -> Unit = {
+        showQuickActions = false
+        navController.navigate(Screen.SCAN_QR_ROUTE) { launchSingleTop = true }
     }
     val openDrawer: () -> Unit = {
         if (isMainRoute) {
@@ -759,6 +795,62 @@ fun SmartHomeApp(
                     )
                 }
             }
+            composable(Screen.SCAN_QR_ROUTE) {
+                val scanViewModel: ScanViewModel = viewModel(
+                    factory = remember { ScanViewModelFactory() },
+                )
+                val scanState by scanViewModel.uiState.collectAsStateWithLifecycle()
+                val scanNavEvent by scanViewModel.navEvent.collectAsStateWithLifecycle()
+                val homeDevices = remember(roomsUiState.rooms) {
+                    roomsUiState.rooms.flatMap { it.devices }
+                }
+                // El match exige Rooms cargado; si está vacío lo disparamos al entrar.
+                LaunchedEffect(Unit) {
+                    if (roomsUiState.rooms.isEmpty()) roomsViewModel.loadRooms()
+                }
+                LaunchedEffect(scanNavEvent) {
+                    when (val event = scanNavEvent) {
+                        is ScanNavEvent.OpenDevice -> {
+                            scanViewModel.consumeNavEvent()
+                            navController.navigate("${Screen.DEVICE_DETAIL_ROUTE}/${event.deviceId}") {
+                                popUpTo(Screen.SCAN_QR_ROUTE) { inclusive = true }
+                            }
+                        }
+                        is ScanNavEvent.CreateDevice -> {
+                            scanViewModel.consumeNavEvent()
+                            scannedPayload = event.payload
+                            navController.popBackStack()
+                        }
+                        null -> Unit
+                    }
+                }
+                ScanScreen(
+                    uiState = scanState,
+                    homeDevices = homeDevices,
+                    onCodeDetected = scanViewModel::onCodeDetected,
+                    onClose = { navController.popBackStack() },
+                    onRetry = scanViewModel::resumeScanning,
+                )
+            }
+            composable("${Screen.DEVICE_DETAIL_ROUTE}/{deviceId}") { backStackEntry ->
+                val deviceId = backStackEntry.arguments?.getString("deviceId").orEmpty()
+                val device = roomsUiState.rooms
+                    .flatMap { it.devices }
+                    .firstOrNull { it.id == deviceId }
+                if (device == null) {
+                    LaunchedEffect(deviceId) { navController.popBackStack() }
+                } else {
+                    val roomName = roomsUiState.rooms.firstOrNull { it.id == device.roomId }?.name
+                    DeviceDetailScreen(
+                        device = device,
+                        roomName = roomName,
+                        isTablet = isTablet,
+                        onBack = { navController.popBackStack() },
+                        onToggle = { roomsViewModel.onToggleDevice(device.id) },
+                        onValueChange = { value -> roomsViewModel.onDeviceValueChange(device.id, value) },
+                    )
+                }
+            }
             composable(Screen.Profile.route) {
                 val origin = navController.previousBackStackEntry
                     ?.destination?.route?.substringBefore('?')
@@ -1053,6 +1145,7 @@ fun SmartHomeApp(
                 onAddRoom = openCreateRoom,
                 onAddDevice = openCreateDevice,
                 onAddRoutine = openCreateRoutine,
+                onScanQr = openScanQr,
                 bottomBarPadding = if (showBottomBar) 80.dp else 0.dp,
             )
 
@@ -1090,6 +1183,20 @@ fun SmartHomeApp(
                         },
                     )
                 }
+            }
+
+            val scanned = scannedPayload
+            if (scanned != null) {
+                AddScannedDeviceDialog(
+                    payload = scanned,
+                    rooms = roomsUiState.rooms,
+                    availableDeviceTypes = roomsUiState.availableDeviceTypes,
+                    onDismiss = { scannedPayload = null },
+                    onConfirm = { target, type, name ->
+                        roomsViewModel.addScannedDevice(target, type, name, scanned.qrId)
+                        scannedPayload = null
+                    },
+                )
             }
 
             if (isTablet) {

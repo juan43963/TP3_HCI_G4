@@ -13,8 +13,14 @@ interface DevicesRepository {
     // Historial de acciones de todos los dispositivos, paginado y ordenado por la API
     suspend fun getLogs(limit: Int = 50, offset: Int = 0): AppResult<List<DeviceLog>>
 
-    // Crea un dispositivo y lo asocia a la habitación (resuelve el deviceTypeId real contra el catálogo)
-    suspend fun createDevice(roomId: String, type: DeviceType, name: String): AppResult<Device>
+    // Crea un dispositivo y lo asocia a la habitación (resuelve el deviceTypeId real contra el catálogo).
+    // qrId opcional: si viene de un QR, se persiste en metadata para reconocer el device al reescanear.
+    suspend fun createDevice(
+        roomId: String,
+        type: DeviceType,
+        name: String,
+        qrId: String? = null,
+    ): AppResult<Device>
 
     // Renombra un dispositivo preservando su metadata
     suspend fun renameDevice(deviceId: String, name: String): AppResult<Device>

@@ -7,7 +7,9 @@ import com.grupo4.smarthome.data.remote.dto.device.DeviceDto
 import com.grupo4.smarthome.data.remote.dto.device.DeviceLogDto
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.put
 
 // Estados de la API que representan "apagado/inactivo". Cualquier otro status se interpreta como encendido.
 private val OffStatuses = setOf(
@@ -41,7 +43,15 @@ fun DeviceDto.toDomain(
         temperature = deviceState.readInt("temperature"),
         volume = deviceState.readInt("volume"),
         locked = deviceState.readLocked(),
+        qrId = metadata.readString("qrId"),
     )
+}
+
+// Construye el metadata para POST/PUT preservando el previo y escribiendo qrId solo si viene.
+// El merge evita pisar otras claves que la API pueda guardar.
+fun buildDeviceMetadata(previous: JsonObject?, qrId: String?): JsonObject = buildJsonObject {
+    previous?.forEach { (key, value) -> put(key, value) }
+    if (qrId != null) put("qrId", JsonPrimitive(qrId))
 }
 
 private fun JsonObject?.readString(key: String): String? =

@@ -261,7 +261,7 @@ class RoomsViewModel(
             _uiState.update { it.copy(errorMessage = null) }
             var lastError: ApiError? = null
             for (pending in devices) {
-                val result = devicesRepository.createDevice(roomId, pending.type, pending.name)
+                val result = devicesRepository.createDevice(roomId, pending.type, pending.name, pending.qrId)
                 if (result is AppResult.Error) lastError = result.error
             }
             // Refetch de la habitación para reflejar lo realmente persistido en el backend
@@ -269,6 +269,39 @@ class RoomsViewModel(
             lastError?.let { err ->
                 _uiState.update { it.copy(errorMessage = err.kind.toMessageRes()) }
             }
+        }
+    }
+
+    // Alta de un dispositivo escaneado: resuelve la habitación (existente o nueva) y crea el device
+    // con su qrId. Si hay que crear la room, espera su id antes de crear el dispositivo.
+    fun addScannedDevice(
+        target: ScannedDeviceRoomTarget,
+        type: DeviceType,
+        name: String,
+        qrId: String?,
+    ) {
+        val currentHome = homeId ?: return
+        viewModelScope.launch {
+            _uiState.update { it.copy(errorMessage = null) }
+            val roomId = when (target) {
+                is ScannedDeviceRoomTarget.Existing -> target.roomId
+                is ScannedDeviceRoomTarget.New -> {
+                    when (val created = roomsRepository.createRoom(currentHome, target.name, target.type)) {
+                        is AppResult.Success -> created.data.id
+                        is AppResult.Error -> {
+                            _uiState.update { it.copy(errorMessage = created.error.kind.toMessageRes()) }
+                            return@launch
+                        }
+                    }
+                }
+            }
+            when (val result = devicesRepository.createDevice(roomId, type, name, qrId)) {
+                is AppResult.Success -> Unit
+                is AppResult.Error -> _uiState.update {
+                    it.copy(errorMessage = result.error.kind.toMessageRes())
+                }
+            }
+            refreshRooms()
         }
     }
 
