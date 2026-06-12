@@ -121,7 +121,7 @@ class HomesRepositoryImpl(
 
     override suspend fun shareHome(homeId: String, email: String): AppResult<List<SharedUser>> =
         runCatching {
-            val response = homesApi.shareHome(homeId, ShareHomeRequestDto(email.trim()))
+            val response = homesApi.shareHome(homeId, ShareHomeRequestDto(listOf(email.trim())))
             val body = response.bodyAsText()
 
             if (response.status.isSuccess()) {

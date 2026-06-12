@@ -7,4 +7,5 @@ object ApiConstants {
     const val AuthorizationHeader = "Authorization"
     val BaseUrl: String = BuildConfig.API_BASE_URL
     val ApiKey: String = BuildConfig.API_KEY
+    val SocketUrl: String = BaseUrl.removeSuffix("/").removeSuffix("/api")
 }

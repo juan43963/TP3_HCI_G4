@@ -4,5 +4,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ShareHomeRequestDto(
-    val email: String,
+    val emails: List<String>,
 )

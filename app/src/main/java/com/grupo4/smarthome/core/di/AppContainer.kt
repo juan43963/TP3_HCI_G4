@@ -11,12 +11,17 @@ import com.grupo4.smarthome.data.remote.api.HomesApi
 import com.grupo4.smarthome.data.remote.api.ProfileApi
 import com.grupo4.smarthome.data.remote.api.RoomsApi
 import com.grupo4.smarthome.data.remote.api.RoutinesApi
+import com.grupo4.smarthome.data.remote.socket.SmartHomeSocketClient
+import com.grupo4.smarthome.data.remote.socket.SocketEvent
 import com.grupo4.smarthome.data.repository.AuthRepository
 import com.grupo4.smarthome.data.repository.AuthRepositoryImpl
 import com.grupo4.smarthome.data.repository.DevicesRepository
 import com.grupo4.smarthome.data.repository.DevicesRepositoryImpl
 import com.grupo4.smarthome.data.repository.HomesRepository
 import com.grupo4.smarthome.data.repository.HomesRepositoryImpl
+import com.grupo4.smarthome.data.repository.LocalActionTracker
+import com.grupo4.smarthome.data.repository.NotificationsRepository
+import com.grupo4.smarthome.data.repository.NotificationsRepositoryImpl
 import com.grupo4.smarthome.data.repository.ProfileRepository
 import com.grupo4.smarthome.data.repository.ProfileRepositoryImpl
 import com.grupo4.smarthome.data.repository.RoomsRepository
@@ -27,6 +32,9 @@ import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.shareIn
 
 class AppContainer(context: Context) {
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -56,9 +64,20 @@ class AppContainer(context: Context) {
 
     private val devicesApi: DevicesApi = DevicesApi(httpClient)
 
-    val devicesRepository: DevicesRepository = DevicesRepositoryImpl(devicesApi)
+    private val localActionTracker: LocalActionTracker = LocalActionTracker()
+
+    val devicesRepository: DevicesRepository = DevicesRepositoryImpl(devicesApi, localActionTracker)
 
     private val routinesApi: RoutinesApi = RoutinesApi(httpClient)
 
     val routinesRepository: RoutinesRepository = RoutinesRepositoryImpl(routinesApi)
+
+    private val socketClient: SmartHomeSocketClient =
+        SmartHomeSocketClient { sessionManager.currentToken() }
+
+    val socketEvents: SharedFlow<SocketEvent> =
+        socketClient.events().shareIn(applicationScope, SharingStarted.WhileSubscribed(5_000L))
+
+    val notificationsRepository: NotificationsRepository =
+        NotificationsRepositoryImpl(devicesRepository, socketEvents, localActionTracker)
 }

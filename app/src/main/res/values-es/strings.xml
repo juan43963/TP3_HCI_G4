@@ -559,17 +559,25 @@
     <string name="notifications_empty_title">No tenés notificaciones</string>
     <string name="notifications_empty_description">Cuando algo cambie en tu hogar, lo vas a ver acá.</string>
     <string name="notifications_metadata">%1$s · %2$s</string>
-    <string name="notifications_invitation_accept">Aceptar</string>
-    <string name="notifications_invitation_reject">Rechazar</string>
+    <string name="notification_event_action_message">%1$s · %2$s</string>
+    <string name="notification_event_device_changed">Cambió de estado</string>
+    <string name="action_event_volume_changed">Cambió el volumen</string>
+    <string name="action_event_brightness_changed">Cambió el brillo</string>
+    <string name="action_event_color_changed">Cambió el color</string>
+    <string name="action_event_temperature_changed">Cambió la temperatura</string>
+    <string name="action_event_mode_changed">Cambió el modo</string>
+    <string name="action_event_opened">Se abrió</string>
+    <string name="action_event_closed">Se cerró</string>
+    <string name="action_event_locked">Se bloqueó</string>
+    <string name="action_event_unlocked">Se desbloqueó</string>
+    <string name="notification_event_device_added">Nuevo dispositivo agregado</string>
+    <string name="notification_event_device_updated">Dispositivo actualizado</string>
+    <string name="notification_event_device_removed">Dispositivo eliminado</string>
 
     <string name="notifications_category_security">Seguridad</string>
     <string name="notifications_category_security_description">Puertas y alarmas de tu hogar.</string>
     <string name="notifications_category_devices">Dispositivos</string>
     <string name="notifications_category_devices_description">Cambios de estado de tus dispositivos.</string>
-    <string name="notifications_category_routines">Rutinas</string>
-    <string name="notifications_category_routines_description">Ejecución y finalización de tus rutinas.</string>
-    <string name="notifications_category_home">Hogar</string>
-    <string name="notifications_category_home_description">Miembros, invitaciones y novedades del hogar.</string>
 
     <string name="notification_settings_title">Notificaciones</string>
     <string name="notification_settings_subtitle">Elegí qué notificaciones querés recibir.</string>
@@ -578,10 +586,6 @@
     <string name="notification_settings_master_description">Activá o desactivá todas las notificaciones de SmartHome.</string>
     <string name="notification_settings_section_types">Tipos de notificaciones</string>
     <string name="notification_settings_section_types_description">Activá solo las que te interesen. Podés cambiarlo cuando quieras.</string>
-    <string name="notification_settings_section_in_app">En la aplicación</string>
-    <string name="notification_settings_toast_label">Avisos al ver el dispositivo</string>
-    <string name="notification_settings_toast_description">Mostrar un aviso breve cuando cambie un dispositivo que estás viendo. Si no lo estás viendo, lo verás como un punto en la campana.</string>
-    <string name="notification_settings_note">SmartHome nunca te avisa por acciones que vos mismo realizás. Las notificaciones con la app cerrada quedan fuera del alcance de este trabajo (requieren Firebase Cloud Messaging).</string>
     <string name="notification_settings_section_settings_subtitle">Tipos y avisos</string>
 
     <string name="error_network">No se pudo conectar con el servidor.</string>

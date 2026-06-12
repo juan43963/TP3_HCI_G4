@@ -13,6 +13,8 @@ import kotlinx.serialization.json.put
 
 private const val KEY_TYPE = "type"
 private const val KEY_PHOTO = "photo"
+private const val KEY_OWNER_NAME = "ownerName"
+private const val KEY_OWNER_EMAIL = "ownerEmail"
 
 fun HomeDto.toDomain(): Home =
     Home(
@@ -21,6 +23,8 @@ fun HomeDto.toDomain(): Home =
         rooms = emptyList(),
         type = metadata.readHomeType(),
         photoIndex = metadata.readPhotoIndex(),
+        ownerName = metadata.readString(KEY_OWNER_NAME),
+        ownerEmail = metadata.readString(KEY_OWNER_EMAIL),
     )
 
 fun SharedUserDto.toDomain(): SharedUser? {
@@ -52,3 +56,6 @@ private fun JsonObject?.readHomeType(): HomeType {
 
 private fun JsonObject?.readPhotoIndex(): Int? =
     (this?.get(KEY_PHOTO) as? JsonPrimitive)?.intOrNull
+
+private fun JsonObject?.readString(key: String): String? =
+    (this?.get(key) as? JsonPrimitive)?.content?.takeIf { it.isNotBlank() }

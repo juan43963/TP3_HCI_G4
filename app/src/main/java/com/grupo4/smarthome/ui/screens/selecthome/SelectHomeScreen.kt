@@ -62,6 +62,8 @@ data class SelectableHome(
     val devicesCount: Int,
     val photoIndex: Int? = null,
     val type: HomeType = HomeType.OTRO,
+    val ownerName: String? = null,
+    val ownerEmail: String? = null,
 )
 
 @Composable

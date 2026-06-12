@@ -247,6 +247,8 @@ private fun Home.toSelectable(): SelectableHome =
         devicesCount = 0,
         photoIndex = photoIndex,
         type = type,
+        ownerName = ownerName,
+        ownerEmail = ownerEmail,
     )
 
 class SelectHomeViewModelFactory(

@@ -6,6 +6,8 @@ data class Home(
     val rooms: List<Room>,
     val type: HomeType = HomeType.OTRO,
     val photoIndex: Int? = null,
+    val ownerName: String? = null,
+    val ownerEmail: String? = null,
 )
 
 enum class HomeType {

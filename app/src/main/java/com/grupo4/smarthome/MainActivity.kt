@@ -21,6 +21,7 @@ import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.window.core.layout.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -29,7 +30,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.grupo4.smarthome.data.local.SessionState
 import kotlinx.coroutines.launch
@@ -85,11 +89,11 @@ import com.grupo4.smarthome.ui.screens.home.HomeViewModel
 import com.grupo4.smarthome.ui.screens.home.HomeViewModelFactory
 import com.grupo4.smarthome.ui.screens.selecthome.AddHomeOverlay
 import com.grupo4.smarthome.ui.screens.selecthome.HomeActionDialogs
-import com.grupo4.smarthome.ui.screens.notifications.NotificationPreferences
-import com.grupo4.smarthome.ui.screens.notifications.NotificationPreferencesSaver
 import com.grupo4.smarthome.ui.screens.notifications.NotificationSettingsScreen
 import com.grupo4.smarthome.ui.screens.notifications.NotificationsScreen
-import com.grupo4.smarthome.ui.screens.notifications.sampleNotifications
+import com.grupo4.smarthome.ui.screens.notifications.NotificationsViewModel
+import com.grupo4.smarthome.ui.screens.notifications.NotificationsViewModelFactory
+import com.grupo4.smarthome.ui.screens.notifications.toNotificationUi
 import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeScreen
 import com.grupo4.smarthome.ui.screens.profile.ProfileScreen
 import com.grupo4.smarthome.ui.screens.profile.ProfileViewModel
@@ -233,6 +237,7 @@ fun SmartHomeApp(
             RoomsViewModelFactory(
                 homesApplication.appContainer.roomsRepository,
                 homesApplication.appContainer.devicesRepository,
+                homesApplication.appContainer.socketEvents,
             )
         },
     )
@@ -328,6 +333,7 @@ fun SmartHomeApp(
     }
     val openDrawer: () -> Unit = {
         if (isMainRoute) {
+            selectHomeViewModel.loadHomes()
             isDrawerVisible = true
         }
     }
@@ -340,40 +346,36 @@ fun SmartHomeApp(
         }
     }
 
-    var notifications by remember { mutableStateOf(sampleNotifications) }
-    var notificationPreferences by rememberSaveable(stateSaver = NotificationPreferencesSaver) {
-        mutableStateOf(NotificationPreferences())
+    val notificationsViewModel: NotificationsViewModel = viewModel(
+        factory = remember(homesApplication) {
+            NotificationsViewModelFactory(
+                homesApplication.appContainer.notificationsRepository,
+                homesApplication.appContainer.preferencesDataStore,
+            )
+        },
+    )
+    val notificationsUiState by notificationsViewModel.uiState.collectAsStateWithLifecycle()
+    val notificationPreferences by notificationsViewModel.preferences.collectAsStateWithLifecycle()
+    LaunchedEffect(roomsUiState.rooms) {
+        notificationsViewModel.onRoomsChanged(roomsUiState.rooms)
     }
-    val unreadNotificationCount = notifications.count { !it.read }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(notificationsViewModel) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            notificationsViewModel.observeRealtime()
+        }
+    }
+    LaunchedEffect(selectHomeViewModel) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            selectHomeViewModel.loadHomes()
+        }
+    }
+    val unreadNotificationCount = notificationsUiState.unreadCount
     val openNotifications: () -> Unit = {
         navController.navigate(Screen.Notifications.route) { launchSingleTop = true }
     }
     val openNotificationSettings: () -> Unit = {
         navController.navigate(Screen.NotificationSettings.route) { launchSingleTop = true }
-    }
-    val markAllNotificationsRead: () -> Unit = {
-        notifications = notifications.map { it.copy(read = true) }
-    }
-    val markNotificationRead: (String) -> Unit = { id ->
-        notifications = notifications.map { if (it.id == id) it.copy(read = true) else it }
-    }
-    val acceptInvitation: (String) -> Unit = { id ->
-        notifications = notifications.map { notification ->
-            if (notification.id == id && notification.invitationHome != null) {
-                notification.copy(
-                    title = "Te uniste al hogar",
-                    message = "Ahora formás parte de “${notification.invitationHome}”.",
-                    timeLabel = "ahora",
-                    invitationHome = null,
-                    read = true,
-                )
-            } else {
-                notification
-            }
-        }
-    }
-    val rejectInvitation: (String) -> Unit = { id ->
-        notifications = notifications.filterNot { it.id == id }
     }
 
     val showBottomBar = !isTablet &&
@@ -888,7 +890,7 @@ fun SmartHomeApp(
                     onLogout = performLogout,
                     onOpenNotificationSettings = openNotificationSettings,
                     notificationPreferences = notificationPreferences,
-                    onNotificationPreferencesChange = { notificationPreferences = it },
+                    onNotificationPreferencesChange = notificationsViewModel::setPreferences,
                     onNotificationsClick = openNotifications,
                     unreadNotificationCount = unreadNotificationCount,
                     enteredFromHome = enteredFromHome,
@@ -1001,13 +1003,18 @@ fun SmartHomeApp(
                 )
             }
             composable(Screen.Notifications.route) {
+                val context = LocalContext.current
+                val notificationItems = remember(notificationsUiState.items, roomsUiState.rooms) {
+                    notificationsUiState.items.toNotificationUi(context, roomsUiState.rooms)
+                }
+                DisposableEffect(Unit) {
+                    notificationsViewModel.onScreenVisible()
+                    onDispose { notificationsViewModel.onScreenHidden() }
+                }
                 NotificationsScreen(
                     windowSize = windowSize,
-                    notifications = notifications,
-                    onNotificationClick = markNotificationRead,
-                    onMarkAllRead = markAllNotificationsRead,
-                    onAcceptInvitation = acceptInvitation,
-                    onRejectInvitation = rejectInvitation,
+                    notifications = notificationItems,
+                    onMarkAllRead = notificationsViewModel::markAllSeen,
                     onBack = onBack,
                     selectedHomeName = activeHomeName,
                     onHomeSelectorClick = openDrawer,
@@ -1046,7 +1053,7 @@ fun SmartHomeApp(
                 NotificationSettingsScreen(
                     windowSize = windowSize,
                     preferences = notificationPreferences,
-                    onPreferencesChange = { notificationPreferences = it },
+                    onPreferencesChange = notificationsViewModel::setPreferences,
                     onBack = onBack,
                     onProfileClick = {
                         navController.navigate(Screen.Profile.route) {

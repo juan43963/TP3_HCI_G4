@@ -18,11 +18,9 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.window.core.layout.WindowSizeClass
@@ -52,8 +50,6 @@ fun NotificationsScreen(
     notifications: List<NotificationUi> = sampleNotifications,
     onNotificationClick: (String) -> Unit = {},
     onMarkAllRead: () -> Unit = {},
-    onAcceptInvitation: (String) -> Unit = {},
-    onRejectInvitation: (String) -> Unit = {},
     onProfileClick: () -> Unit = {},
     onSearchClick: () -> Unit = {},
     onNavigateHome: () -> Unit = {},
@@ -107,8 +103,6 @@ fun NotificationsScreen(
                         earlier = earlier,
                         onNotificationClick = onNotificationClick,
                         onMarkAllRead = onMarkAllRead,
-                        onAcceptInvitation = onAcceptInvitation,
-                        onRejectInvitation = onRejectInvitation,
                         contentPadding = PaddingValues(
                             start = contentPadding,
                             end = contentPadding,
@@ -133,8 +127,6 @@ fun NotificationsScreen(
                 earlier = earlier,
                 onNotificationClick = onNotificationClick,
                 onMarkAllRead = onMarkAllRead,
-                onAcceptInvitation = onAcceptInvitation,
-                onRejectInvitation = onRejectInvitation,
                 showHeaderTitle = false,
                 contentPadding = PaddingValues(
                     start = 16.dp,
@@ -154,8 +146,6 @@ private fun NotificationsFeed(
     earlier: List<NotificationUi>,
     onNotificationClick: (String) -> Unit,
     onMarkAllRead: () -> Unit,
-    onAcceptInvitation: (String) -> Unit,
-    onRejectInvitation: (String) -> Unit,
     contentPadding: PaddingValues,
     showHeaderTitle: Boolean = true,
     modifier: Modifier = Modifier,
@@ -189,8 +179,6 @@ private fun NotificationsFeed(
                         title = stringResource(R.string.notifications_section_new),
                         notifications = unread,
                         onNotificationClick = onNotificationClick,
-                        onAcceptInvitation = onAcceptInvitation,
-                        onRejectInvitation = onRejectInvitation,
                         modifier = itemModifier,
                     )
                 }
@@ -201,8 +189,6 @@ private fun NotificationsFeed(
                         title = stringResource(R.string.notifications_section_earlier),
                         notifications = earlier,
                         onNotificationClick = onNotificationClick,
-                        onAcceptInvitation = onAcceptInvitation,
-                        onRejectInvitation = onRejectInvitation,
                         modifier = itemModifier,
                     )
                 }
@@ -255,8 +241,6 @@ private fun NotificationGroup(
     title: String,
     notifications: List<NotificationUi>,
     onNotificationClick: (String) -> Unit,
-    onAcceptInvitation: (String) -> Unit,
-    onRejectInvitation: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
@@ -278,8 +262,6 @@ private fun NotificationGroup(
                     NotificationRow(
                         notification = notification,
                         onClick = { onNotificationClick(notification.id) },
-                        onAccept = { onAcceptInvitation(notification.id) },
-                        onReject = { onRejectInvitation(notification.id) },
                     )
                     if (index != notifications.lastIndex) {
                         HorizontalDivider(
@@ -297,10 +279,7 @@ private fun NotificationGroup(
 private fun NotificationRow(
     notification: NotificationUi,
     onClick: () -> Unit,
-    onAccept: () -> Unit,
-    onReject: () -> Unit,
 ) {
-    val isInvitation = notification.invitationHome != null
     val highlight = if (notification.read) {
         MaterialTheme.colorScheme.surface
     } else {
@@ -310,7 +289,7 @@ private fun NotificationRow(
         modifier = Modifier
             .fillMaxWidth()
             .background(highlight)
-            .clickable(enabled = !isInvitation, onClick = onClick)
+            .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -355,28 +334,8 @@ private fun NotificationRow(
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            if (isInvitation) {
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    OutlinedButton(
-                        onClick = onReject,
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Text(stringResource(R.string.notifications_invitation_reject))
-                    }
-                    Button(
-                        onClick = onAccept,
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Text(stringResource(R.string.notifications_invitation_accept))
-                    }
-                }
-            }
         }
-        if (!notification.read && !isInvitation) {
+        if (!notification.read) {
             Box(
                 modifier = Modifier
                     .size(10.dp)
@@ -446,8 +405,6 @@ private fun NotificationsPreviewContent() {
         earlier = sampleNotifications.filter { it.read },
         onNotificationClick = {},
         onMarkAllRead = {},
-        onAcceptInvitation = {},
-        onRejectInvitation = {},
         contentPadding = PaddingValues(16.dp),
     )
 }

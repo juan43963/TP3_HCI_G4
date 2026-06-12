@@ -10,6 +10,7 @@ import com.grupo4.smarthome.data.model.DeviceActionInfo
 import com.grupo4.smarthome.data.model.DeviceActionParamInfo
 import com.grupo4.smarthome.data.model.DeviceLog
 import com.grupo4.smarthome.data.model.DeviceType
+import com.grupo4.smarthome.data.model.NotificationKind
 import com.grupo4.smarthome.data.remote.api.DevicesApi
 import com.grupo4.smarthome.data.remote.dto.device.DeviceCreateDto
 import com.grupo4.smarthome.data.remote.dto.device.DeviceDto
@@ -29,6 +30,7 @@ import kotlinx.serialization.json.buildJsonObject
 
 class DevicesRepositoryImpl(
     private val devicesApi: DevicesApi,
+    private val localActionTracker: LocalActionTracker = LocalActionTracker(),
 ) : DevicesRepository {
     // Catálogo de tipos cacheado en memoria: lo necesitamos tanto para resolver el deviceTypeId al
     // crear como para mapear type.id -> enum local y para saber qué acciones admite cada tipo.
@@ -124,6 +126,7 @@ class DevicesRepositoryImpl(
                 afterAssociate?.firstOrNull { it.id == created.id } ?: created.copy(roomId = roomId)
             )
         }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
+            .recording(NotificationKind.DEVICE_CREATED)
 
     override suspend fun renameDevice(deviceId: String, name: String): AppResult<Device> =
         runCatching {
@@ -134,6 +137,7 @@ class DevicesRepositoryImpl(
                 ?: return@runCatching AppResult.Error(
                     ApiError(ErrorKind.NotFound)
                 )
+            localActionTracker.record(deviceId, NotificationKind.DEVICE_UPDATED)
             val response = devicesApi.updateDevice(
                 deviceId,
                 DeviceUpdateDto(
@@ -146,6 +150,7 @@ class DevicesRepositoryImpl(
 
     override suspend fun deleteDevice(deviceId: String): AppResult<Unit> =
         runCatching {
+            localActionTracker.record(deviceId, NotificationKind.DEVICE_DELETED)
             val response = devicesApi.deleteDevice(deviceId)
             if (response.status.isSuccess()) {
                 AppResult.Success(Unit)
@@ -162,6 +167,7 @@ class DevicesRepositoryImpl(
                 ?: return@runCatching AppResult.Error(
                     ApiError(ErrorKind.Unknown)
                 )
+            localActionTracker.record(device.id, NotificationKind.DEVICE_ACTION)
             val response = devicesApi.executeAction(device.id, actionName, buildJsonArray { })
             if (!response.status.isSuccess()) {
                 return@runCatching AppResult.Error(ErrorMapper.fromHttp(response.status, response.bodyAsText()))
@@ -181,12 +187,18 @@ class DevicesRepositoryImpl(
                     ApiError(ErrorKind.Unknown)
                 )
             }
+            localActionTracker.record(device.id, NotificationKind.DEVICE_ACTION)
             val response = devicesApi.executeAction(device.id, actionName, buildJsonArray { add(value) })
             if (!response.status.isSuccess()) {
                 return@runCatching AppResult.Error(ErrorMapper.fromHttp(response.status, response.bodyAsText()))
             }
             refetchDevice(device.id, device.roomId, catalog)
         }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
+
+    private fun AppResult<Device>.recording(kind: NotificationKind): AppResult<Device> {
+        if (this is AppResult.Success) localActionTracker.record(data.id, kind)
+        return this
+    }
 
     override suspend fun getActionsFor(type: DeviceType): AppResult<List<DeviceActionInfo>> =
         runCatching {

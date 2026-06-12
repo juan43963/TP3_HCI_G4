@@ -58,9 +58,9 @@ private fun DeviceType.toHistoryType(): HistoryDeviceType =
         DeviceType.FRIDGE -> HistoryDeviceType.FRIDGE
     }
 
-// Para acciones desconocidas mostramos el nombre técnico crudo (mejor que ocultar la entrada)
-private fun actionLabel(context: Context, actionName: String): String =
-    actionLabelRes(actionName)?.let { context.getString(it) } ?: actionName
+// Para acciones desconocidas usamos un genérico localizado (nunca el nombre técnico crudo en inglés)
+fun actionLabel(context: Context, actionName: String): String =
+    context.getString(actionLabelRes(actionName) ?: R.string.notification_event_device_changed)
 
 @StringRes
 private fun actionLabelRes(actionName: String): Int? =
@@ -80,6 +80,16 @@ private fun actionLabelRes(actionName: String): Int? =
         "setTemperature" -> R.string.history_action_set_temperature
         "setVolume" -> R.string.history_action_set_volume
         "setMode" -> R.string.history_action_set_mode
+        "statusChanged" -> R.string.notification_event_device_changed
+        "volumeChanged" -> R.string.action_event_volume_changed
+        "brightnessChanged" -> R.string.action_event_brightness_changed
+        "colorChanged" -> R.string.action_event_color_changed
+        "temperatureChanged" -> R.string.action_event_temperature_changed
+        "modeChanged" -> R.string.action_event_mode_changed
+        "opened" -> R.string.action_event_opened
+        "closed" -> R.string.action_event_closed
+        "locked" -> R.string.action_event_locked
+        "unlocked" -> R.string.action_event_unlocked
         else -> null
     }
 

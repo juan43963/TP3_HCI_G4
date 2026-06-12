@@ -20,14 +20,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.window.core.layout.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -224,20 +225,6 @@ fun NotificationPreferenceSections(
             }
         }
 
-        Box(modifier = itemModifier.fillMaxWidth()) {
-            SectionCard(title = stringResource(R.string.notification_settings_section_in_app)) {
-                NotificationToggleRow(
-                    icon = SmartHomeIcons.Info,
-                    title = stringResource(R.string.notification_settings_toast_label),
-                    description = stringResource(R.string.notification_settings_toast_description),
-                    checked = preferences.showInAppToast,
-                    enabled = preferences.enabled,
-                    onCheckedChange = { onPreferencesChange(preferences.copy(showInAppToast = it)) },
-                )
-            }
-        }
-
-        NotificationNote(modifier = itemModifier)
     }
 }
 
@@ -291,33 +278,11 @@ private fun NotificationToggleRow(
             checked = checked,
             onCheckedChange = onCheckedChange,
             enabled = enabled,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.White,
+                checkedTrackColor = MaterialTheme.colorScheme.primary,
+            ),
         )
-    }
-}
-
-@Composable
-private fun NotificationNote(modifier: Modifier = Modifier) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Icon(
-                imageVector = SmartHomeIcons.Info,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(20.dp),
-            )
-            Text(
-                text = stringResource(R.string.notification_settings_note),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
     }
 }
 

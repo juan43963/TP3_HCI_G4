@@ -10,11 +10,13 @@ import com.grupo4.smarthome.core.result.toMessageRes
 import com.grupo4.smarthome.data.model.Device
 import com.grupo4.smarthome.data.model.DeviceType
 import com.grupo4.smarthome.data.model.RoomType
+import com.grupo4.smarthome.data.remote.socket.SocketEvent
 import com.grupo4.smarthome.data.repository.DevicesRepository
 import com.grupo4.smarthome.data.repository.RoomsRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,6 +26,7 @@ import kotlinx.coroutines.launch
 class RoomsViewModel(
     private val roomsRepository: RoomsRepository,
     private val devicesRepository: DevicesRepository,
+    private val deviceEvents: Flow<SocketEvent>,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(
         RoomsUiState(
@@ -35,6 +38,10 @@ class RoomsViewModel(
 
     // Hogar activo actual; lo setea la UI vía onHomeChanged según SelectHome/Preferences
     private var homeId: String? = null
+
+    init {
+        observeDeviceEvents()
+    }
 
     // La UI llama esto cuando cambia el hogar activo. Recarga solo si cambió el id.
     fun onHomeChanged(newHomeId: String?) {
@@ -354,6 +361,35 @@ class RoomsViewModel(
         }
     }
 
+    private fun observeDeviceEvents() {
+        viewModelScope.launch {
+            deviceEvents.collect { event ->
+                when (event) {
+                    is SocketEvent.DeviceEvent -> onDeviceTouched(event.deviceId)
+                    is SocketEvent.DeviceUpdated -> onDeviceTouched(event.deviceId)
+                    is SocketEvent.DeviceCreated -> onDeviceStructureChanged(event.deviceId)
+                    is SocketEvent.DeviceDeleted -> onDeviceStructureChanged(event.deviceId)
+                    is SocketEvent.Connected -> Unit
+                }
+            }
+        }
+    }
+
+    private suspend fun onDeviceTouched(deviceId: String?) {
+        val roomId = roomIdForDevice(deviceId) ?: return
+        reloadRoomDevices(roomId)
+    }
+
+    private suspend fun onDeviceStructureChanged(deviceId: String?) {
+        val roomId = roomIdForDevice(deviceId)
+        if (roomId != null) reloadRoomDevices(roomId) else refreshRooms()
+    }
+
+    private fun roomIdForDevice(deviceId: String?): String? {
+        if (deviceId.isNullOrBlank()) return null
+        return _uiState.value.rooms.firstOrNull { room -> room.devices.any { it.id == deviceId } }?.id
+    }
+
     private companion object {
         val NoActiveHomeMessage = R.string.rooms_no_active_home
     }
@@ -362,11 +398,12 @@ class RoomsViewModel(
 class RoomsViewModelFactory(
     private val roomsRepository: RoomsRepository,
     private val devicesRepository: DevicesRepository,
+    private val deviceEvents: Flow<SocketEvent>,
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(RoomsViewModel::class.java)) {
-            return RoomsViewModel(roomsRepository, devicesRepository) as T
+            return RoomsViewModel(roomsRepository, devicesRepository, deviceEvents) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
