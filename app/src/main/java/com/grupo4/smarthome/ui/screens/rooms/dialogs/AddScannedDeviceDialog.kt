@@ -43,7 +43,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.grupo4.smarthome.R
-import com.grupo4.smarthome.data.model.DeviceType
+import com.grupo4.smarthome.data.model.DeviceTypeInfo
+import com.grupo4.smarthome.data.model.DeviceTypeNames
 import com.grupo4.smarthome.data.model.QrDevicePayload
 import com.grupo4.smarthome.data.model.Room
 import com.grupo4.smarthome.data.model.RoomType
@@ -62,9 +63,9 @@ import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 fun AddScannedDeviceDialog(
     payload: QrDevicePayload,
     rooms: List<Room>,
-    availableDeviceTypes: List<DeviceType>,
+    availableDeviceTypes: List<DeviceTypeInfo>,
     onDismiss: () -> Unit,
-    onConfirm: (ScannedDeviceRoomTarget, DeviceType, String) -> Unit,
+    onConfirm: (ScannedDeviceRoomTarget, DeviceTypeInfo, String) -> Unit,
 ) {
     var step by rememberSaveable { mutableIntStateOf(1) }
     var selectedRoomId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -72,7 +73,8 @@ fun AddScannedDeviceDialog(
     var newRoomTypeName by rememberSaveable { mutableStateOf<String?>(null) }
     var showCreateRoom by rememberSaveable { mutableStateOf(false) }
     var deviceName by rememberSaveable { mutableStateOf(payload.suggestedName.orEmpty()) }
-    var selectedDeviceTypeName by rememberSaveable { mutableStateOf(payload.type?.name) }
+    // Guardamos el id del tipo elegido (saveable); el tipo en sí se resuelve del catálogo.
+    var selectedTypeId by rememberSaveable { mutableStateOf<String?>(null) }
     var submitted by rememberSaveable { mutableStateOf(false) }
 
     val roomTarget: ScannedDeviceRoomTarget? = when {
@@ -81,8 +83,14 @@ fun AddScannedDeviceDialog(
         selectedRoomId != null -> ScannedDeviceRoomTarget.Existing(selectedRoomId!!)
         else -> null
     }
-    val deviceType = selectedDeviceTypeName?.let(DeviceType::valueOf)
-    val headerIcon = payload.type?.let { deviceTypeIcon(it) } ?: SmartHomeIcons.Devices
+    // El QR trae un hint de tipo (un nombre): lo resolvemos contra el catálogo real por nombre canónico.
+    val qrType = payload.typeName?.let { name ->
+        val canonical = DeviceTypeNames.canonical(name)
+        availableDeviceTypes.firstOrNull { it.canonicalName == canonical }
+    }
+    // Si el QR resolvió un tipo, queda fijo; si no, vale el que elija el usuario.
+    val deviceType = qrType ?: selectedTypeId?.let { id -> availableDeviceTypes.firstOrNull { it.id == id } }
+    val headerIcon = qrType?.let { deviceTypeIcon(it) } ?: SmartHomeIcons.Devices
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -146,10 +154,10 @@ fun AddScannedDeviceDialog(
                         }
                     } else {
                         DeviceStep(
-                            fixedType = payload.type,
+                            fixedType = qrType,
                             availableDeviceTypes = availableDeviceTypes,
                             selectedType = deviceType,
-                            onSelectType = { selectedDeviceTypeName = it.name },
+                            onSelectType = { selectedTypeId = it.id },
                             deviceName = deviceName,
                             onNameChange = { deviceName = it },
                             showNameError = submitted && deviceName.isBlank(),
@@ -317,10 +325,10 @@ private fun RoomRow(
 
 @Composable
 private fun DeviceStep(
-    fixedType: DeviceType?,
-    availableDeviceTypes: List<DeviceType>,
-    selectedType: DeviceType?,
-    onSelectType: (DeviceType) -> Unit,
+    fixedType: DeviceTypeInfo?,
+    availableDeviceTypes: List<DeviceTypeInfo>,
+    selectedType: DeviceTypeInfo?,
+    onSelectType: (DeviceTypeInfo) -> Unit,
     deviceName: String,
     onNameChange: (String) -> Unit,
     showNameError: Boolean,
@@ -373,9 +381,9 @@ private fun DeviceStep(
 
 @Composable
 private fun DeviceTypeGrid(
-    types: List<DeviceType>,
-    selectedType: DeviceType?,
-    onSelected: (DeviceType) -> Unit,
+    types: List<DeviceTypeInfo>,
+    selectedType: DeviceTypeInfo?,
+    onSelected: (DeviceTypeInfo) -> Unit,
 ) {
     BoxWithConstraints {
         val columns = when {
@@ -392,7 +400,7 @@ private fun DeviceTypeGrid(
                     rowTypes.forEach { type ->
                         DeviceTypeTile(
                             type = type,
-                            selected = selectedType == type,
+                            selected = selectedType?.id == type.id,
                             onClick = { onSelected(type) },
                             modifier = Modifier.weight(1f),
                         )
@@ -408,7 +416,7 @@ private fun DeviceTypeGrid(
 
 @Composable
 private fun DeviceTypeTile(
-    type: DeviceType,
+    type: DeviceTypeInfo,
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,

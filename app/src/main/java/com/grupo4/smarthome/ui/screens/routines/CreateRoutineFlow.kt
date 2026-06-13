@@ -68,7 +68,6 @@ import com.grupo4.smarthome.R
 import com.grupo4.smarthome.data.model.Device
 import com.grupo4.smarthome.data.model.DeviceActionInfo
 import com.grupo4.smarthome.data.model.DeviceActionParamInfo
-import com.grupo4.smarthome.data.model.DeviceType
 import com.grupo4.smarthome.data.model.RoutineAction
 import com.grupo4.smarthome.data.model.RoutineCategory
 import com.grupo4.smarthome.ui.screens.rooms.components.deviceTypeIcon
@@ -104,7 +103,7 @@ fun BoxScope.CreateRoutineOverlay(
     onDismiss: () -> Unit,
     devices: List<Device> = emptyList(),
     deviceRoomNames: Map<String, String> = emptyMap(),
-    deviceActions: Map<DeviceType, List<DeviceActionInfo>> = emptyMap(),
+    deviceActions: Map<String, List<DeviceActionInfo>> = emptyMap(),
     onCreate: (name: String, category: RoutineCategory, time24h: String, days: List<Boolean>, actions: List<RoutineAction>) -> Unit = { _, _, _, _, _ -> },
 ) {
     AnimatedVisibility(
@@ -128,7 +127,7 @@ private fun CreateRoutineScreen(
     onDismiss: () -> Unit,
     devices: List<Device>,
     deviceRoomNames: Map<String, String>,
-    deviceActions: Map<DeviceType, List<DeviceActionInfo>>,
+    deviceActions: Map<String, List<DeviceActionInfo>>,
     onCreate: (name: String, category: RoutineCategory, time24h: String, days: List<Boolean>, actions: List<RoutineAction>) -> Unit,
 ) {
     var currentStep by rememberSaveable { mutableStateOf(CreateRoutineStep.Details) }
@@ -146,7 +145,7 @@ private fun CreateRoutineScreen(
     var paramValue by remember { mutableStateOf(0f) }
 
     val currentActions = remember(selectedDevice, deviceActions) {
-        selectedDevice?.let { deviceActions[it.type] }.orEmpty()
+        selectedDevice?.let { deviceActions[it.type.id] }.orEmpty()
     }
 
     // Agrega la acción en construcción a la lista y vuelve al resumen

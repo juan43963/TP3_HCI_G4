@@ -46,34 +46,43 @@ enum class RoomType {
 data class Device(
     val id: String,
     val name: String,
-    val type: DeviceType,
+    val type: DeviceTypeInfo,
     val roomId: String,
-    val isOn: Boolean = false,
+    val state: DeviceState = DeviceState.Empty,
     val isFavorite: Boolean = false,
-    val brightness: Int? = null,
-    val temperature: Int? = null,
-    val locked: Boolean? = null,
-    val volume: Int? = null,
     val qrId: String? = null,
 ) {
+    // Accessors de conveniencia derivados del estado dinámico: la UI lee estos, nunca el mapa crudo.
+    val isOn: Boolean get() = state.isOn()
+    val brightness: Int? get() = state.int("brightness")
+    val temperature: Int? get() = state.int("temperature")
+    val volume: Int? get() = state.int("volume")
+    val locked: Boolean? get() = state.locked()
+
     val isActive: Boolean
-        get() = when (type) {
-            DeviceType.DOOR -> locked == true
-            else -> isOn
-        }
+        get() = if (type.isDoor) locked == true else isOn
 }
 
-enum class DeviceType {
-    VACUUM,
-    SPEAKER,
-    FAUCET,
-    BLINDS,
-    LIGHT,
-    OVEN,
-    AC,
-    DOOR,
-    ALARM,
-    FRIDGE,
+/**
+ * Tipo de dispositivo tal como lo describe el catálogo del back-end (`GET /devicetypes`). Reemplaza al
+ * antiguo `enum DeviceType`: es la única fuente de tipos. Íconos/labels/controles se resuelven por
+ * [canonicalName] (ver [DeviceTypeNames]); las acciones soportadas vienen en [actions].
+ */
+data class DeviceTypeInfo(
+    val id: String,
+    val name: String,
+    val actions: List<DeviceActionInfo> = emptyList(),
+    val powerUsage: Int? = null,
+) {
+    val canonicalName: String get() = DeviceTypeNames.canonical(name)
+    val isDoor: Boolean get() = canonicalName == DeviceTypeNames.DOOR
+
+    // Matching tolerante a mayúsculas (no asumimos que la API garantice el casing al consultar), pero
+    // el `DeviceActionInfo.name` devuelto conserva el casing exacto del catálogo para ejecutar la acción.
+    fun action(actionName: String): DeviceActionInfo? =
+        actions.firstOrNull { it.name.equals(actionName, ignoreCase = true) }
+
+    fun supports(actionName: String): Boolean = action(actionName) != null
 }
 
 // Acción que admite un tipo de dispositivo según el catálogo (GET /devicetypes); usada al crear rutinas

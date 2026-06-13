@@ -27,7 +27,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.grupo4.smarthome.R
-import com.grupo4.smarthome.data.model.DeviceType
 import com.grupo4.smarthome.ui.screens.rooms.dialogs.AddDevicesToRoomDialog
 import com.grupo4.smarthome.ui.screens.rooms.dialogs.AddEditRoomDialog
 import com.grupo4.smarthome.ui.screens.rooms.dialogs.DeleteDeviceDialog
@@ -98,6 +97,8 @@ fun RoomsScreen(
         onAddDeviceClick = { roomId ->
             dialogRoomId = roomId
             dialogDeviceId = null
+            // Reintenta el catálogo si no llegó a cargarse (p. ej. falló la red en el arranque).
+            if (state.availableDeviceTypes.isEmpty()) viewModel.refreshDeviceTypes()
             dialogKindName = RoomsDialogKind.AddDevices.name
         },
         onEditDevicesToggle = viewModel::onEditDevicesToggle,
@@ -111,6 +112,7 @@ fun RoomsScreen(
         },
         onToggleDevice = viewModel::onToggleDevice,
         onDeviceValueChange = viewModel::onDeviceValueChange,
+        onDeviceAction = viewModel::runDeviceAction,
         onAvatarClick = onProfileClick,
         onAddClick = {
             onQuickActionsOpen()
@@ -151,6 +153,13 @@ fun RoomsScreen(
                     if (errorText != null) {
                         snackbarHostState.showSnackbar(errorText)
                         viewModel.dismissError()
+                    }
+                }
+                // Resultado de acciones de solo lectura (p. ej. getPlaylist): se muestra y se consume.
+                LaunchedEffect(state.actionResult) {
+                    state.actionResult?.let { result ->
+                        snackbarHostState.showSnackbar(result)
+                        viewModel.consumeActionResult()
                     }
                 }
                 SnackbarHost(
@@ -203,7 +212,7 @@ fun RoomsScreen(
             dialogRoom?.let { room ->
                 AddDevicesToRoomDialog(
                     roomName = room.name,
-                    availableDeviceTypes = DeviceType.entries,
+                    availableDeviceTypes = state.availableDeviceTypes,
                     onDismiss = { dialogKindName = RoomsDialogKind.None.name },
                     onConfirm = { pendingDevices ->
                         viewModel.addDevices(room.id, pendingDevices)

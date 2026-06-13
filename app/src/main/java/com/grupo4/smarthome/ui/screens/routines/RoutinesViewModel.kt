@@ -8,7 +8,6 @@ import com.grupo4.smarthome.core.result.AppResult
 import com.grupo4.smarthome.core.result.toMessageRes
 import com.grupo4.smarthome.data.model.Device
 import com.grupo4.smarthome.data.model.DeviceActionInfo
-import com.grupo4.smarthome.data.model.DeviceType
 import com.grupo4.smarthome.data.model.Routine
 import com.grupo4.smarthome.data.model.RoutineAction
 import com.grupo4.smarthome.data.model.RoutineCategory
@@ -210,11 +209,12 @@ class RoutinesViewModel(
     }
 
     private suspend fun loadDeviceActions(devices: List<Device>) {
-        val types = devices.map { it.type }.distinct()
-        val actions = mutableMapOf<DeviceType, List<DeviceActionInfo>>()
+        // Un tipo por id (DeviceTypeInfo.id) para no repetir consultas de tipos iguales.
+        val types = devices.map { it.type }.distinctBy { it.id }
+        val actions = mutableMapOf<String, List<DeviceActionInfo>>()
         for (type in types) {
             when (val result = devicesRepository.getActionsFor(type)) {
-                is AppResult.Success -> actions[type] = result.data
+                is AppResult.Success -> actions[type.id] = result.data
                 is AppResult.Error -> Unit
             }
         }

@@ -7,8 +7,9 @@ import com.grupo4.smarthome.R
 import com.grupo4.smarthome.core.result.ApiError
 import com.grupo4.smarthome.core.result.AppResult
 import com.grupo4.smarthome.core.result.toMessageRes
+import com.grupo4.smarthome.data.model.ActionArg
 import com.grupo4.smarthome.data.model.Device
-import com.grupo4.smarthome.data.model.DeviceType
+import com.grupo4.smarthome.data.model.DeviceTypeInfo
 import com.grupo4.smarthome.data.model.RoomType
 import com.grupo4.smarthome.data.remote.socket.SocketEvent
 import com.grupo4.smarthome.data.repository.DevicesRepository
@@ -31,7 +32,7 @@ class RoomsViewModel(
     private val _uiState = MutableStateFlow(
         RoomsUiState(
             rooms = emptyList(),
-            availableDeviceTypes = DeviceType.entries,
+            availableDeviceTypes = emptyList(),
         )
     )
     val uiState: StateFlow<RoomsUiState> = _uiState.asStateFlow()
@@ -41,6 +42,18 @@ class RoomsViewModel(
 
     init {
         observeDeviceEvents()
+        refreshDeviceTypes()
+    }
+
+    // Catálogo real de tipos (GET /devicetypes): pobla las opciones del alta de dispositivos.
+    // Público para reintentar desde la UI cuando se abre "agregar dispositivo" y la lista está vacía.
+    fun refreshDeviceTypes() {
+        viewModelScope.launch {
+            when (val result = devicesRepository.getDeviceTypes()) {
+                is AppResult.Success -> _uiState.update { it.copy(availableDeviceTypes = result.data) }
+                is AppResult.Error -> Unit // si falla queda vacío; el usuario puede reintentar al reabrir
+            }
+        }
     }
 
     // La UI llama esto cuando cambia el hogar activo. Recarga solo si cambió el id.
@@ -262,6 +275,26 @@ class RoomsViewModel(
         }
     }
 
+    // Ejecuta una acción del catálogo desde "Más acciones". No hace optimistic update (las acciones son
+    // heterogéneas y las read-only no mutan): ejecuta, refresca el estado real y muestra el resultado si lo hay.
+    fun runDeviceAction(deviceId: String, actionName: String, args: List<ActionArg>) {
+        val device = findDevice(deviceId) ?: return
+        viewModelScope.launch {
+            when (val result = devicesRepository.executeDeviceAction(device, actionName, args)) {
+                is AppResult.Success -> {
+                    updateDeviceInState(result.data.device)
+                    result.data.resultText?.let { text -> _uiState.update { it.copy(actionResult = text) } }
+                }
+                is AppResult.Error -> {
+                    _uiState.update { it.copy(errorMessage = result.error.kind.toMessageRes()) }
+                    reloadRoomDevices(device.roomId)
+                }
+            }
+        }
+    }
+
+    fun consumeActionResult() = _uiState.update { it.copy(actionResult = null) }
+
     fun addDevices(roomId: String, devices: List<PendingDevice>) {
         if (devices.isEmpty()) return
         viewModelScope.launch {
@@ -283,7 +316,7 @@ class RoomsViewModel(
     // con su qrId. Si hay que crear la room, espera su id antes de crear el dispositivo.
     fun addScannedDevice(
         target: ScannedDeviceRoomTarget,
-        type: DeviceType,
+        type: DeviceTypeInfo,
         name: String,
         qrId: String?,
     ) {

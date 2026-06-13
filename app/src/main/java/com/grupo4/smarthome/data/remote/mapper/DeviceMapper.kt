@@ -1,49 +1,81 @@
 package com.grupo4.smarthome.data.remote.mapper
 
 import com.grupo4.smarthome.data.model.Device
+import com.grupo4.smarthome.data.model.DeviceActionInfo
+import com.grupo4.smarthome.data.model.DeviceActionParamInfo
 import com.grupo4.smarthome.data.model.DeviceLog
-import com.grupo4.smarthome.data.model.DeviceType
+import com.grupo4.smarthome.data.model.DeviceState
+import com.grupo4.smarthome.data.model.DeviceTypeInfo
 import com.grupo4.smarthome.data.remote.dto.device.DeviceDto
 import com.grupo4.smarthome.data.remote.dto.device.DeviceLogDto
+import com.grupo4.smarthome.data.remote.dto.device.DeviceTypeActionDto
+import com.grupo4.smarthome.data.remote.dto.device.DeviceTypeDto
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.put
-
-// Estados de la API que representan "apagado/inactivo". Cualquier otro status se interpreta como encendido.
-private val OffStatuses = setOf(
-    "off", "closed", "stopped", "disarmed", "docked", "idle", "paused", "standby",
-)
 
 /**
  * Convierte un [DeviceDto] al modelo de dominio [Device].
  *
- * @param resolveType mapea el id del tipo (viene en `type.id`) al enum local usando el catálogo
+ * @param resolveType mapea el `type.id` (referencia liviana del DTO) al [DeviceTypeInfo] del catálogo
  *   cacheado. Si no se puede resolver, devolvemos null para no renderizar tipos desconocidos; el
  *   repository es responsable de filtrar esos nulls sin crashear.
  * @param fallbackRoomId roomId a usar cuando la respuesta no trae `room.id` (p. ej. acciones/state).
  *
- * Nota: los favoritos de dispositivo (`isFavorite`) quedan fuera de alcance en esta etapa; la API
- * los guardaría en metadata, pero por ahora mantenemos el default local (false).
+ * El estado heterogéneo (`state`) se guarda tal cual en [DeviceState]; los accessors tipados viven en
+ * [DeviceState]/[Device], así que la UI nunca toca el `JsonObject` crudo.
  */
 fun DeviceDto.toDomain(
-    resolveType: (String?) -> DeviceType?,
+    resolveType: (String?) -> DeviceTypeInfo?,
     fallbackRoomId: String,
 ): Device? {
-    val deviceType = resolveType(type?.id) ?: return null
-    val deviceState = state
+    val typeInfo = resolveType(type?.id) ?: return null
     return Device(
         id = id.orEmpty(),
         name = name,
-        type = deviceType,
+        type = typeInfo,
         roomId = room?.id ?: fallbackRoomId,
-        isOn = deviceState.readIsOn(),
-        brightness = deviceState.readInt("brightness"),
-        temperature = deviceState.readInt("temperature"),
-        volume = deviceState.readInt("volume"),
-        locked = deviceState.readLocked(),
+        state = DeviceState(state ?: JsonObject(emptyMap())),
         qrId = metadata.readString("qrId"),
+    )
+}
+
+/**
+ * Convierte un tipo del catálogo (`GET /devicetypes`) al dominio [DeviceTypeInfo].
+ *
+ * Fallback explícito del id: si el back-end no manda `id` (o viene en blanco) devolvemos null y el
+ * repository descarta el tipo, porque sin id no se podría crear un dispositivo de ese tipo. Así nunca
+ * queda un [DeviceTypeInfo] con `id` vacío circulando por la app. Si falta `name` (pero hay id),
+ * usamos el id como name para no perder el tipo ni dejar un name vacío sin decidir.
+ */
+fun DeviceTypeDto.toDomain(): DeviceTypeInfo? {
+    val typeId = id?.takeIf { it.isNotBlank() } ?: return null
+    return DeviceTypeInfo(
+        id = typeId,
+        name = name?.takeIf { it.isNotBlank() } ?: typeId,
+        powerUsage = powerUsage,
+        actions = actions.mapNotNull { it.toDomain() },
+    )
+}
+
+/**
+ * Descartamos acciones sin nombre (no se podrían ejecutar). Los params, en cambio, NO se descartan: la
+ * API puede devolverlos posicionales sin `name`, así que generamos un nombre fallback estable por
+ * posición (`param1`, `param2`, ...) para preservar el orden y la cantidad de parámetros.
+ */
+private fun DeviceTypeActionDto.toDomain(): DeviceActionInfo? {
+    val actionName = name?.takeIf { it.isNotBlank() } ?: return null
+    return DeviceActionInfo(
+        name = actionName,
+        params = params.mapIndexed { index, param ->
+            DeviceActionParamInfo(
+                name = param.name?.takeIf { it.isNotBlank() } ?: "param${index + 1}",
+                type = param.type.orEmpty(),
+                min = param.min,
+                max = param.max,
+            )
+        },
     )
 }
 
@@ -56,29 +88,6 @@ fun buildDeviceMetadata(previous: JsonObject?, qrId: String?): JsonObject = buil
 
 private fun JsonObject?.readString(key: String): String? =
     (this?.get(key) as? JsonPrimitive)?.content
-
-private fun JsonObject?.readInt(key: String): Int? =
-    (this?.get(key) as? JsonPrimitive)?.intOrNull
-
-// Lógica defensiva: si hay `status`, lo usamos contra OffStatuses. Si no, inferimos actividad
-// a partir de valores que solo tienen sentido encendido (brightness/volume/level/temperature).
-private fun JsonObject?.readIsOn(): Boolean {
-    val status = readString("status")?.lowercase()
-    if (status != null) return status !in OffStatuses
-    val brightness = readInt("brightness")
-    val volume = readInt("volume")
-    val level = readInt("level")
-    val temperature = readInt("temperature")
-    return (brightness != null && brightness > 0) ||
-        (volume != null && volume > 0) ||
-        (level != null && level > 0) ||
-        temperature != null
-}
-
-private fun JsonObject?.readLocked(): Boolean? {
-    val lock = readString("lock")?.lowercase() ?: return null
-    return lock == "locked"
-}
 
 // Descartamos logs sin id (no se pueden identificar como entrada de la lista)
 fun DeviceLogDto.toDomain(): DeviceLog? {

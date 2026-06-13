@@ -319,6 +319,7 @@ private fun RoomDetailPanel(
                                 onValueChange = { value -> callbacks.onDeviceValueChange(device.id, value) },
                                 onEdit = { callbacks.onEditDevice(device.id) },
                                 onDelete = { callbacks.onDeleteDevice(device.id) },
+                                onAction = { name, args -> callbacks.onDeviceAction(device.id, name, args) },
                                 modifier = Modifier.height(deviceCardHeight),
                             )
                         }

@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.grupo4.smarthome.core.result.AppResult
 import com.grupo4.smarthome.core.result.toMessageRes
 import com.grupo4.smarthome.data.local.PreferencesDataStore
-import com.grupo4.smarthome.data.model.DeviceType
 import com.grupo4.smarthome.data.model.NotificationEvent
 import com.grupo4.smarthome.data.model.NotificationKind
 import com.grupo4.smarthome.data.model.Room
@@ -35,7 +34,8 @@ class NotificationsViewModel(
     private data class Status(val isLoading: Boolean = false, val errorMessage: Int? = null)
 
     private val _events = MutableStateFlow<List<NotificationEvent>>(emptyList())
-    private val _deviceTypes = MutableStateFlow<Map<String, DeviceType>>(emptyMap())
+    // deviceId -> nombre canónico del tipo, que es lo que categoriza la notificación (categoryFor).
+    private val _deviceTypeNames = MutableStateFlow<Map<String, String>>(emptyMap())
     private val _status = MutableStateFlow(Status(isLoading = true))
 
     @Volatile
@@ -48,7 +48,7 @@ class NotificationsViewModel(
     val uiState: StateFlow<NotificationsUiState> =
         combine(
             _events,
-            _deviceTypes,
+            _deviceTypeNames,
             preferencesStore.notificationPreferences,
             preferencesStore.notificationsLastSeen,
             _status,
@@ -103,8 +103,8 @@ class NotificationsViewModel(
     }
 
     fun onRoomsChanged(rooms: List<Room>) {
-        _deviceTypes.value = buildMap {
-            rooms.forEach { room -> room.devices.forEach { put(it.id, it.type) } }
+        _deviceTypeNames.value = buildMap {
+            rooms.forEach { room -> room.devices.forEach { put(it.id, it.type.canonicalName) } }
         }
     }
 

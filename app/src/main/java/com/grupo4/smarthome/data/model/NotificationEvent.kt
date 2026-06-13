@@ -17,8 +17,10 @@ data class NotificationEvent(
     val actionName: String? = null,
 )
 
-fun NotificationEvent.categoryFor(deviceType: DeviceType?): NotificationCategory =
-    when (deviceType) {
-        DeviceType.DOOR, DeviceType.ALARM -> NotificationCategory.SECURITY
+// Categoriza la notificación según el nombre canónico del tipo (ver DeviceTypeNames): puerta y alarma
+// son de seguridad, el resto dispositivos. Recibe el canonicalName para no acoplarse al catálogo.
+fun NotificationEvent.categoryFor(canonicalTypeName: String?): NotificationCategory =
+    when (canonicalTypeName) {
+        DeviceTypeNames.DOOR, DeviceTypeNames.ALARM -> NotificationCategory.SECURITY
         else -> NotificationCategory.DEVICES
     }

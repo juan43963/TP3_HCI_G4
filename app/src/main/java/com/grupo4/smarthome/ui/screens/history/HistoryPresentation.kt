@@ -5,7 +5,8 @@ import android.text.format.DateUtils
 import androidx.annotation.StringRes
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.data.model.DeviceLog
-import com.grupo4.smarthome.data.model.DeviceType
+import com.grupo4.smarthome.data.model.DeviceTypeInfo
+import com.grupo4.smarthome.data.model.DeviceTypeNames
 import com.grupo4.smarthome.data.model.Room
 import java.time.Instant
 
@@ -44,18 +45,19 @@ private fun buildDeviceLookup(rooms: List<Room>): Map<String, DeviceInfo> =
         }
     }
 
-private fun DeviceType.toHistoryType(): HistoryDeviceType =
-    when (this) {
-        DeviceType.VACUUM -> HistoryDeviceType.VACUUM
-        DeviceType.SPEAKER -> HistoryDeviceType.SPEAKER
-        DeviceType.FAUCET -> HistoryDeviceType.FAUCET
-        DeviceType.BLINDS -> HistoryDeviceType.BLINDS
-        DeviceType.LIGHT -> HistoryDeviceType.LIGHT
-        DeviceType.OVEN -> HistoryDeviceType.OVEN
-        DeviceType.AC -> HistoryDeviceType.AC
-        DeviceType.DOOR -> HistoryDeviceType.DOOR
-        DeviceType.ALARM -> HistoryDeviceType.ALARM
-        DeviceType.FRIDGE -> HistoryDeviceType.FRIDGE
+private fun DeviceTypeInfo.toHistoryType(): HistoryDeviceType =
+    when (canonicalName) {
+        DeviceTypeNames.VACUUM -> HistoryDeviceType.VACUUM
+        DeviceTypeNames.SPEAKER -> HistoryDeviceType.SPEAKER
+        DeviceTypeNames.FAUCET -> HistoryDeviceType.FAUCET
+        DeviceTypeNames.BLINDS -> HistoryDeviceType.BLINDS
+        DeviceTypeNames.LIGHT -> HistoryDeviceType.LIGHT
+        DeviceTypeNames.OVEN -> HistoryDeviceType.OVEN
+        DeviceTypeNames.AC -> HistoryDeviceType.AC
+        DeviceTypeNames.DOOR -> HistoryDeviceType.DOOR
+        DeviceTypeNames.ALARM -> HistoryDeviceType.ALARM
+        DeviceTypeNames.FRIDGE -> HistoryDeviceType.FRIDGE
+        else -> HistoryDeviceType.OTHER
     }
 
 // Para acciones desconocidas usamos un genérico localizado (nunca el nombre técnico crudo en inglés)

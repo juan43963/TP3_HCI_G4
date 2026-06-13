@@ -3,7 +3,7 @@ package com.grupo4.smarthome.ui.screens.routines
 import androidx.annotation.StringRes
 import com.grupo4.smarthome.data.model.Device
 import com.grupo4.smarthome.data.model.DeviceActionInfo
-import com.grupo4.smarthome.data.model.DeviceType
+import com.grupo4.smarthome.data.model.DeviceTypeInfo
 import com.grupo4.smarthome.data.model.Routine
 import com.grupo4.smarthome.data.model.RoutineAction
 import com.grupo4.smarthome.data.model.RoutineCategory as DomainCategory
@@ -15,7 +15,8 @@ data class RoutinesUiState(
     // Dispositivos del hogar activo: para crear acciones y resolver nombres legibles
     val devices: List<Device> = emptyList(),
     val deviceRoomNames: Map<String, String> = emptyMap(),
-    val deviceActions: Map<DeviceType, List<DeviceActionInfo>> = emptyMap(),
+    // Acciones por id de tipo (DeviceTypeInfo.id). Tomadas del catálogo que ya trae cada device.type.
+    val deviceActions: Map<String, List<DeviceActionInfo>> = emptyMap(),
     val isLoading: Boolean = false,
     @StringRes val errorMessage: Int? = null,
     val infoMessage: String? = null,
@@ -26,8 +27,8 @@ data class RoutinesUiState(
 val RoutinesUiState.deviceNamesById: Map<String, String>
     get() = devices.associate { it.id to it.name }
 
-// Tipos de dispositivo por id, para resolver el ícono de cada acción
-val RoutinesUiState.deviceTypesById: Map<String, DeviceType>
+// Tipos de dispositivo por id de device, para resolver el ícono de cada acción
+val RoutinesUiState.deviceTypesById: Map<String, DeviceTypeInfo>
     get() = devices.associate { it.id to it.type }
 
 // --- Mapeo dominio -> modelos de UI existentes (RoutineUi / RoutineDetailUi) ---
@@ -62,7 +63,7 @@ fun RoutineCategory.toDomainCategory(): DomainCategory = when (this) {
     RoutineCategory.CUSTOM -> DomainCategory.CUSTOM
 }
 
-fun Routine.toDetailUi(deviceNamesById: Map<String, String>, deviceTypesById: Map<String, DeviceType>): RoutineDetailUi {
+fun Routine.toDetailUi(deviceNamesById: Map<String, String>, deviceTypesById: Map<String, DeviceTypeInfo>): RoutineDetailUi {
     val detailActions = actions.map { action ->
         val device = action.deviceName.ifBlank { deviceNamesById[action.deviceId] ?: "dispositivo" }
         val icon = deviceTypesById[action.deviceId]?.let { deviceTypeIcon(it) } ?: SmartHomeIcons.Routines

@@ -48,7 +48,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.data.model.Device
-import com.grupo4.smarthome.data.model.DeviceType
+import com.grupo4.smarthome.data.model.DeviceTypeInfo
 import com.grupo4.smarthome.ui.components.ModalCloseButton
 import com.grupo4.smarthome.ui.components.ModalHeader
 import com.grupo4.smarthome.ui.screens.rooms.PendingDevice
@@ -62,7 +62,7 @@ import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 @Composable
 fun AddDevicesToRoomDialog(
     roomName: String,
-    availableDeviceTypes: List<DeviceType>,
+    availableDeviceTypes: List<DeviceTypeInfo>,
     onDismiss: () -> Unit,
     onConfirm: (List<PendingDevice>) -> Unit,
     initialStep: Int = 1,
@@ -110,8 +110,11 @@ fun AddDevicesToRoomDialog(
                             pendingDevices = pendingDevices,
                             onDeviceTypeClick = { type, defaultLabel ->
                                 counter += 1
-                                val countForType = pendingDevices.count { it.type == type } + 1
-                                val name = if (countForType == 1) defaultLabel else "$defaultLabel $countForType"
+                                val countForType = pendingDevices.count { it.type.id == type.id } + 1
+                                val candidate = if (countForType == 1) defaultLabel else "$defaultLabel $countForType"
+                                // La API exige nombres de >=3 caracteres; si el label es corto (p. ej. "AC")
+                                // garantizamos el mínimo agregando el número.
+                                val name = if (candidate.trim().length >= 3) candidate else "$defaultLabel $countForType"
                                 pendingDevices += PendingDevice(
                                     id = "pending-$counter",
                                     type = type,
@@ -403,9 +406,9 @@ private fun StepPill(
 
 @Composable
 private fun DeviceTypeGrid(
-    availableDeviceTypes: List<DeviceType>,
+    availableDeviceTypes: List<DeviceTypeInfo>,
     pendingDevices: List<PendingDevice>,
-    onDeviceTypeClick: (DeviceType, String) -> Unit,
+    onDeviceTypeClick: (DeviceTypeInfo, String) -> Unit,
 ) {
     BoxWithConstraints {
         val columns = when {
@@ -425,7 +428,7 @@ private fun DeviceTypeGrid(
                         DeviceTypeTile(
                             type = type,
                             label = label,
-                            count = pendingDevices.count { it.type == type },
+                            count = pendingDevices.count { it.type.id == type.id },
                             onClick = { onDeviceTypeClick(type, label) },
                             modifier = Modifier.weight(1f),
                         )
@@ -441,7 +444,7 @@ private fun DeviceTypeGrid(
 
 @Composable
 private fun DeviceTypeTile(
-    type: DeviceType,
+    type: DeviceTypeInfo,
     label: String,
     count: Int,
     onClick: () -> Unit,

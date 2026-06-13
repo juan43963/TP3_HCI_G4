@@ -2,13 +2,14 @@ package com.grupo4.smarthome.ui.screens.rooms
 
 import androidx.annotation.StringRes
 import com.grupo4.smarthome.data.model.Device
-import com.grupo4.smarthome.data.model.DeviceType
+import com.grupo4.smarthome.data.model.DeviceTypeInfo
+import com.grupo4.smarthome.data.model.DeviceTypeNames
 import com.grupo4.smarthome.data.model.Room
 import com.grupo4.smarthome.data.model.RoomType
 
 data class RoomsUiState(
     val rooms: List<Room>,
-    val availableDeviceTypes: List<DeviceType>,
+    val availableDeviceTypes: List<DeviceTypeInfo>,
     val searchQuery: String = "",
     val selectedRoomType: RoomType? = null,
     val selectedRoomId: String? = null,
@@ -17,6 +18,8 @@ data class RoomsUiState(
     val isLoading: Boolean = false,
     val unreadNotificationCount: Int = 0,
     @StringRes val errorMessage: Int? = null,
+    // Resultado de una acción de solo lectura (p. ej. getPlaylist) para mostrar; transitorio.
+    val actionResult: String? = null,
 )
 
 data class RoomsPresentationState(
@@ -43,7 +46,7 @@ data class RoomsPresentationState(
 
 data class PendingDevice(
     val id: String,
-    val type: DeviceType,
+    val type: DeviceTypeInfo,
     val name: String,
     val qrId: String? = null,
 )
@@ -146,70 +149,44 @@ fun List<Room>.withRoomFavoriteToggled(roomId: String): List<Room> = map { room 
     if (room.id == roomId) room.copy(isFavorite = !room.isFavorite) else room
 }
 
+// Optimistic toggle: escribe el estado mínimo (status / lock) para que el switch responda ya; el
+// refetch posterior corrige con el estado real del backend.
 fun List<Room>.withDeviceToggled(deviceId: String): List<Room> = map { room ->
     room.copy(
         devices = room.devices.map { device ->
-            if (device.id == deviceId) {
-                when (device.type) {
-                    DeviceType.DOOR -> device.copy(locked = !(device.locked ?: false))
-                    else -> device.copy(isOn = !device.isOn)
+            when {
+                device.id != deviceId -> device
+                device.type.isDoor -> {
+                    val nowLocked = !(device.locked ?: false)
+                    device.copy(state = device.state.withString("lock", if (nowLocked) "locked" else "unlocked"))
                 }
-            } else {
-                device
+                else -> {
+                    val nowOn = !device.isOn
+                    device.copy(state = device.state.withString("status", if (nowOn) "on" else "off"))
+                }
             }
         },
     )
 }
 
+// Optimistic value: escribe el valor primario del tipo en el estado para que el slider responda ya.
 fun List<Room>.withDeviceValueChanged(deviceId: String, value: Int): List<Room> = map { room ->
     room.copy(
         devices = room.devices.map { device ->
-            if (device.id == deviceId) {
-                when (device.type) {
-                    DeviceType.LIGHT -> device.copy(brightness = value.coerceIn(0, 100))
-                    DeviceType.AC -> device.copy(temperature = value.coerceIn(16, 30))
-                    DeviceType.SPEAKER -> device.copy(volume = value.coerceIn(0, 10))
-                    else -> device
-                }
-            } else {
+            if (device.id != deviceId) {
                 device
+            } else when (device.type.canonicalName) {
+                DeviceTypeNames.LIGHT -> device.copy(state = device.state.withInt("brightness", value.coerceIn(0, 100)))
+                DeviceTypeNames.AC -> device.copy(state = device.state.withInt("temperature", value.coerceIn(16, 30)))
+                DeviceTypeNames.SPEAKER -> device.copy(state = device.state.withInt("volume", value.coerceIn(0, 10)))
+                else -> device
             }
-        },
-    )
-}
-
-fun List<Room>.withEditedDevice(deviceId: String, name: String): List<Room> = map { room ->
-    room.copy(
-        devices = room.devices.map { device ->
-            if (device.id == deviceId) device.copy(name = name.trim()) else device
         },
     )
 }
 
 fun List<Room>.withoutDevice(deviceId: String): List<Room> = map { room ->
     room.copy(devices = room.devices.filterNot { it.id == deviceId })
-}
-
-fun List<Room>.withAddedDevices(roomId: String, devices: List<PendingDevice>): List<Room> = map { room ->
-    if (room.id != roomId) {
-        room
-    } else {
-        room.copy(
-            devices = room.devices + devices.mapIndexed { index, pending ->
-                Device(
-                    id = "${roomId}-${pending.type.name.lowercase()}-${room.devices.size + index + 1}",
-                    name = pending.name.trim(),
-                    type = pending.type,
-                    roomId = roomId,
-                    isOn = pending.type != DeviceType.DOOR,
-                    brightness = if (pending.type == DeviceType.LIGHT) 70 else null,
-                    temperature = if (pending.type == DeviceType.AC) 22 else null,
-                    locked = if (pending.type == DeviceType.DOOR) true else null,
-                    volume = if (pending.type == DeviceType.SPEAKER) 5 else null,
-                )
-            },
-        )
-    }
 }
 
 private fun List<Room>.uniqueRoomId(baseId: String): String {

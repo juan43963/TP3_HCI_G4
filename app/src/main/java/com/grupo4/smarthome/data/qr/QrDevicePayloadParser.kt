@@ -1,13 +1,12 @@
 package com.grupo4.smarthome.data.qr
 
-import com.grupo4.smarthome.data.model.DeviceType
 import com.grupo4.smarthome.data.model.QrDevicePayload
 import java.net.URI
 import java.net.URLDecoder
 
 // Parser puro del payload de un QR de dispositivo. Sin dependencias de Android ni Compose, para que
 // sea testeable en JVM. Formato esperado:
-//   smarthome://device?id=<qrId>&type=<DeviceType>&name=<nombre sugerido>
+//   smarthome://device?id=<qrId>&type=<nombre de tipo>&name=<nombre sugerido>
 object QrDevicePayloadParser {
     private const val SCHEME = "smarthome"
     private const val HOST = "device"
@@ -22,7 +21,8 @@ object QrDevicePayloadParser {
         val qrId = params["id"]?.takeIf { it.isNotBlank() } ?: return null
         return QrDevicePayload(
             qrId = qrId,
-            type = params["type"]?.let { matchType(it) },
+            // Hint de tipo crudo (un nombre): la UI lo resuelve contra el catálogo real. No invalida el QR.
+            typeName = params["type"]?.takeIf { it.isNotBlank() }?.trim(),
             suggestedName = params["name"]?.takeIf { it.isNotBlank() },
         )
     }
@@ -38,8 +38,4 @@ object QrDevicePayloadParser {
 
     private fun decode(value: String): String =
         runCatching { URLDecoder.decode(value, Charsets.UTF_8.name()) }.getOrDefault(value)
-
-    // Tipo desconocido no invalida el QR: el usuario puede elegirlo en el flujo de creación.
-    private fun matchType(value: String): DeviceType? =
-        DeviceType.entries.firstOrNull { it.name.equals(value.trim(), ignoreCase = true) }
 }

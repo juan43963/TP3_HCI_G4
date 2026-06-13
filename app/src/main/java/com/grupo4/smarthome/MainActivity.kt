@@ -129,7 +129,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import com.grupo4.smarthome.data.model.DeviceType
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -165,13 +164,13 @@ private const val LOADING_HOME_ID = " __loading_home__"
 private val QrDevicePayloadSaver = listSaver<QrDevicePayload?, String?>(
     save = { payload ->
         if (payload == null) emptyList()
-        else listOf(payload.qrId, payload.type?.name, payload.suggestedName)
+        else listOf(payload.qrId, payload.typeName, payload.suggestedName)
     },
     restore = { stored ->
         if (stored.isEmpty()) null
         else QrDevicePayload(
             qrId = stored[0].orEmpty(),
-            type = stored.getOrNull(1)?.let(DeviceType::valueOf),
+            typeName = stored.getOrNull(1),
             suggestedName = stored.getOrNull(2),
         )
     },
