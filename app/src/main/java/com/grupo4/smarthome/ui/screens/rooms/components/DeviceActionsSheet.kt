@@ -25,11 +25,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowCircleDown
 import androidx.compose.material.icons.outlined.ArrowCircleUp
+import androidx.compose.material.icons.outlined.GppBad
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.PowerSettingsNew
 import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.SkipNext
 import androidx.compose.material.icons.outlined.SkipPrevious
 import androidx.compose.material.icons.outlined.Stop
@@ -46,6 +49,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -83,6 +87,8 @@ fun DeviceActionsSheet(
     device: Device,
     onAction: (actionName: String, args: List<ActionArg>) -> Unit,
     onDismiss: () -> Unit,
+    // En tablet la card no tiene el slider primario, así que el sheet también lo incluye.
+    includePrimaryAction: Boolean = false,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ModalBottomSheet(
@@ -112,12 +118,15 @@ fun DeviceActionsSheet(
                 }
             }
 
-            // Resto de acciones: menos las del par de arriba y la acción de valor primario (slider de la card).
+            // Resto de acciones: menos las del par de arriba y la acción de valor primario (slider de la
+            // card). En tablet (includePrimaryAction) NO se excluye, porque la card no tiene el slider.
             val canonical = device.type.canonicalName
-            val primary = DeviceActionNames.primaryValueAction(canonical)
+            val primary = if (includePrimaryAction) null else DeviceActionNames.primaryValueAction(canonical)
             val rest = device.type.actions.filter { action ->
-                (pair == null || (!action.name.equals(pair.onName, ignoreCase = true) &&
-                    !action.name.equals(pair.offName, ignoreCase = true))) &&
+                // getState se resuelve solo como refresco; no lo mostramos como acción.
+                !DeviceActionNames.isStateRefreshAction(action.name) &&
+                    (pair == null || (!action.name.equals(pair.onName, ignoreCase = true) &&
+                        !action.name.equals(pair.offName, ignoreCase = true))) &&
                     (primary == null || !action.name.equals(primary, ignoreCase = true))
             }
             // Acciones sin parámetros (start/pause/dock/stop/next/...) van como botones circulares en grupo.
@@ -193,8 +202,20 @@ private fun SectionCard(content: @Composable ColumnScope.() -> Unit) {
 }
 
 @Composable
-private fun SectionHeader(title: String, subtitle: String?) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+private fun SectionHeader(title: String, subtitle: String?, icon: ImageVector? = null) {
+    if (icon == null) {
+        SectionTitleColumn(title, subtitle)
+    } else {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            SectionIconTile(icon)
+            SectionTitleColumn(title, subtitle, modifier = Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
+private fun SectionTitleColumn(title: String, subtitle: String?, modifier: Modifier = Modifier) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(
             text = title,
             style = MaterialTheme.typography.titleSmall,
@@ -203,6 +224,34 @@ private fun SectionHeader(title: String, subtitle: String?) {
         )
         if (subtitle != null) SubLabel(subtitle)
     }
+}
+
+@Composable
+private fun SectionIconTile(icon: ImageVector) {
+    Box(
+        modifier = Modifier
+            .size(40.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(RoomsIconTileGradient),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(20.dp),
+        )
+    }
+}
+
+// Ícono por acción para el header de sección (alarma). null = sin ícono (resto de los tipos).
+private fun sectionActionIcon(actionName: String): ImageVector? = when {
+    actionName.lowercase().contains("securitycode") -> Icons.Outlined.Lock
+    actionName.equals("armStay", ignoreCase = true) ||
+        actionName.equals("armHome", ignoreCase = true) -> Icons.Outlined.Home
+    actionName.equals("armAway", ignoreCase = true) -> Icons.Outlined.Shield
+    actionName.equals("disarm", ignoreCase = true) -> Icons.Outlined.GppBad
+    else -> null
 }
 
 @Composable
@@ -252,9 +301,18 @@ private fun ColumnScope.ActionSection(
         }
 
         is DeviceActionControl.Code -> {
-            SectionHeader(label, subtitle)
-            CodeBody(fields = control.fields, length = control.length) { codes ->
-                onAction(action.name, codes.map { ActionArg.StringArg(it) })
+            val icon = sectionActionIcon(action.name)
+            if (control.fields <= 1) {
+                // Armar/desarmar: input de código + Apply inline a la derecha del título.
+                InlineCodeSection(label = label, subtitle = subtitle, icon = icon, length = control.length) { code ->
+                    onAction(action.name, listOf(ActionArg.StringArg(code)))
+                }
+            } else {
+                // Cambiar código de seguridad: inputs apilados (actual/nuevo) + Apply full-width.
+                SectionHeader(label, subtitle, icon)
+                MultiCodeBody(fields = control.fields, length = control.length) { codes ->
+                    onAction(action.name, codes.map { ActionArg.StringArg(it) })
+                }
             }
         }
 
@@ -646,8 +704,9 @@ private fun DispenseBody(onApply: (List<ActionArg>) -> Unit) {
     }
 }
 
+// Cambiar código de seguridad: inputs apilados (actual/nuevo) + Apply full-width.
 @Composable
-private fun CodeBody(
+private fun MultiCodeBody(
     fields: Int,
     length: Int,
     onApply: (List<String>) -> Unit,
@@ -666,20 +725,56 @@ private fun CodeBody(
                 // Código sensible: teclado numérico y enmascarado; nunca se loguea.
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                label = {
+                placeholder = {
                     Text(
-                        if (fields > 1 && index == 0) stringResource(R.string.rooms_device_code_current)
-                        else if (fields > 1) stringResource(R.string.rooms_device_code_new)
-                        else stringResource(R.string.rooms_device_code),
+                        if (index == 0) stringResource(R.string.rooms_device_code_current)
+                        else stringResource(R.string.rooms_device_code_new),
                     )
                 },
             )
         }
-        ApplyButton(
-            enabled = values.value.all { it.length == length },
+        Button(
             onClick = { onApply(values.value.map { it.trim() }) },
-            modifier = Modifier.align(Alignment.End),
+            enabled = values.value.all { it.length == length },
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp),
+            shape = RoundedCornerShape(12.dp),
+        ) {
+            Text(text = stringResource(R.string.rooms_device_apply), fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+// Armar/desarmar: ícono + título/subtítulo (izquierda) + input de código + Apply (inline a la derecha).
+@Composable
+private fun InlineCodeSection(
+    label: String,
+    subtitle: String?,
+    icon: ImageVector?,
+    length: Int,
+    onApply: (String) -> Unit,
+) {
+    var code by remember(label) { mutableStateOf("") }
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        if (icon != null) SectionIconTile(icon)
+        SectionTitleColumn(label, subtitle, modifier = Modifier.weight(1f))
+        OutlinedTextField(
+            value = code,
+            onValueChange = { code = it.filter(Char::isDigit).take(length) },
+            modifier = Modifier.width(100.dp),
+            singleLine = true,
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+            placeholder = { Text(stringResource(R.string.rooms_device_code)) },
         )
+        TextButton(onClick = { onApply(code.trim()) }, enabled = code.length == length) {
+            Text(text = stringResource(R.string.rooms_device_apply), fontWeight = FontWeight.Bold)
+        }
     }
 }
 

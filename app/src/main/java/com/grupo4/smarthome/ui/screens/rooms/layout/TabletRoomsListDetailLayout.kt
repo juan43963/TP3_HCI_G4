@@ -300,7 +300,6 @@ private fun RoomDetailPanel(
                     )
                 }
                 else -> {
-                    val deviceCardHeight = if (state.editDevicesMode) 318.dp else 248.dp
                     LazyVerticalGrid(
                         columns = GridCells.Adaptive(minSize = 250.dp),
                         modifier = Modifier.weight(1f),
@@ -320,7 +319,6 @@ private fun RoomDetailPanel(
                                 onEdit = { callbacks.onEditDevice(device.id) },
                                 onDelete = { callbacks.onDeleteDevice(device.id) },
                                 onAction = { name, args -> callbacks.onDeviceAction(device.id, name, args) },
-                                modifier = Modifier.height(deviceCardHeight),
                             )
                         }
                     }

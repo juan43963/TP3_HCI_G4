@@ -75,6 +75,11 @@ fun deviceActionSubtitle(actionName: String): String? {
             actionName.equals("setHorizontalSwing", ignoreCase = true) -> R.string.rooms_action_sub_swing
         actionName.equals("setColor", ignoreCase = true) -> R.string.rooms_action_sub_color
         actionName.equals("dispense", ignoreCase = true) -> R.string.rooms_action_sub_dispense
+        actionName.lowercase().contains("securitycode") -> R.string.rooms_action_sub_security_code
+        actionName.equals("armStay", ignoreCase = true) ||
+            actionName.equals("armHome", ignoreCase = true) -> R.string.rooms_action_sub_arm_stay
+        actionName.equals("armAway", ignoreCase = true) -> R.string.rooms_action_sub_arm_away
+        actionName.equals("disarm", ignoreCase = true) -> R.string.rooms_action_sub_disarm
         else -> null
     }
     return res?.let { stringResource(it) }

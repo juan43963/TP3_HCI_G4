@@ -63,7 +63,6 @@ fun TabletRoomDetailLayout(
         val railCompact = portraitLike || phoneLandscape
         val contentPadding = if (portraitLike) 24.dp else 32.dp
         val deviceCardMinWidth = if (portraitLike) 340.dp else 420.dp
-        val deviceCardHeight = if (state.editDevicesMode) 336.dp else 272.dp
 
         Row(
             modifier = Modifier
@@ -152,7 +151,6 @@ fun TabletRoomDetailLayout(
                                 onEdit = { callbacks.onEditDevice(device.id) },
                                 onDelete = { callbacks.onDeleteDevice(device.id) },
                                 onAction = { name, args -> callbacks.onDeviceAction(device.id, name, args) },
-                                modifier = Modifier.height(deviceCardHeight),
                             )
                         }
                     }

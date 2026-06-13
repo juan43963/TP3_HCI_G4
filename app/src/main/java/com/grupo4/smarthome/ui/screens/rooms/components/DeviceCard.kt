@@ -87,7 +87,9 @@ fun DeviceCard(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .defaultMinSize(minHeight = 224.dp),
+            // Alto mínimo uniforme: las cards sin línea de estado (heladera/persiana) quedan igual de
+            // altas que las de 3 líneas. Como en tablet no hay controles inline, todas entran parejas.
+            .defaultMinSize(minHeight = 176.dp),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(
@@ -101,23 +103,16 @@ fun DeviceCard(
                 .fillMaxSize()
                 .padding(22.dp),
         ) {
+            // Tablet: la card NO tiene controles inline (toggle/slider). Todo va por "More actions",
+            // así todas las cards mantienen el mismo tamaño. El sheet incluye la acción primaria.
             DeviceCardHeader(
                 device = device,
                 onToggle = onToggle,
+                showControl = false,
             )
-            if (hasPrimarySlider(device)) {
-                Spacer(modifier = Modifier.height(16.dp))
-                HorizontalDivider(color = RoomsSoftBorder)
-                Spacer(modifier = Modifier.height(16.dp))
-                DeviceControlContent(
-                    device = device,
-                    onValueChange = onValueChange,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
             Spacer(modifier = Modifier.weight(1f))
             if (!editMode) {
-                DeviceMoreActions(device = device, onAction = onAction)
+                DeviceMoreActions(device = device, onAction = onAction, includePrimary = true)
             }
             if (editMode) {
                 Spacer(modifier = Modifier.height(16.dp))
@@ -188,6 +183,7 @@ private fun PhoneDeviceCard(
 private fun DeviceMoreActions(
     device: Device,
     onAction: (String, List<ActionArg>) -> Unit,
+    includePrimary: Boolean = false,
 ) {
     if (device.type.actions.isEmpty()) return
     var showSheet by rememberSaveable(device.id) { mutableStateOf(false) }
@@ -218,6 +214,7 @@ private fun DeviceMoreActions(
             device = device,
             onAction = onAction,
             onDismiss = { showSheet = false },
+            includePrimaryAction = includePrimary,
         )
     }
 }
@@ -284,6 +281,7 @@ private fun DeviceEditActionButton(
 private fun DeviceCardHeader(
     device: Device,
     onToggle: () -> Unit,
+    showControl: Boolean = true,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -323,10 +321,13 @@ private fun DeviceCardHeader(
             Spacer(modifier = Modifier.height(6.dp))
             DeviceStatusRow(device = device)
         }
-        HeaderControl(
-            device = device,
-            onToggle = onToggle,
-        )
+        // En tablet (showControl=false) no hay control inline: todo se hace desde "More actions".
+        if (showControl) {
+            HeaderControl(
+                device = device,
+                onToggle = onToggle,
+            )
+        }
     }
 }
 

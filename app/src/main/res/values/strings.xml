@@ -429,6 +429,10 @@
     <string name="rooms_action_sub_swing">Set the swing</string>
     <string name="rooms_action_sub_color">Pick a color</string>
     <string name="rooms_action_sub_dispense">Set amount to dispense</string>
+    <string name="rooms_action_sub_security_code">Update your alarm security code.</string>
+    <string name="rooms_action_sub_arm_stay">Arm while staying at home.</string>
+    <string name="rooms_action_sub_arm_away">Arm when leaving your home.</string>
+    <string name="rooms_action_sub_disarm">Disarm the alarm system.</string>
     <string name="rooms_device_category_lighting">Lighting</string>
     <string name="rooms_device_category_security">Security</string>
     <string name="rooms_device_category_access">Access</string>
