@@ -496,11 +496,23 @@ fun SmartHomeApp(
                     }
                     Unit
                 }
+                val loginContext = LocalContext.current
+                val onNeedsVerification: (String, String) -> Unit = { email, password ->
+                    Toast.makeText(
+                        loginContext,
+                        loginContext.getString(R.string.login_account_not_verified),
+                        Toast.LENGTH_LONG,
+                    ).show()
+                    navController.navigate(
+                        AuthScreen.VerifyAccount.createRoute(Uri.encode(email), Uri.encode(password))
+                    )
+                }
                 if (isTablet) {
                     LoginScreenTablet(
                         onNavigateToRegister = onNavigateToRegister,
                         onNavigateToForgotPassword = onNavigateToForgotPassword,
                         onLoginSuccess = onLoginSuccess,
+                        onNeedsVerification = onNeedsVerification,
                         viewModel = loginViewModel,
                     )
                 } else {
@@ -508,6 +520,7 @@ fun SmartHomeApp(
                         onNavigateToRegister = onNavigateToRegister,
                         onNavigateToForgotPassword = onNavigateToForgotPassword,
                         onLoginSuccess = onLoginSuccess,
+                        onNeedsVerification = onNeedsVerification,
                         viewModel = loginViewModel,
                     )
                 }
@@ -1178,8 +1191,8 @@ fun SmartHomeApp(
                 onDismiss = { showAddHome = false },
                 isCreating = selectHomeUiState.isCreating,
                 errorMessage = selectHomeUiState.createError?.let { stringResource(it) },
-                onCreate = { name, typeIndex, photoIndex, shareEmail ->
-                    selectHomeViewModel.createHome(name, typeIndex, photoIndex, shareEmail)
+                onCreate = { name, typeIndex, shareEmails ->
+                    selectHomeViewModel.createHome(name, typeIndex, shareEmails)
                 },
             )
 
@@ -1256,8 +1269,7 @@ fun SmartHomeApp(
                 )
             }
 
-            val routineIsTablet = windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND) &&
-                windowSize.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND)
+            val routineIsTablet = windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
             if (routineIsTablet) {
                 AddRoutineTabletOverlay(
                     visible = showCreateRoutine,

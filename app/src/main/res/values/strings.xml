@@ -93,7 +93,9 @@
     <string name="verify_cta_submit">Verify account</string>
     <string name="verify_cta_submitting">Verifying...</string>
     <string name="verify_resend_question">Didn\'t get the code?</string>
+    <string name="verify_send_link">Send</string>
     <string name="verify_resend_link">Resend</string>
+    <string name="verify_resend_cooldown">Resend in %1$ds</string>
     <string name="verify_back_to_login">Back to sign in</string>
     <string name="verify_icon_content_description">Envelope with verification code</string>
 
@@ -267,10 +269,6 @@
     <string name="add_home_title">Add new home</string>
     <string name="add_home_step">Step 1 of 1</string>
     <string name="add_home_subtitle">Set the basics. You can edit them anytime.</string>
-    <string name="add_home_photo_section">Choose a photo</string>
-    <string name="add_home_upload_photo">Upload photo</string>
-    <string name="add_home_upload_drag">Upload or drag a photo</string>
-    <string name="add_home_upload_hint">JPG or PNG, max 5MB</string>
     <string name="add_home_name_label">Name *</string>
     <string name="add_home_name_placeholder">E.g.: Mountain cabin</string>
     <string name="add_home_name_error">Name is required.</string>
@@ -282,15 +280,14 @@
     <string name="add_home_share_section">Share (optional)</string>
     <string name="add_home_share_placeholder">example@mail.com</string>
     <string name="add_home_share_add_button">Add</string>
+    <string name="add_home_invited_section">Invited people</string>
+    <string name="add_home_invited_empty">No one invited yet.</string>
+    <string name="add_home_invited_remove">Remove invite</string>
     <string name="add_home_cta">Create home</string>
     <string name="add_home_creating">Creating...</string>
     <string name="add_home_back_description">Back</string>
     <string name="add_home_close_description">Close</string>
-    <string name="add_home_photo_content_description">Home photo %1$d</string>
     <string name="add_home_name_placeholder_mobile">E.g.: Mountain cabin</string>
-    <string name="add_home_fotos_section">Photos</string>
-    <string name="add_home_photo_label">Photo</string>
-    <string name="add_home_gallery_button">Upload from gallery</string>
 
     <string name="rooms_search_placeholder">Search rooms...</string>
     <string name="rooms_devices_search_placeholder">Search devices...</string>
@@ -617,6 +614,7 @@
     <string name="error_unknown">An unexpected error occurred.</string>
     <string name="error_login_invalid_credentials">Incorrect email or password.</string>
     <string name="error_login_server">The server couldn\'t sign you in.</string>
+    <string name="login_account_not_verified">Your account isn\'t verified yet. Enter the code we emailed you.</string>
     <string name="error_name_required">Enter your name.</string>
     <string name="error_email_required">Enter your email.</string>
     <string name="error_email_invalid">Enter a valid email.</string>

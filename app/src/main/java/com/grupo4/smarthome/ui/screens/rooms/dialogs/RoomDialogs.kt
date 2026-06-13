@@ -12,10 +12,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.window.core.layout.WindowSizeClass
@@ -59,8 +62,7 @@ fun AddEditRoomDialog(
     onConfirm: (String, RoomType) -> Unit,
 ) {
     val windowSize = currentWindowAdaptiveInfo().windowSizeClass
-    val isTablet = windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND) &&
-        windowSize.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND)
+    val isTablet = windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
     if (!isTablet) {
         AddEditRoomPhoneScreen(room = room, onDismiss = onDismiss, onConfirm = onConfirm)
         return
@@ -78,16 +80,19 @@ fun AddEditRoomDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
-        Box(
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 16.dp, vertical = 16.dp),
             contentAlignment = Alignment.Center,
         ) {
+            val maxSheetHeight = maxHeight
+            val compactHeight = maxHeight < 480.dp
             Surface(
                 modifier = Modifier
                     .widthIn(max = 620.dp)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .heightIn(max = maxSheetHeight),
                 shape = RoundedCornerShape(18.dp),
                 color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 8.dp,
@@ -104,10 +109,17 @@ fun AddEditRoomDialog(
                             else R.string.rooms_dialog_add_room_subtitle,
                         ),
                         onDismiss = onDismiss,
+                        compact = compactHeight,
                     )
                     Column(
-                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 20.dp),
-                        verticalArrangement = Arrangement.spacedBy(18.dp),
+                        modifier = Modifier
+                            .weight(1f, fill = false)
+                            .verticalScroll(rememberScrollState())
+                            .padding(
+                                horizontal = 24.dp,
+                                vertical = if (compactHeight) 14.dp else 20.dp,
+                            ),
+                        verticalArrangement = Arrangement.spacedBy(if (compactHeight) 12.dp else 18.dp),
                     ) {
                         RoomDialogForm(
                             name = name,

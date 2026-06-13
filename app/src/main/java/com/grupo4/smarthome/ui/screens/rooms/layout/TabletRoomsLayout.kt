@@ -112,6 +112,7 @@ fun TabletRoomsLayout(
                                 onCreateRoomClick = callbacks.onCreateRoomClick,
                                 onEditRoomsToggle = callbacks.onEditRoomsToggle,
                                 showEditButton = !presentation.isEmptyHome,
+                                showCreateButton = !phoneLandscape,
                             )
                         }
                         item(span = { GridItemSpan(maxLineSpan) }) {

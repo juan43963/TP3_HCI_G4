@@ -5,7 +5,6 @@ data class Home(
     val name: String,
     val rooms: List<Room>,
     val type: HomeType = HomeType.OTRO,
-    val photoIndex: Int? = null,
     val ownerName: String? = null,
     val ownerEmail: String? = null,
 )

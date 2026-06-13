@@ -97,17 +97,19 @@ class SelectHomeViewModel(
     private fun List<String>.moveToFront(id: String): List<String> =
         listOf(id) + this.filter { it != id }
 
-    fun createHome(name: String, typeIndex: Int, photoIndex: Int?, shareEmail: String? = null) {
+    fun createHome(name: String, typeIndex: Int, shareEmails: List<String> = emptyList()) {
         if (_uiState.value.isCreating) return
 
         viewModelScope.launch {
             _uiState.update { it.copy(isCreating = true, createError = null) }
             val type = HomeType.entries.getOrElse(typeIndex) { HomeType.OTRO }
-            when (val result = homesRepository.createHome(name, type, photoIndex)) {
+            when (val result = homesRepository.createHome(name, type)) {
                 is AppResult.Success -> {
-                    // Si se ingresó un email, compartimos la casa recién creada (opcional)
-                    if (!shareEmail.isNullOrBlank() && result.data.id.isNotBlank()) {
-                        homesRepository.shareHome(result.data.id, shareEmail)
+                    // Compartimos la casa recién creada con cada invitado (opcional)
+                    if (result.data.id.isNotBlank()) {
+                        shareEmails.filter { it.isNotBlank() }.forEach { email ->
+                            homesRepository.shareHome(result.data.id, email)
+                        }
                     }
                     // Refetch para reflejar el estado real del back-end (ADR-0008)
                     val refreshed = (homesRepository.getHomes() as? AppResult.Success)?.data
@@ -249,7 +251,6 @@ private fun Home.toSelectable(): SelectableHome =
         name = name,
         roomsCount = 0,
         devicesCount = 0,
-        photoIndex = photoIndex,
         type = type,
         ownerName = ownerName,
         ownerEmail = ownerEmail,

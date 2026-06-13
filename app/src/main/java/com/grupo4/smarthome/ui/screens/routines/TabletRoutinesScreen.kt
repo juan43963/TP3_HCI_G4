@@ -74,6 +74,8 @@ import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 fun TabletRoutinesScreen(
     routines: List<RoutineUi> = sampleRoutines,
     onProfileClick: () -> Unit = {},
+    onNotificationsClick: () -> Unit = {},
+    unreadNotificationCount: Int = 0,
     onAddRoutine: () -> Unit = {},
     onCreateRoom: () -> Unit = {},
     onCreateDevice: () -> Unit = {},
@@ -102,6 +104,10 @@ fun TabletRoutinesScreen(
     val selectedRoutine = remember(selectedRoutineId, visibleRoutines) {
         visibleRoutines.firstOrNull { it.id == selectedRoutineId }
     }
+    var openedRoutineId by remember(routines) { mutableStateOf<String?>(null) }
+    val openedRoutine = remember(openedRoutineId, routines) {
+        routines.firstOrNull { it.id == openedRoutineId }
+    }
 
     LaunchedEffect(visibleRoutines, selectedRoutineId) {
         if (visibleRoutines.isEmpty()) {
@@ -128,6 +134,23 @@ fun TabletRoutinesScreen(
         val portraitLike = maxWidth < 900.dp
         val contentPadding = if (portraitLike) 24.dp else 32.dp
 
+        if (phoneLandscape && openedRoutine != null) {
+            BackHandler { openedRoutineId = null }
+            RoutineDetailScreen(
+                routine = detailFor(openedRoutine.id) ?: openedRoutine.toDetailUi(),
+                onBack = { openedRoutineId = null },
+                onDelete = {
+                    openedRoutineId = null
+                    onDeleteRoutine(openedRoutine.id)
+                },
+                onAddAction = onAddRoutine,
+                onSave = { name, time24h, days, enabled ->
+                    onSaveRoutine(openedRoutine.id, name, time24h, days, enabled)
+                },
+            )
+            return@BoxWithConstraints
+        }
+
         DashboardScaffold(
             sidebar = {
                 TabletMainSidebar(
@@ -145,6 +168,8 @@ fun TabletRoutinesScreen(
                     onHomeSelectorClick = openDrawer,
                     onSearchClick = {},
                     onProfileClick = onProfileClick,
+                    onNotificationsClick = onNotificationsClick,
+                    notificationCount = unreadNotificationCount,
                     useCompactHomeMenu = true,
                     modifier = Modifier.padding(
                         start = contentPadding,
@@ -155,7 +180,22 @@ fun TabletRoutinesScreen(
                 )
             },
             content = {
-                if (routines.isEmpty() && !portraitLike && !phoneLandscape) {
+                if (phoneLandscape) {
+                    TabletRoutinesGrid(
+                        routines = routines,
+                        visibleRoutines = visibleRoutines,
+                        selectedCategory = selectedCategory,
+                        onCategorySelected = { selectedCategory = it },
+                        portraitLike = true,
+                        contentPadding = contentPadding,
+                        onAddRoutine = onAddRoutine,
+                        onRoutineSelected = { routine ->
+                            openedRoutineId = routine.id
+                            onRoutineClick(routine.id)
+                        },
+                        onExecuteRoutine = onExecuteRoutine,
+                    )
+                } else if (routines.isEmpty() && !portraitLike) {
                     TabletRoutinesEmptyTwoPane(
                         routines = routines,
                         selectedCategory = selectedCategory,
@@ -504,6 +544,7 @@ private fun TabletRoutineDetailPane(
     onDeleteRoutine: () -> Unit,
     contentPadding: androidx.compose.ui.unit.Dp,
     modifier: Modifier = Modifier,
+    onBack: (() -> Unit)? = null,
 ) {
     val detail = detail ?: remember(routine.id) { routine.toDetailUi() }
     var enabled by remember(routine.id) { mutableStateOf(detail.enabled) }
@@ -518,11 +559,11 @@ private fun TabletRoutineDetailPane(
 
     Column(modifier = modifier) {
         DetailTopBar(
-            onBack = {},
+            onBack = { onBack?.invoke() },
             onRename = { showRenameDialog = true },
             onDelete = { showDeleteDialog = true },
             showTitle = false,
-            showBackButton = false,
+            showBackButton = onBack != null,
         )
 
         LazyColumn(

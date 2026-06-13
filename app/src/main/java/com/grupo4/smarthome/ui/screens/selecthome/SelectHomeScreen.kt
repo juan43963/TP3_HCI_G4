@@ -1,6 +1,5 @@
 package com.grupo4.smarthome.ui.screens.selecthome
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,8 +38,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -60,7 +57,6 @@ data class SelectableHome(
     val name: String,
     val roomsCount: Int,
     val devicesCount: Int,
-    val photoIndex: Int? = null,
     val type: HomeType = HomeType.OTRO,
     val ownerName: String? = null,
     val ownerEmail: String? = null,
@@ -275,19 +271,7 @@ internal fun HomeCard(
         shadowElevation = 1.dp,
     ) {
         Column {
-            val photoRes = homePhotoRes(home.photoIndex)
-            if (photoRes != null) {
-                Image(
-                    painter = painterResource(photoRes),
-                    contentDescription = home.name,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(160.dp),
-                )
-            } else {
-                HomePhotoPlaceholder(homeName = home.name)
-            }
+            HomePhotoPlaceholder(homeName = home.name)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

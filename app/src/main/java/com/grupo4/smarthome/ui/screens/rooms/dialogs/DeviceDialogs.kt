@@ -101,8 +101,7 @@ fun AddDevicesToRoomDialog(
     initialDevices: List<PendingDevice> = emptyList(),
 ) {
     val windowSize = currentWindowAdaptiveInfo().windowSizeClass
-    val isTablet = windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND) &&
-        windowSize.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND)
+    val isTablet = windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
     if (!isTablet) {
         AddDevicesPhoneScreen(
             rooms = rooms,
@@ -150,6 +149,7 @@ fun AddDevicesToRoomDialog(
             contentAlignment = Alignment.Center,
         ) {
             val sheetMaxHeight = maxHeight
+            val compactHeight = maxHeight < 480.dp
             Surface(
                 modifier = Modifier
                     .widthIn(max = 720.dp)
@@ -182,21 +182,33 @@ fun AddDevicesToRoomDialog(
                     return@Surface
                 }
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    AddDevicesHeader(step = step, roomName = selectedRoom?.name.orEmpty(), onDismiss = onDismiss)
+                    AddDevicesHeader(
+                        step = step,
+                        roomName = selectedRoom?.name.orEmpty(),
+                        onDismiss = onDismiss,
+                        compact = compactHeight,
+                    )
                     AddDevicesStepper(
                         step = step,
                         hasDevices = hasDevices,
                         onSelectClick = { step = 1 },
                         onCustomizeClick = { if (hasDevices) step = 2 },
                         onReviewClick = { if (hasDevices) step = 3 },
-                        modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 18.dp),
+                        modifier = Modifier.padding(
+                            start = 24.dp,
+                            end = 24.dp,
+                            top = if (compactHeight) 12.dp else 18.dp,
+                        ),
                     )
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f, fill = false)
                             .verticalScroll(rememberScrollState())
-                            .padding(horizontal = 24.dp, vertical = 18.dp),
+                            .padding(
+                                horizontal = 24.dp,
+                                vertical = if (compactHeight) 12.dp else 18.dp,
+                            ),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         when (step) {
@@ -263,6 +275,7 @@ private fun AddDevicesHeader(
     step: Int,
     roomName: String,
     onDismiss: () -> Unit,
+    compact: Boolean = false,
 ) {
     val titleRes = when (step) {
         1 -> R.string.rooms_add_devices_select_title
@@ -280,6 +293,7 @@ private fun AddDevicesHeader(
         title = stringResource(titleRes),
         subtitle = stringResource(subtitleRes),
         onDismiss = onDismiss,
+        compact = compact,
     )
 }
 
@@ -850,23 +864,24 @@ private fun AddDevicesFooter(
         } else {
             Spacer(modifier = Modifier.width(1.dp))
         }
-        Button(
-            onClick = if (step < 3) onNext else onConfirm,
-            enabled = hasDevices,
-            shape = RoundedCornerShape(10.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = BrandIndigoDark,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-            ),
-        ) {
-            Text(
-                text = stringResource(
-                    if (step < 3) R.string.rooms_continue else R.string.rooms_add_devices_confirm,
+        if (hasDevices) {
+            Button(
+                onClick = if (step < 3) onNext else onConfirm,
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = BrandIndigoDark,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                 ),
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                softWrap = false,
-            )
+            ) {
+                Text(
+                    text = stringResource(
+                        if (step < 3) R.string.rooms_continue else R.string.rooms_add_devices_confirm,
+                    ),
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    softWrap = false,
+                )
+            }
         }
     }
 }

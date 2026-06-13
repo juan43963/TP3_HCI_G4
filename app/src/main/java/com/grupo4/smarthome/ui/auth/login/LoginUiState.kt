@@ -7,6 +7,7 @@ data class LoginUiState(
     val password: String = "",
     val isLoading: Boolean = false,
     val loggedIn: Boolean = false,
+    val needsVerification: Boolean = false,
     @StringRes val errorMessage: Int? = null,
 ) {
     val canSubmit: Boolean

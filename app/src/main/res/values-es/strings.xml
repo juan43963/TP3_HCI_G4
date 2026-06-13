@@ -92,7 +92,9 @@
     <string name="verify_cta_submit">Verificar cuenta</string>
     <string name="verify_cta_submitting">Verificando...</string>
     <string name="verify_resend_question">¿No recibiste el código?</string>
+    <string name="verify_send_link">Enviar</string>
     <string name="verify_resend_link">Reenviar</string>
+    <string name="verify_resend_cooldown">Reenviar en %1$ds</string>
     <string name="verify_back_to_login">Volver a iniciar sesión</string>
     <string name="verify_icon_content_description">Sobre con código de verificación</string>
 
@@ -266,10 +268,6 @@
     <string name="add_home_title">Agregar nuevo hogar</string>
     <string name="add_home_step">Paso 1 de 1</string>
     <string name="add_home_subtitle">Definí los datos básicos. Podrás editarlos cuando quieras.</string>
-    <string name="add_home_photo_section">Elegí una foto</string>
-    <string name="add_home_upload_photo">Subir foto</string>
-    <string name="add_home_upload_drag">Subir foto o arrastrar</string>
-    <string name="add_home_upload_hint">JPG o PNG, máx. 5MB</string>
     <string name="add_home_name_label">Nombre *</string>
     <string name="add_home_name_placeholder">Ej: Casa de la sierra</string>
     <string name="add_home_name_error">El nombre es obligatorio.</string>
@@ -281,15 +279,14 @@
     <string name="add_home_share_section">Compartir (opcional)</string>
     <string name="add_home_share_placeholder">ejemplo@mail.com</string>
     <string name="add_home_share_add_button">Agregar</string>
+    <string name="add_home_invited_section">Personas invitadas</string>
+    <string name="add_home_invited_empty">Todavía no invitaste a nadie.</string>
+    <string name="add_home_invited_remove">Quitar invitación</string>
     <string name="add_home_cta">Crear hogar</string>
     <string name="add_home_creating">Creando...</string>
     <string name="add_home_back_description">Volver</string>
     <string name="add_home_close_description">Cerrar</string>
-    <string name="add_home_photo_content_description">Foto de hogar %1$d</string>
     <string name="add_home_name_placeholder_mobile">Ej.: Cabaña en la montaña</string>
-    <string name="add_home_fotos_section">Fotos</string>
-    <string name="add_home_photo_label">Foto</string>
-    <string name="add_home_gallery_button">Subir desde galería</string>
 
     <string name="rooms_search_placeholder">Buscar habitaciones...</string>
     <string name="rooms_devices_search_placeholder">Buscar dispositivos...</string>
@@ -615,6 +612,7 @@
     <string name="error_unknown">Ocurrió un error inesperado.</string>
     <string name="error_login_invalid_credentials">Email o contraseña incorrectos.</string>
     <string name="error_login_server">El servidor no pudo iniciar la sesión.</string>
+    <string name="login_account_not_verified">Tu cuenta todavía no está verificada. Ingresá el código que te enviamos por email.</string>
     <string name="error_name_required">Ingresá tu nombre.</string>
     <string name="error_email_required">Ingresá tu email.</string>
     <string name="error_email_invalid">Ingresá un email válido.</string>

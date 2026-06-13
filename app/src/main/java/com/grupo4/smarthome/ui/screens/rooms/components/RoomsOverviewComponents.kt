@@ -65,6 +65,7 @@ fun RoomsHeader(
     onEditRoomsToggle: () -> Unit,
     modifier: Modifier = Modifier,
     showEditButton: Boolean = true,
+    showCreateButton: Boolean = true,
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
         val compactActions = maxWidth < 760.dp
@@ -85,6 +86,7 @@ fun RoomsHeader(
                     onCreateRoomClick = onCreateRoomClick,
                     onEditRoomsToggle = onEditRoomsToggle,
                     showEditButton = showEditButton,
+                    showCreateButton = showCreateButton,
                 )
             }
 
@@ -187,6 +189,7 @@ private fun RoomsHeaderActions(
     onEditRoomsToggle: () -> Unit,
     modifier: Modifier = Modifier,
     showEditButton: Boolean = true,
+    showCreateButton: Boolean = true,
 ) {
     Row(
         modifier = modifier,
@@ -230,28 +233,30 @@ private fun RoomsHeaderActions(
                 }
             }
         }
-        Button(
-            onClick = onCreateRoomClick,
-            modifier = Modifier.height(if (compact) 40.dp else 48.dp),
-            shape = RoundedCornerShape(10.dp),
-            contentPadding = ButtonDefaults.compactContentPadding(compact),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = BrandIndigoDark,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-            ),
-        ) {
-            Icon(
-                imageVector = com.grupo4.smarthome.ui.theme.SmartHomeIcons.Add,
-                contentDescription = null,
-                modifier = Modifier.size(if (compact) 18.dp else 20.dp),
-            )
-            Spacer(modifier = Modifier.width(if (compact) 6.dp else 8.dp))
-            Text(
-                text = stringResource(
-                    if (compact) R.string.rooms_create_room_short else R.string.rooms_create_room,
+        if (showCreateButton) {
+            Button(
+                onClick = onCreateRoomClick,
+                modifier = Modifier.height(if (compact) 40.dp else 48.dp),
+                shape = RoundedCornerShape(10.dp),
+                contentPadding = ButtonDefaults.compactContentPadding(compact),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = BrandIndigoDark,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                 ),
-                fontWeight = FontWeight.Bold,
-            )
+            ) {
+                Icon(
+                    imageVector = com.grupo4.smarthome.ui.theme.SmartHomeIcons.Add,
+                    contentDescription = null,
+                    modifier = Modifier.size(if (compact) 18.dp else 20.dp),
+                )
+                Spacer(modifier = Modifier.width(if (compact) 6.dp else 8.dp))
+                Text(
+                    text = stringResource(
+                        if (compact) R.string.rooms_create_room_short else R.string.rooms_create_room,
+                    ),
+                    fontWeight = FontWeight.Bold,
+                )
+            }
         }
     }
 }

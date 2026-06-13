@@ -9,6 +9,7 @@ import com.grupo4.smarthome.core.result.AppResult
 import com.grupo4.smarthome.core.result.ErrorKind
 import com.grupo4.smarthome.core.result.toMessageRes
 import com.grupo4.smarthome.data.repository.AuthRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -51,9 +52,23 @@ class VerifyAccountViewModel(
 
     fun resend(email: String) {
         if (email.isBlank()) return
+        if (_uiState.value.resendCooldownSeconds > 0) return
         viewModelScope.launch {
-            _uiState.update { it.copy(code = "", errorMessage = null) }
+            _uiState.update { it.copy(code = "", errorMessage = null, hasSent = true) }
             authRepository.sendVerification(email)
+        }
+        startResendCooldown()
+    }
+
+    private fun startResendCooldown() {
+        viewModelScope.launch {
+            var remaining = RESEND_COOLDOWN_SECONDS
+            while (remaining > 0) {
+                _uiState.update { it.copy(resendCooldownSeconds = remaining) }
+                delay(1000)
+                remaining--
+            }
+            _uiState.update { it.copy(resendCooldownSeconds = 0) }
         }
     }
 

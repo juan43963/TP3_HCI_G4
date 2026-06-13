@@ -114,6 +114,8 @@ fun RoutinesScreen(
         TabletRoutinesScreen(
             routines = routines,
             onProfileClick = onProfileClick,
+            onNotificationsClick = onNotificationsClick,
+            unreadNotificationCount = unreadNotificationCount,
             onAddRoutine = onAddRoutine,
             onCreateRoom = onCreateRoom,
             onCreateDevice = onCreateDevice,
