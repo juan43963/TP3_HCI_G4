@@ -62,6 +62,7 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
@@ -188,15 +189,12 @@ private fun CreateRoutineScreen(
                 CreateRoutineHeader(
                     currentStep = currentStep,
                     onBack = if (currentStep == CreateRoutineStep.Details) onDismiss else goBack,
-                    onClose = onDismiss,
                 )
             },
             bottomBar = {
                 CreateRoutineBottomBar(
                     currentStep = currentStep,
                     canCreate = canCreate,
-                    onBack = goBack,
-                    onCancel = onDismiss,
                     onNext = {
                         currentStep = when (currentStep) {
                             CreateRoutineStep.Details -> CreateRoutineStep.ActionsSummary
@@ -297,7 +295,6 @@ private fun NewRoutineCategory.toDomain(): RoutineCategory = when (this) {
 private fun CreateRoutineHeader(
     currentStep: CreateRoutineStep,
     onBack: () -> Unit,
-    onClose: () -> Unit,
 ) {
     val inDetails = currentStep == CreateRoutineStep.Details
 
@@ -318,7 +315,6 @@ private fun CreateRoutineHeader(
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             IconButton(onClick = onBack) {
                 Icon(
@@ -327,71 +323,33 @@ private fun CreateRoutineHeader(
                     tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
-            IconButton(onClick = onClose) {
-                Icon(
-                    imageVector = SmartHomeIcons.Close,
-                    contentDescription = stringResource(R.string.create_routine_close_description),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = stringResource(
+                    if (inDetails) R.string.create_routine_details_title
+                    else R.string.create_routine_actions_title,
+                ),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
         }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            RoutineHeroIcon()
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(
-                        if (inDetails) R.string.create_routine_step_one_label
-                        else R.string.create_routine_step_two_label,
-                    ),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-                Text(
-                    text = stringResource(
-                        if (inDetails) R.string.create_routine_details_title
-                        else R.string.create_routine_actions_title,
-                    ),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Text(
-                    text = stringResource(
-                        if (inDetails) R.string.create_routine_details_subtitle
-                        else R.string.create_routine_actions_subtitle,
-                    ),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(14.dp))
-        RoutineStepper(currentStep = currentStep)
-    }
-}
-
-@Composable
-private fun RoutineHeroIcon() {
-    Box(
-        modifier = Modifier
-            .size(56.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.primary),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            imageVector = SmartHomeIcons.MorningRoutine,
-            contentDescription = null,
-            tint = Color.White,
-            modifier = Modifier.size(28.dp),
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = stringResource(
+                if (inDetails) R.string.create_routine_details_subtitle
+                else R.string.create_routine_actions_subtitle,
+            ),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 8.dp),
         )
+        val showStepper = currentStep == CreateRoutineStep.Details ||
+            currentStep == CreateRoutineStep.ActionsSummary
+        if (showStepper) {
+            Spacer(modifier = Modifier.height(14.dp))
+            RoutineStepper(currentStep = currentStep)
+        }
     }
 }
 
@@ -400,75 +358,81 @@ private fun RoutineStepper(currentStep: CreateRoutineStep) {
     val actionsStarted = currentStep != CreateRoutineStep.Details
     Row(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        StepMarker(
-            number = "1",
+        RoutineStepPill(
+            number = 1,
             label = stringResource(R.string.create_routine_step_details),
-            selected = !actionsStarted,
-            completed = actionsStarted,
+            state = if (actionsStarted) RoutineStepState.Completed else RoutineStepState.Current,
+            modifier = Modifier.weight(1f),
         )
-        Box(
-            modifier = Modifier
-                .width(104.dp)
-                .height(2.dp)
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)),
-        )
-        StepMarker(
-            number = "2",
+        RoutineStepPill(
+            number = 2,
             label = stringResource(R.string.create_routine_step_actions),
-            selected = actionsStarted,
-            completed = false,
+            state = if (actionsStarted) RoutineStepState.Current else RoutineStepState.Upcoming,
+            modifier = Modifier.weight(1f),
         )
     }
 }
 
+private enum class RoutineStepState { Completed, Current, Upcoming }
+
 @Composable
-private fun StepMarker(
-    number: String,
+private fun RoutineStepPill(
+    number: Int,
     label: String,
-    selected: Boolean,
-    completed: Boolean,
+    state: RoutineStepState,
+    modifier: Modifier = Modifier,
 ) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            modifier = Modifier
-                .size(34.dp)
-                .clip(CircleShape)
-                .background(
-                    when {
-                        selected -> MaterialTheme.colorScheme.primary
-                        completed -> MaterialTheme.colorScheme.primary.copy(alpha = 0.55f)
-                        else -> MaterialTheme.colorScheme.surface
-                    },
-                ),
-            contentAlignment = Alignment.Center,
+    val primary = MaterialTheme.colorScheme.primary
+    val active = state != RoutineStepState.Upcoming
+    val containerColor = if (active) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
+    val borderColor = if (active) primary else MaterialTheme.colorScheme.outline
+    val textColor = if (active) primary else MaterialTheme.colorScheme.onSurfaceVariant
+    val badgeColor = if (state == RoutineStepState.Upcoming) MaterialTheme.colorScheme.outline else primary
+
+    Surface(
+        modifier = modifier.height(44.dp),
+        shape = RoundedCornerShape(999.dp),
+        color = containerColor,
+        border = BorderStroke(if (state == RoutineStepState.Current) 2.dp else 1.dp, borderColor),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            if (completed) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(18.dp),
-                )
-            } else {
-                Text(
-                    text = number,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .background(badgeColor, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (state == RoutineStepState.Completed) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(15.dp),
+                    )
+                } else {
+                    Text(
+                        text = number.toString(),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                    )
+                }
             }
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = textColor,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = if (selected || completed) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.onSurfaceVariant,
-        )
     }
 }
 
@@ -551,9 +515,7 @@ private fun CompactTextField(
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
+            modifier = Modifier.fillMaxWidth(),
             placeholder = {
                 Text(
                     text = placeholder,
@@ -905,8 +867,6 @@ private fun SelectDeviceStep(
         }
     }
 
-    StepContentLabel(R.string.create_routine_device_step_label)
-    Spacer(modifier = Modifier.height(14.dp))
     OutlinedTextField(
         value = query,
         onValueChange = { query = it },
@@ -918,6 +878,13 @@ private fun SelectDeviceStep(
                 text = stringResource(R.string.create_routine_search_placeholder),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        },
+        trailingIcon = {
+            Icon(
+                imageVector = SmartHomeIcons.Search,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         },
         singleLine = true,
@@ -948,14 +915,25 @@ private fun SelectDeviceStep(
             devices.isEmpty() -> EmptyDeviceMessage(R.string.create_routine_devices_empty)
             visibleDevices.isEmpty() -> EmptyDeviceMessage(R.string.create_routine_devices_no_results)
         }
-        visibleDevices.forEach { device ->
-            DeviceOptionCard(
-                name = device.name,
-                roomName = deviceRoomNames[device.id].orEmpty(),
-                icon = deviceTypeIcon(device.type),
-                selected = selectedDeviceId == device.id,
-                onClick = { onSelected(device) },
+        val otherRoomLabel = stringResource(R.string.create_routine_devices_other_room)
+        val grouped = visibleDevices.groupBy { deviceRoomNames[it.id].orEmpty().ifBlank { otherRoomLabel } }
+        grouped.entries.sortedBy { it.key }.forEach { (roomName, roomDevices) ->
+            Text(
+                text = roomName,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp),
             )
+            roomDevices.forEach { device ->
+                DeviceOptionCard(
+                    name = device.name,
+                    roomName = "",
+                    icon = deviceTypeIcon(device.type),
+                    selected = selectedDeviceId == device.id,
+                    onClick = { onSelected(device) },
+                )
+            }
         }
     }
 }
@@ -1052,8 +1030,6 @@ private fun SelectActionStep(
     actions: List<DeviceActionInfo>,
     onSelected: (DeviceActionInfo) -> Unit,
 ) {
-    StepContentLabel(R.string.create_routine_action_step_label)
-    Spacer(modifier = Modifier.height(18.dp))
     Text(
         text = stringResource(R.string.create_routine_action_question, deviceName),
         style = MaterialTheme.typography.titleMedium,
@@ -1131,8 +1107,6 @@ private fun ConfigureParameterStep(
 ) {
     val min = (param?.min ?: 0).toFloat()
     val max = (param?.max ?: 100).toFloat()
-    StepContentLabel(R.string.create_routine_parameters_step_label)
-    Spacer(modifier = Modifier.height(22.dp))
     Text(
         text = stringResource(R.string.create_routine_parameter_prompt, actionName),
         style = MaterialTheme.typography.titleMedium,
@@ -1174,169 +1148,67 @@ private fun ConfigureParameterStep(
 }
 
 @Composable
-private fun StepContentLabel(@StringRes labelRes: Int) {
-    Text(
-        text = stringResource(labelRes),
-        style = MaterialTheme.typography.labelMedium,
-        fontWeight = FontWeight.ExtraBold,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-}
-
-@Composable
 private fun CreateRoutineBottomBar(
     currentStep: CreateRoutineStep,
     canCreate: Boolean,
-    onBack: () -> Unit,
-    onCancel: () -> Unit,
     onNext: () -> Unit,
     onConfirmParameter: () -> Unit,
     onCreate: () -> Unit,
 ) {
+    // SelectDevice/SelectAction avanzan al tocar una tarjeta: no llevan barra inferior
+    if (currentStep == CreateRoutineStep.SelectDevice || currentStep == CreateRoutineStep.SelectAction) {
+        return
+    }
+    val label: String
+    val onClick: () -> Unit
+    val enabled: Boolean
+    when (currentStep) {
+        CreateRoutineStep.Details -> {
+            label = stringResource(R.string.create_routine_next)
+            onClick = onNext
+            enabled = true
+        }
+        CreateRoutineStep.ConfigureParameter -> {
+            label = stringResource(R.string.create_routine_add_action_cta)
+            onClick = onConfirmParameter
+            enabled = true
+        }
+        else -> {
+            label = stringResource(R.string.create_routine_create)
+            onClick = onCreate
+            enabled = canCreate
+        }
+    }
     Surface(
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 4.dp,
     ) {
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
                 .padding(horizontal = 20.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            if (currentStep == CreateRoutineStep.Details) {
-                SecondaryActionButton(
-                    text = stringResource(R.string.action_cancel),
-                    onClick = onCancel,
-                    modifier = Modifier.weight(1f),
+            Button(
+                onClick = onClick,
+                enabled = enabled,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                ),
+            ) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.ExtraBold,
+                    maxLines = 1,
                 )
-                PrimaryActionButton(
-                    text = stringResource(R.string.create_routine_next),
-                    icon = Icons.AutoMirrored.Filled.ArrowForward,
-                    onClick = onNext,
-                    modifier = Modifier.weight(1f),
-                )
-            } else {
-                TextButtonLike(
-                    text = stringResource(R.string.create_routine_back),
-                    onClick = onBack,
-                    modifier = Modifier.weight(0.85f),
-                )
-                SecondaryActionButton(
-                    text = stringResource(R.string.action_cancel),
-                    onClick = onCancel,
-                    modifier = Modifier.weight(1f),
-                )
-                when (currentStep) {
-                    CreateRoutineStep.ActionsSummary -> PrimaryActionButton(
-                        text = stringResource(R.string.create_routine_create),
-                        icon = SmartHomeIcons.Add,
-                        onClick = onCreate,
-                        enabled = canCreate,
-                        modifier = Modifier.weight(1.35f),
-                    )
-
-                    CreateRoutineStep.ConfigureParameter -> PrimaryActionButton(
-                        text = stringResource(R.string.create_routine_add_action_cta),
-                        icon = SmartHomeIcons.Add,
-                        onClick = onConfirmParameter,
-                        modifier = Modifier.weight(1.5f),
-                    )
-
-                    // SelectDevice/SelectAction avanzan al tocar una tarjeta: no necesitan botón primario
-                    else -> Spacer(modifier = Modifier.weight(1.35f))
-                }
             }
         }
-    }
-}
-
-@Composable
-private fun PrimaryActionButton(
-    text: String,
-    icon: ImageVector,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-) {
-    Button(
-        onClick = onClick,
-        enabled = enabled,
-        modifier = modifier.height(48.dp),
-        shape = RoundedCornerShape(10.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = Color.White,
-        ),
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(18.dp),
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.ExtraBold,
-            maxLines = 1,
-        )
-    }
-}
-
-@Composable
-private fun SecondaryActionButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Button(
-        onClick = onClick,
-        modifier = modifier.height(48.dp),
-        shape = RoundedCornerShape(10.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.ExtraBold,
-            maxLines = 1,
-        )
-    }
-}
-
-@Composable
-private fun TextButtonLike(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier
-            .height(48.dp)
-            .clip(RoundedCornerShape(10.dp))
-            .clickable(onClick = onClick),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center,
-    ) {
-        Icon(
-            imageVector = SmartHomeIcons.Back,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(18.dp),
-        )
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
-        )
     }
 }
 

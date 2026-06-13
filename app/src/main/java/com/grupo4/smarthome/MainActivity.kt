@@ -80,6 +80,7 @@ import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeViewModel
 import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeViewModelFactory
 import com.grupo4.smarthome.ui.navigation.Screen
 import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneHomeDrawer
+import com.grupo4.smarthome.ui.screens.firsthome.CreateFirstHomeScreen
 import com.grupo4.smarthome.ui.screens.history.HistoryScreen
 import com.grupo4.smarthome.ui.screens.history.HistoryViewModel
 import com.grupo4.smarthome.ui.screens.history.HistoryViewModelFactory
@@ -293,10 +294,31 @@ fun SmartHomeApp(
         }
     }
 
+    LaunchedEffect(
+        currentBaseRoute,
+        selectHomeUiState.homesLoaded,
+        selectHomeUiState.homes.isEmpty(),
+    ) {
+        if (currentBaseRoute == Screen.SELECT_HOME_ROUTE &&
+            selectHomeUiState.homesLoaded &&
+            selectHomeUiState.errorMessage == null &&
+            selectHomeUiState.homes.isEmpty()
+        ) {
+            navController.navigate(Screen.CREATE_FIRST_HOME_ROUTE) {
+                popUpTo(Screen.SELECT_HOME_ROUTE) { inclusive = true }
+            }
+        }
+    }
+
     LaunchedEffect(selectHomeUiState.homeJustCreated) {
         if (selectHomeUiState.homeJustCreated) {
             selectHomeViewModel.consumeHomeCreated()
             showAddHome = false
+            if (currentBaseRoute == Screen.CREATE_FIRST_HOME_ROUTE) {
+                navController.navigate(Screen.Home.route) {
+                    popUpTo(Screen.CREATE_FIRST_HOME_ROUTE) { inclusive = true }
+                }
+            }
         }
     }
     var showQuickActions by rememberSaveable { mutableStateOf(false) }
@@ -502,8 +524,10 @@ fun SmartHomeApp(
                     }
                     Unit
                 }
-                val onRegisterSuccess: (String) -> Unit = { email ->
-                    navController.navigate(AuthScreen.VerifyAccount.createRoute(Uri.encode(email)))
+                val onRegisterSuccess: (String, String) -> Unit = { email, password ->
+                    navController.navigate(
+                        AuthScreen.VerifyAccount.createRoute(Uri.encode(email), Uri.encode(password))
+                    )
                     Unit
                 }
                 if (isTablet) {
@@ -526,11 +550,18 @@ fun SmartHomeApp(
                     navArgument(AuthScreen.VerifyAccount.emailArg) {
                         type = NavType.StringType
                         defaultValue = ""
+                    },
+                    navArgument(AuthScreen.VerifyAccount.passwordArg) {
+                        type = NavType.StringType
+                        defaultValue = ""
                     }
                 ),
             ) { backStackEntry ->
                 val email = backStackEntry.arguments
                     ?.getString(AuthScreen.VerifyAccount.emailArg)
+                    .orEmpty()
+                val password = backStackEntry.arguments
+                    ?.getString(AuthScreen.VerifyAccount.passwordArg)
                     .orEmpty()
                 val application = LocalContext.current.applicationContext as SmartHomeApplication
                 val verifyFactory = remember(application) {
@@ -539,8 +570,9 @@ fun SmartHomeApp(
                 val verifyViewModel: VerifyAccountViewModel = viewModel(factory = verifyFactory)
                 VerifyAccountScreen(
                     email = email,
+                    password = password,
                     onVerifySuccess = {
-                        navController.navigate(AuthScreen.Login.route) {
+                        navController.navigate(Screen.CREATE_FIRST_HOME_ROUTE) {
                             popUpTo(AuthScreen.Welcome.route) { inclusive = true }
                         }
                     },
@@ -615,6 +647,13 @@ fun SmartHomeApp(
                         viewModel = changeViewModel,
                     )
                 }
+            }
+
+            composable(Screen.CREATE_FIRST_HOME_ROUTE) {
+                CreateFirstHomeScreen(
+                    windowSize = windowSize,
+                    onCreateHome = { showAddHome = true },
+                )
             }
 
             composable(Screen.SELECT_HOME_ROUTE) {
@@ -734,6 +773,7 @@ fun SmartHomeApp(
                     onCreateRoom = openCreateRoom,
                     onCreateDevice = openCreateDevice,
                     onAddRoutine = if (isTablet) openCreateRoutine else openQuickActions,
+                    onCreateFirstRoutine = openCreateRoutine,
                     onQuickAddClick = openQuickActions,
                     showQuickAddFab = !isTablet && !showQuickActions && !showCreateRoom &&
                         !showCreateDevice && !showCreateRoutine,
@@ -1190,11 +1230,12 @@ fun SmartHomeApp(
                     )
                 } else {
                     AddDevicesToRoomDialog(
-                        roomName = targetRoom.name,
+                        rooms = roomsUiState.rooms,
+                        initialRoomId = targetRoom.id,
                         availableDeviceTypes = roomsUiState.availableDeviceTypes,
                         onDismiss = { showCreateDevice = false },
-                        onConfirm = { pendingDevices ->
-                            roomsViewModel.addDevices(targetRoom.id, pendingDevices)
+                        onConfirm = { roomId, pendingDevices ->
+                            roomsViewModel.addDevices(roomId, pendingDevices)
                             showCreateDevice = false
                         },
                     )
@@ -1215,7 +1256,9 @@ fun SmartHomeApp(
                 )
             }
 
-            if (isTablet) {
+            val routineIsTablet = windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND) &&
+                windowSize.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND)
+            if (routineIsTablet) {
                 AddRoutineTabletOverlay(
                     visible = showCreateRoutine,
                     onDismiss = { showCreateRoutine = false },

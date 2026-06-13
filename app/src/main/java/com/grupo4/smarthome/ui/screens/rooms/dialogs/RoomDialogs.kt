@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -16,6 +17,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.window.core.layout.WindowSizeClass
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -55,6 +58,14 @@ fun AddEditRoomDialog(
     onDismiss: () -> Unit,
     onConfirm: (String, RoomType) -> Unit,
 ) {
+    val windowSize = currentWindowAdaptiveInfo().windowSizeClass
+    val isTablet = windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND) &&
+        windowSize.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND)
+    if (!isTablet) {
+        AddEditRoomPhoneScreen(room = room, onDismiss = onDismiss, onConfirm = onConfirm)
+        return
+    }
+
     var name by rememberSaveable(room?.id) { mutableStateOf(room?.name.orEmpty()) }
     var selectedTypeName by rememberSaveable(room?.id) { mutableStateOf(room?.type?.name) }
     var submitted by rememberSaveable(room?.id) { mutableStateOf(false) }
@@ -67,80 +78,105 @@ fun AddEditRoomDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
-        Surface(
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .widthIn(max = 620.dp),
-            shape = RoundedCornerShape(18.dp),
-            color = MaterialTheme.colorScheme.surface,
-            shadowElevation = 8.dp,
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            contentAlignment = Alignment.Center,
         ) {
-            Column {
-                ModalHeader(
-                    icon = SmartHomeIcons.Rooms,
-                    title = stringResource(
-                        if (isEditing) R.string.rooms_dialog_edit_room_title
-                        else R.string.rooms_dialog_add_room_title,
-                    ),
-                    subtitle = stringResource(
-                        if (isEditing) R.string.rooms_dialog_edit_room_subtitle
-                        else R.string.rooms_dialog_add_room_subtitle,
-                    ),
-                    onDismiss = onDismiss,
-                )
-                Column(
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 20.dp),
-                    verticalArrangement = Arrangement.spacedBy(18.dp),
-                ) {
-                    OutlinedTextField(
-                        value = name,
-                        onValueChange = { name = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        label = { Text(stringResource(R.string.rooms_field_name)) },
-                        placeholder = { Text(stringResource(R.string.rooms_room_name_placeholder)) },
-                        singleLine = true,
-                        isError = showNameError,
-                        supportingText = {
-                            if (showNameError) {
-                                Text(text = stringResource(R.string.rooms_error_required_name))
+            Surface(
+                modifier = Modifier
+                    .widthIn(max = 620.dp)
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(18.dp),
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 8.dp,
+            ) {
+                Column {
+                    ModalHeader(
+                        icon = SmartHomeIcons.Rooms,
+                        title = stringResource(
+                            if (isEditing) R.string.rooms_dialog_edit_room_title
+                            else R.string.rooms_dialog_add_room_title,
+                        ),
+                        subtitle = stringResource(
+                            if (isEditing) R.string.rooms_dialog_edit_room_subtitle
+                            else R.string.rooms_dialog_add_room_subtitle,
+                        ),
+                        onDismiss = onDismiss,
+                    )
+                    Column(
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 20.dp),
+                        verticalArrangement = Arrangement.spacedBy(18.dp),
+                    ) {
+                        RoomDialogForm(
+                            name = name,
+                            onNameChange = { name = it },
+                            showNameError = showNameError,
+                            selectedType = selectedType,
+                            onTypeSelected = { selectedTypeName = it.name },
+                            showTypeError = showTypeError,
+                        )
+                    }
+                    DialogFooter(
+                        onDismiss = onDismiss,
+                        confirmLabel = stringResource(
+                            if (isEditing) R.string.rooms_save_changes else R.string.rooms_create_room,
+                        ),
+                        onConfirm = {
+                            submitted = true
+                            val type = selectedType
+                            if (name.isNotBlank() && type != null) {
+                                onConfirm(name, type)
                             }
                         },
                     )
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text(
-                            text = stringResource(R.string.rooms_field_type),
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        RoomTypeSelector(
-                            selectedType = selectedType,
-                            onSelected = { selectedTypeName = it.name },
-                        )
-                        if (showTypeError) {
-                            Text(
-                                text = stringResource(R.string.rooms_error_required_type),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.error,
-                            )
-                        }
-                    }
                 }
-                DialogFooter(
-                    onDismiss = onDismiss,
-                    confirmLabel = stringResource(
-                        if (isEditing) R.string.rooms_save_changes else R.string.rooms_create_room,
-                    ),
-                    onConfirm = {
-                        submitted = true
-                        val type = selectedType
-                        if (name.isNotBlank() && type != null) {
-                            onConfirm(name, type)
-                        }
-                    },
-                )
             }
+        }
+    }
+}
+
+@Composable
+internal fun RoomDialogForm(
+    name: String,
+    onNameChange: (String) -> Unit,
+    showNameError: Boolean,
+    selectedType: RoomType?,
+    onTypeSelected: (RoomType) -> Unit,
+    showTypeError: Boolean,
+) {
+    OutlinedTextField(
+        value = name,
+        onValueChange = onNameChange,
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text(stringResource(R.string.rooms_field_name)) },
+        placeholder = { Text(stringResource(R.string.rooms_room_name_placeholder)) },
+        singleLine = true,
+        isError = showNameError,
+        supportingText = {
+            if (showNameError) {
+                Text(text = stringResource(R.string.rooms_error_required_name))
+            }
+        },
+    )
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(
+            text = stringResource(R.string.rooms_field_type),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        RoomTypeSelector(
+            selectedType = selectedType,
+            onSelected = onTypeSelected,
+        )
+        if (showTypeError) {
+            Text(
+                text = stringResource(R.string.rooms_error_required_type),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+            )
         }
     }
 }
@@ -155,11 +191,16 @@ fun DeleteRoomDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            contentAlignment = Alignment.Center,
+        ) {
         Surface(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .widthIn(max = 540.dp),
+                .widthIn(max = 540.dp)
+                .fillMaxWidth(),
             shape = RoundedCornerShape(18.dp),
             color = MaterialTheme.colorScheme.surface,
             shadowElevation = 8.dp,
@@ -227,11 +268,12 @@ fun DeleteRoomDialog(
               )
             }
         }
+        }
     }
 }
 
 @Composable
-private fun RoomTypeSelector(
+internal fun RoomTypeSelector(
     selectedType: RoomType?,
     onSelected: (RoomType) -> Unit,
 ) {

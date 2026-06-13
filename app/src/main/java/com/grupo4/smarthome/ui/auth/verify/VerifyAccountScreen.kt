@@ -44,6 +44,7 @@ import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 @Composable
 fun VerifyAccountScreen(
     email: String,
+    password: String,
     onVerifySuccess: () -> Unit,
     onChangeEmail: () -> Unit,
     onBackToLogin: () -> Unit,
@@ -62,7 +63,7 @@ fun VerifyAccountScreen(
         uiState = uiState,
         email = email,
         onCodeChange = viewModel::onCodeChange,
-        onVerify = viewModel::verify,
+        onVerify = { viewModel.verify(email, password) },
         onResend = { viewModel.resend(email) },
         onChangeEmail = onChangeEmail,
         onBackToLogin = onBackToLogin,

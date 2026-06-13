@@ -86,6 +86,7 @@ data class RoutineUi(
 fun RoutinesScreen(
     onProfileClick: () -> Unit = {},
     onAddRoutine: () -> Unit = {},
+    onCreateFirstRoutine: () -> Unit = onAddRoutine,
     onNotificationsClick: () -> Unit = {},
     unreadNotificationCount: Int = 0,
     onRoutineClick: (String) -> Unit = {},
@@ -205,7 +206,7 @@ fun RoutinesScreen(
                         if (routines.isEmpty()) {
                             item {
                                 RoutinesEmptyStateCard(
-                                    onCreateRoutineClick = onAddRoutine,
+                                    onCreateRoutineClick = onCreateFirstRoutine,
                                     compact = true,
                                 )
                             }

@@ -63,7 +63,7 @@ fun TabletRoomDetailLayout(
         val railCompact = portraitLike || phoneLandscape
         val contentPadding = if (portraitLike) 24.dp else 32.dp
         val deviceCardMinWidth = if (portraitLike) 340.dp else 420.dp
-        val deviceCardHeight = if (state.editDevicesMode) 336.dp else 272.dp
+        val deviceCardHeight = 272.dp
 
         Row(
             modifier = Modifier
@@ -175,22 +175,21 @@ private fun RoomDetailHeader(
         val compactActions = maxWidth < 760.dp
 
         if (compactActions) {
-            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                RoomDetailHeaderCopy(
-                    roomName = roomName,
-                    activeDevices = activeDevices,
-                    devicesTotal = devicesTotal,
-                    compact = true,
-                    onBack = onBack,
-                )
-                RoomDetailActions(
-                    editMode = editMode,
-                    compact = true,
-                    onAddDevice = onAddDevice,
-                    onEditDevicesToggle = onEditDevicesToggle,
-                    modifier = Modifier.align(Alignment.End),
-                )
-            }
+            RoomDetailHeaderCopy(
+                roomName = roomName,
+                activeDevices = activeDevices,
+                devicesTotal = devicesTotal,
+                compact = true,
+                onBack = onBack,
+                titleTrailing = {
+                    RoomDetailActions(
+                        editMode = editMode,
+                        compact = true,
+                        onAddDevice = onAddDevice,
+                        onEditDevicesToggle = onEditDevicesToggle,
+                    )
+                },
+            )
         } else {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -224,6 +223,7 @@ private fun RoomDetailHeaderCopy(
     compact: Boolean,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    titleTrailing: (@Composable () -> Unit)? = null,
 ) {
     Column(modifier = modifier) {
         OutlinedButton(
@@ -244,14 +244,29 @@ private fun RoomDetailHeaderCopy(
             )
         }
         Spacer(modifier = Modifier.height(if (compact) 12.dp else 14.dp))
-        Text(
-            text = roomName,
-            style = if (compact) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.headlineLarge,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.onSurface,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+        val roomNameText = @Composable { weightModifier: Modifier ->
+            Text(
+                text = roomName,
+                modifier = weightModifier,
+                style = if (compact) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        if (titleTrailing != null) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                roomNameText(Modifier.weight(1f))
+                titleTrailing()
+            }
+        } else {
+            roomNameText(Modifier)
+        }
         Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = stringResource(R.string.rooms_detail_subtitle),

@@ -3,6 +3,8 @@ package com.grupo4.smarthome.ui.screens.rooms.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -32,6 +34,7 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -76,11 +79,12 @@ fun DeviceCard(
         return
     }
 
+    val cardShape = RoundedCornerShape(16.dp)
     Surface(
         modifier = modifier
             .fillMaxWidth()
             .defaultMinSize(minHeight = 224.dp),
-        shape = RoundedCornerShape(16.dp),
+        shape = cardShape,
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(
             width = 1.dp,
@@ -88,31 +92,70 @@ fun DeviceCard(
         ),
         shadowElevation = 1.dp,
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(22.dp),
-        ) {
-            DeviceCardHeader(
-                device = device,
-                onToggle = onToggle,
-            )
-            Spacer(modifier = Modifier.height(18.dp))
-            DeviceControlContent(
-                device = device,
-                onToggle = onToggle,
-                onValueChange = onValueChange,
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-            )
-            if (editMode) {
-                Spacer(modifier = Modifier.height(16.dp))
-                DeviceCardEditActions(
-                    onEdit = onEdit,
-                    onDelete = onDelete,
+                    .fillMaxSize()
+                    .padding(22.dp),
+            ) {
+                DeviceCardHeader(
+                    device = device,
+                    onToggle = onToggle,
+                )
+                Spacer(modifier = Modifier.height(18.dp))
+                DeviceControlContent(
+                    device = device,
+                    onToggle = onToggle,
+                    onValueChange = onValueChange,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
                 )
             }
+            if (editMode) {
+                DeviceCardEditOverlay(
+                    onEdit = onEdit,
+                    onDelete = onDelete,
+                    shape = cardShape,
+                    modifier = Modifier.matchParentSize(),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DeviceCardEditOverlay(
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    shape: androidx.compose.ui.graphics.Shape,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.72f))
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() },
+                onClick = {},
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            DeviceEditActionButton(
+                label = stringResource(R.string.rooms_edit_short),
+                icon = SmartHomeIcons.Edit,
+                onClick = onEdit,
+                filled = true,
+            )
+            DeviceEditActionButton(
+                label = stringResource(R.string.rooms_delete),
+                icon = SmartHomeIcons.Delete,
+                onClick = onDelete,
+                destructive = true,
+                filled = true,
+            )
         }
     }
 }
@@ -195,15 +238,19 @@ private fun DeviceEditActionButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     destructive: Boolean = false,
+    filled: Boolean = false,
 ) {
     val contentColor = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
     OutlinedButton(
         onClick = onClick,
         modifier = modifier.height(40.dp),
         shape = RoundedCornerShape(10.dp),
-        contentPadding = PaddingValues(horizontal = 10.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp),
         border = BorderStroke(1.dp, contentColor.copy(alpha = 0.42f)),
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = contentColor),
+        colors = ButtonDefaults.outlinedButtonColors(
+            contentColor = contentColor,
+            containerColor = if (filled) MaterialTheme.colorScheme.surface else Color.Transparent,
+        ),
     ) {
         Icon(
             imageVector = icon,

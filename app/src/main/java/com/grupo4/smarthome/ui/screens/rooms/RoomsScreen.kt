@@ -202,11 +202,12 @@ fun RoomsScreen(
         RoomsDialogKind.AddDevices -> {
             dialogRoom?.let { room ->
                 AddDevicesToRoomDialog(
-                    roomName = room.name,
+                    rooms = state.rooms,
+                    initialRoomId = room.id,
                     availableDeviceTypes = DeviceType.entries,
                     onDismiss = { dialogKindName = RoomsDialogKind.None.name },
-                    onConfirm = { pendingDevices ->
-                        viewModel.addDevices(room.id, pendingDevices)
+                    onConfirm = { roomId, pendingDevices ->
+                        viewModel.addDevices(roomId, pendingDevices)
                         dialogKindName = RoomsDialogKind.None.name
                     },
                 )

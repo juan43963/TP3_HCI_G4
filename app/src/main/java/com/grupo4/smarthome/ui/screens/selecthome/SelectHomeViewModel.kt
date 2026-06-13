@@ -57,12 +57,16 @@ class SelectHomeViewModel(
             when (val result = homesRepository.getHomes()) {
                 is AppResult.Success -> {
                     _uiState.update {
-                        it.copy(isLoading = false, homes = result.data.map(Home::toSelectable))
+                        it.copy(
+                            isLoading = false,
+                            homesLoaded = true,
+                            homes = result.data.map(Home::toSelectable),
+                        )
                     }
                     reconcileActiveHome()
                 }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(isLoading = false, errorMessage = result.error.kind.toMessageRes())
+                    it.copy(isLoading = false, homesLoaded = true, errorMessage = result.error.kind.toMessageRes())
                 }
             }
         }

@@ -1,23 +1,16 @@
 package com.grupo4.smarthome.ui.screens.dashboard.components
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -46,79 +39,14 @@ fun InfoEmptyStateCard(
     onTabletActionClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
-        val compact = maxWidth < 560.dp
-        if (compact) {
-            FavoriteEmptyMobileCard(
-                messagePrefix = messagePrefix,
-                highlightedTarget = highlightedTarget,
-                messageSuffix = messageSuffix,
-                actionLabel = actionLabel,
-                onActionClick = onActionClick,
-            )
-        } else {
-            FavoriteEmptyTabletCard(
-                messagePrefix = messagePrefix,
-                highlightedTarget = highlightedTarget,
-                messageSuffix = messageSuffix,
-                actionLabel = tabletActionLabel,
-                onActionClick = onTabletActionClick,
-            )
-        }
-    }
-}
-
-@Composable
-private fun FavoriteEmptyMobileCard(
-    messagePrefix: String,
-    highlightedTarget: String,
-    messageSuffix: String,
-    actionLabel: String,
-    onActionClick: () -> Unit,
-) {
-    val borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.72f)
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 148.dp)
-            .clip(RoundedCornerShape(18.dp))
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.48f))
-            .dashedBorder(borderColor, 18.dp)
-            .padding(horizontal = 18.dp, vertical = 18.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            FavoriteIconCircle(size = 54.dp)
-            FavoriteMessage(
-                messagePrefix = messagePrefix,
-                highlightedTarget = highlightedTarget,
-                messageSuffix = messageSuffix,
-                centerText = true,
-            )
-            OutlinedButton(
-                onClick = onActionClick,
-                shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.primary,
-                ),
-            ) {
-                Icon(
-                    imageVector = SmartHomeIcons.Add,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                )
-                Text(
-                    text = actionLabel,
-                    modifier = Modifier.padding(start = 8.dp),
-                    style = MaterialTheme.typography.labelLarge,
-                )
-            }
-        }
-    }
+    FavoriteEmptyTabletCard(
+        messagePrefix = messagePrefix,
+        highlightedTarget = highlightedTarget,
+        messageSuffix = messageSuffix,
+        actionLabel = tabletActionLabel,
+        onActionClick = onTabletActionClick,
+        modifier = modifier,
+    )
 }
 
 @Composable
@@ -128,10 +56,11 @@ private fun FavoriteEmptyTabletCard(
     messageSuffix: String,
     actionLabel: String,
     onActionClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val borderColor = MaterialTheme.colorScheme.outlineVariant
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
             .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.72f))
@@ -171,27 +100,6 @@ private fun FavoriteEmptyTabletCard(
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun FavoriteIconCircle(size: androidx.compose.ui.unit.Dp) {
-    Box(
-        modifier = Modifier
-            .size(size)
-            .background(
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.36f),
-                shape = CircleShape,
-            )
-            .dashedBorder(MaterialTheme.colorScheme.outline.copy(alpha = 0.72f), size / 2),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            imageVector = SmartHomeIcons.Favorite,
-            contentDescription = null,
-            tint = StarActive,
-            modifier = Modifier.size(26.dp),
-        )
     }
 }
 

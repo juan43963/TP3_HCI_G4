@@ -15,6 +15,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,6 +23,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -109,13 +111,14 @@ fun BoxScope.AddHomeOverlay(
             onDismissRequest = onDismiss,
             properties = DialogProperties(usePlatformDefaultWidth = false),
         ) {
-            Box(
+            BoxWithConstraints(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 32.dp),
+                    .fillMaxSize()
+                    .padding(horizontal = 32.dp, vertical = 24.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 TabletAddHomeDialogContent(
+                    maxHeight = maxHeight,
                     onDismiss = onDismiss,
                     isCreating = isCreating,
                     errorMessage = errorMessage,
@@ -284,6 +287,7 @@ private fun AddHomeErrorText(message: String?) {
 
 @Composable
 private fun TabletAddHomeDialogContent(
+    maxHeight: Dp,
     onDismiss: () -> Unit,
     isCreating: Boolean,
     errorMessage: String?,
@@ -298,7 +302,8 @@ private fun TabletAddHomeDialogContent(
     Surface(
         modifier = Modifier
             .widthIn(max = 760.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .heightIn(max = maxHeight),
         shape = RoundedCornerShape(24.dp),
         color = MaterialTheme.colorScheme.background,
         shadowElevation = 6.dp,
@@ -346,37 +351,45 @@ private fun TabletAddHomeDialogContent(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            AddHomeFormCard {
-                HomeNameField(
-                    value = homeName,
-                    error = nameError,
-                    onValueChange = { homeName = it; if (nameError) nameError = false },
-                    placeholderRes = R.string.add_home_name_placeholder_mobile,
-                )
-            }
-            AddHomeFormCard {
-                AddHomeSectionLabel(stringResource(R.string.add_home_type_section))
-                Spacer(modifier = Modifier.height(8.dp))
-                AddHomeTypeGrid(
-                    selectedIndex = selectedTypeIndex,
-                    onSelect = { selectedTypeIndex = it },
-                    cellHeight = 56.dp,
-                )
-            }
-            AddHomeFormCard {
-                AddHomeShareField(
-                    value = shareEmail,
-                    onValueChange = { shareEmail = it },
-                )
-            }
-            AddHomeFormCard {
-                AddHomeSectionLabel(stringResource(R.string.add_home_fotos_section))
-                Spacer(modifier = Modifier.height(8.dp))
-                AddHomePhotoPicker(
-                    selectedIndex = selectedPhotoIndex,
-                    onSelect = { selectedPhotoIndex = it },
-                    tileHeight = 96.dp,
-                )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f, fill = false)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                AddHomeFormCard {
+                    HomeNameField(
+                        value = homeName,
+                        error = nameError,
+                        onValueChange = { homeName = it; if (nameError) nameError = false },
+                        placeholderRes = R.string.add_home_name_placeholder_mobile,
+                    )
+                }
+                AddHomeFormCard {
+                    AddHomeSectionLabel(stringResource(R.string.add_home_type_section))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    AddHomeTypeGrid(
+                        selectedIndex = selectedTypeIndex,
+                        onSelect = { selectedTypeIndex = it },
+                        cellHeight = 56.dp,
+                    )
+                }
+                AddHomeFormCard {
+                    AddHomeShareField(
+                        value = shareEmail,
+                        onValueChange = { shareEmail = it },
+                    )
+                }
+                AddHomeFormCard {
+                    AddHomeSectionLabel(stringResource(R.string.add_home_fotos_section))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    AddHomePhotoPicker(
+                        selectedIndex = selectedPhotoIndex,
+                        onSelect = { selectedPhotoIndex = it },
+                        tileHeight = 96.dp,
+                    )
+                }
             }
             AddHomeErrorText(errorMessage)
             AddHomeSubmitButton(
@@ -651,8 +664,11 @@ private fun AddHomePhoneDarkPreview() {
 @Composable
 private fun AddHomeTabletLandscapePreview() {
     SmartHomeTheme(darkTheme = false) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            TabletAddHomeDialogContent(onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _, _ -> })
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxSize().padding(vertical = 24.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            TabletAddHomeDialogContent(maxHeight = maxHeight, onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _, _ -> })
         }
     }
 }
@@ -661,8 +677,11 @@ private fun AddHomeTabletLandscapePreview() {
 @Composable
 private fun AddHomeTabletPortraitPreview() {
     SmartHomeTheme(darkTheme = true) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            TabletAddHomeDialogContent(onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _, _ -> })
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxSize().padding(vertical = 24.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            TabletAddHomeDialogContent(maxHeight = maxHeight, onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _, _ -> })
         }
     }
 }

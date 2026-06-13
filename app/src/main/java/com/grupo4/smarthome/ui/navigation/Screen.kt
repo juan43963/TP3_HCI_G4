@@ -24,6 +24,7 @@ sealed class Screen(
         fun isMainDestination(route: String?): Boolean = route != null && route in mainRoutes
 
         const val SELECT_HOME_ROUTE = "select_home"
+        const val CREATE_FIRST_HOME_ROUTE = "create_first_home"
         const val ROUTINE_DETAIL_ROUTE = "routine_detail"
         const val CHANGE_PASSWORD_ROUTE = "change_password_auth"
         const val SCAN_QR_ROUTE = "scan_qr"

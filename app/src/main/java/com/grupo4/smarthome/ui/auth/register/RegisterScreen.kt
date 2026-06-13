@@ -58,7 +58,7 @@ import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 @Composable
 fun RegisterScreen(
     onNavigateToLogin: () -> Unit,
-    onRegisterSuccess: (String) -> Unit,
+    onRegisterSuccess: (String, String) -> Unit,
     viewModel: RegisterViewModel,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -66,8 +66,9 @@ fun RegisterScreen(
     LaunchedEffect(uiState.registrationCompleted, uiState.registeredEmail) {
         val email = uiState.registeredEmail
         if (uiState.registrationCompleted && email != null) {
+            val password = uiState.password
             viewModel.consumeRegistrationCompleted()
-            onRegisterSuccess(email)
+            onRegisterSuccess(email, password)
         }
     }
 

@@ -27,14 +27,21 @@ class VerifyAccountViewModel(
         _uiState.update { it.copy(code = trimmed, errorMessage = null) }
     }
 
-    fun verify() {
+    fun verify(email: String, password: String) {
         val current = _uiState.value
         if (!current.canSubmit) return
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             when (val result = authRepository.verifyAccount(current.code)) {
-                is AppResult.Success -> _uiState.update { it.copy(isLoading = false, verified = true) }
+                is AppResult.Success -> {
+                    when (val login = authRepository.login(email, password)) {
+                        is AppResult.Success -> _uiState.update { it.copy(isLoading = false, verified = true) }
+                        is AppResult.Error -> _uiState.update {
+                            it.copy(isLoading = false, errorMessage = login.error.kind.toMessageRes())
+                        }
+                    }
+                }
                 is AppResult.Error -> _uiState.update {
                     it.copy(isLoading = false, errorMessage = messageFor(result.error.kind))
                 }

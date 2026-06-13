@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
@@ -98,6 +99,7 @@ fun EmptyStateCard(
                         note = note,
                         example = example,
                         helpText = helpText,
+                        centered = true,
                     )
                 }
             }
@@ -115,21 +117,26 @@ private fun EmptyStateCopy(
     example: String?,
     helpText: String?,
     modifier: Modifier = Modifier,
+    centered: Boolean = false,
 ) {
+    val textAlign = if (centered) TextAlign.Center else TextAlign.Start
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalAlignment = if (centered) Alignment.CenterHorizontally else Alignment.Start,
     ) {
         Text(
             text = title,
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.ExtraBold,
             color = MaterialTheme.colorScheme.onSurface,
+            textAlign = textAlign,
         )
         Text(
             text = description,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = textAlign,
         )
         if (example != null) {
             Text(
@@ -137,6 +144,7 @@ private fun EmptyStateCopy(
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
+                textAlign = textAlign,
             )
         }
         if (helpText != null) {
@@ -144,6 +152,7 @@ private fun EmptyStateCopy(
                 text = helpText,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = textAlign,
             )
         }
         if (buttonLabel != null && onButtonClick != null) {
@@ -166,6 +175,7 @@ private fun EmptyStateCopy(
                 text = note,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = textAlign,
             )
         }
     }
