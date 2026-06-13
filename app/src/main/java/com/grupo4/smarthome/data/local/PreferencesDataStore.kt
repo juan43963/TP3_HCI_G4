@@ -6,10 +6,13 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.grupo4.smarthome.core.network.ApiJson
 import com.grupo4.smarthome.ui.screens.notifications.NotificationPreferences
 import com.grupo4.smarthome.ui.theme.ThemePreference
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 
 private val Context.appPreferences by preferencesDataStore(name = "preferences")
 
@@ -61,6 +64,37 @@ class PreferencesDataStore(
         context.appPreferences.edit { it[Keys.NotificationsLastSeen] = timestampMillis }
     }
 
+    val recentRoomAccess: Flow<Map<String, Long>> =
+        context.appPreferences.data.map { decodeAccessMap(it[Keys.RoomAccessTimes]) }
+
+    suspend fun recordRoomAccess(roomId: String) {
+        context.appPreferences.edit { prefs ->
+            prefs[Keys.RoomAccessTimes] = encodeAccessMap(decodeAccessMap(prefs[Keys.RoomAccessTimes]), roomId)
+        }
+    }
+
+    val recentRoutineAccess: Flow<Map<String, Long>> =
+        context.appPreferences.data.map { decodeAccessMap(it[Keys.RoutineAccessTimes]) }
+
+    suspend fun recordRoutineAccess(routineId: String) {
+        context.appPreferences.edit { prefs ->
+            prefs[Keys.RoutineAccessTimes] = encodeAccessMap(decodeAccessMap(prefs[Keys.RoutineAccessTimes]), routineId)
+        }
+    }
+
+    private fun decodeAccessMap(json: String?): Map<String, Long> =
+        json?.let { runCatching { ApiJson.Instance.decodeFromString<Map<String, Long>>(it) }.getOrNull() }
+            ?: emptyMap()
+
+    private fun encodeAccessMap(current: Map<String, Long>, id: String): String {
+        val updated = (current + (id to System.currentTimeMillis()))
+            .entries
+            .sortedByDescending { it.value }
+            .take(20)
+            .associate { it.key to it.value }
+        return ApiJson.Instance.encodeToString(updated)
+    }
+
     private object Keys {
         val SelectedHomeId = stringPreferencesKey("selected_home_id")
         val ThemePreference = stringPreferencesKey("theme_preference")
@@ -69,5 +103,7 @@ class PreferencesDataStore(
         val NotifDevices = booleanPreferencesKey("notif_devices")
         val NotifToast = booleanPreferencesKey("notif_toast")
         val NotificationsLastSeen = longPreferencesKey("notifications_last_seen")
+        val RoomAccessTimes = stringPreferencesKey("room_access_times")
+        val RoutineAccessTimes = stringPreferencesKey("routine_access_times")
     }
 }

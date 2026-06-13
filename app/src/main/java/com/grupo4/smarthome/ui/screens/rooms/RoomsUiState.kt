@@ -14,6 +14,7 @@ data class RoomsUiState(
     val selectedRoomId: String? = null,
     val editRoomsMode: Boolean = false,
     val editDevicesMode: Boolean = false,
+    val openedFromDashboard: Boolean = false,
     val isLoading: Boolean = false,
     val unreadNotificationCount: Int = 0,
     @StringRes val errorMessage: Int? = null,

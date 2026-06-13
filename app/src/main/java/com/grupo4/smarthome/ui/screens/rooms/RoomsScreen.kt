@@ -76,7 +76,11 @@ fun RoomsScreen(
     }
 
     val callbacks = RoomsCallbacks(
-        onBackToRooms = viewModel::onBackToRooms,
+        onBackToRooms = {
+            val cameFromDashboard = state.openedFromDashboard
+            viewModel.onBackToRooms()
+            if (cameFromDashboard) onNavigateHome()
+        },
         onRoomClick = viewModel::onRoomClick,
         onSelectedRoomChange = viewModel::onSelectedRoomChange,
         onToggleRoomFavorite = viewModel::toggleRoomFavorite,

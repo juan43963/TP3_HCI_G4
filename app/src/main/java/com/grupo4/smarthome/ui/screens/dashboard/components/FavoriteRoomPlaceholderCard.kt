@@ -72,7 +72,10 @@ fun FavoriteRoomPlaceholderCard(
                         maxLines = 1,
                     )
                     Text(
-                        text = stringResource(R.string.dashboard_room_placeholder_label),
+                        text = stringResource(
+                            if (room.isFavorite) R.string.dashboard_room_placeholder_label
+                            else R.string.dashboard_room_label
+                        ),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -82,19 +85,16 @@ fun FavoriteRoomPlaceholderCard(
                     modifier = Modifier.size(32.dp),
                 ) {
                     Icon(
-                        imageVector = SmartHomeIcons.Favorite,
-                        contentDescription = stringResource(R.string.dashboard_remove_favorite),
-                        tint = StarActive,
+                        imageVector = if (room.isFavorite) SmartHomeIcons.Favorite else SmartHomeIcons.FavoriteBorder,
+                        contentDescription = stringResource(
+                            if (room.isFavorite) R.string.dashboard_remove_favorite
+                            else R.string.dashboard_add_favorite
+                        ),
+                        tint = if (room.isFavorite) StarActive else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(18.dp),
                     )
                 }
             }
-            Text(
-                text = stringResource(R.string.dashboard_placeholder_status),
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.primary,
-            )
         }
     }
 }

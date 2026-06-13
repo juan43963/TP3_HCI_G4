@@ -16,6 +16,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.window.core.layout.WindowSizeClass
@@ -28,6 +30,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -239,6 +242,7 @@ fun SmartHomeApp(
                 homesApplication.appContainer.roomsRepository,
                 homesApplication.appContainer.devicesRepository,
                 homesApplication.appContainer.socketEvents,
+                homesApplication.appContainer.preferencesDataStore,
             )
         },
     )
@@ -253,6 +257,7 @@ fun SmartHomeApp(
                 homesApplication.appContainer.routinesRepository,
                 homesApplication.appContainer.roomsRepository,
                 homesApplication.appContainer.devicesRepository,
+                homesApplication.appContainer.preferencesDataStore,
             )
         },
     )
@@ -272,6 +277,7 @@ fun SmartHomeApp(
                 homesApplication.appContainer.roomsRepository,
                 homesApplication.appContainer.devicesRepository,
                 homesApplication.appContainer.routinesRepository,
+                homesApplication.appContainer.preferencesDataStore,
             )
         },
     )
@@ -696,6 +702,15 @@ fun SmartHomeApp(
             }
 
             composable(Screen.Home.route) {
+                val dashboardSnackbarHostState = remember { SnackbarHostState() }
+                val routineExecutedTemplate = stringResource(R.string.routines_executed)
+                LaunchedEffect(routinesUiState.infoMessage) {
+                    routinesUiState.infoMessage?.let {
+                        dashboardSnackbarHostState.showSnackbar(routineExecutedTemplate.format(it))
+                        routinesViewModel.dismissInfo()
+                    }
+                }
+                Box(modifier = Modifier.fillMaxSize()) {
                 HomeScreen(
                     windowSize = windowSize,
                     state = homeUiState,
@@ -712,7 +727,7 @@ fun SmartHomeApp(
                         }
                     },
                     onRoomClick = { roomId ->
-                        roomsViewModel.onRoomClick(roomId)
+                        roomsViewModel.onRoomOpenedFromDashboard(roomId)
                         navController.navigate(Screen.Rooms.route) {
                             launchSingleTop = true
                             restoreState = true
@@ -720,6 +735,7 @@ fun SmartHomeApp(
                     },
                     onToggleRoomFavorite = homeViewModel::toggleRoomFavorite,
                     onToggleRoutineFavorite = homeViewModel::toggleRoutineFavorite,
+                    onRunRoutine = routinesViewModel::executeRoutine,
                     onNavigateProfile = {
                         navController.navigate(Screen.Profile.route) {
                             launchSingleTop = true
@@ -740,6 +756,11 @@ fun SmartHomeApp(
                     showQuickAddFab = !isTablet && !showQuickActions && !showCreateRoom &&
                         !showCreateDevice && !showCreateRoutine,
                 )
+                SnackbarHost(
+                    hostState = dashboardSnackbarHostState,
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                )
+                }
             }
             composable(Screen.Rooms.route) {
                 RoomsScreen(

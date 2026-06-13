@@ -31,6 +31,7 @@ import com.grupo4.smarthome.ui.theme.StarActive
 fun FavoriteRoutinePlaceholderCard(
     routine: DashboardRoutinePreview,
     modifier: Modifier = Modifier,
+    onRun: () -> Unit = {},
     onToggleFavorite: () -> Unit = {},
 ) {
     Surface(
@@ -48,12 +49,13 @@ fun FavoriteRoutinePlaceholderCard(
             Box(
                 modifier = Modifier
                     .size(42.dp)
-                    .background(MaterialTheme.colorScheme.primary, CircleShape),
+                    .background(MaterialTheme.colorScheme.primary, CircleShape)
+                    .clickable(onClick = onRun),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = SmartHomeIcons.Play,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.dashboard_run_routine),
                     tint = MaterialTheme.colorScheme.onPrimary,
                 )
             }
@@ -69,7 +71,10 @@ fun FavoriteRoutinePlaceholderCard(
                     maxLines = 1,
                 )
                 Text(
-                    text = stringResource(R.string.dashboard_routine_placeholder_label),
+                    text = stringResource(
+                        if (routine.isFavorite) R.string.dashboard_routine_placeholder_label
+                        else R.string.dashboard_routine_label
+                    ),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -82,9 +87,12 @@ fun FavoriteRoutinePlaceholderCard(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    imageVector = SmartHomeIcons.Favorite,
-                    contentDescription = stringResource(R.string.dashboard_remove_favorite),
-                    tint = StarActive,
+                    imageVector = if (routine.isFavorite) SmartHomeIcons.Favorite else SmartHomeIcons.FavoriteBorder,
+                    contentDescription = stringResource(
+                        if (routine.isFavorite) R.string.dashboard_remove_favorite
+                        else R.string.dashboard_add_favorite
+                    ),
+                    tint = if (routine.isFavorite) StarActive else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(17.dp),
                 )
             }

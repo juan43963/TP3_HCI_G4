@@ -225,6 +225,10 @@
     <string name="dashboard_favorite_rooms_subtitle">Accedé y controlá tus espacios más utilizados.</string>
     <string name="dashboard_favorite_routines_title">Rutinas favoritas</string>
     <string name="dashboard_favorite_routines_subtitle">Automatizá las acciones que más usás.</string>
+    <string name="dashboard_recent_rooms_title">Habitaciones recientes</string>
+    <string name="dashboard_recent_routines_title">Rutinas recientes</string>
+    <string name="dashboard_recent_rooms_subtitle">Marcá ⭐ para fijarlas acá.</string>
+    <string name="dashboard_recent_routines_subtitle">Marcá ⭐ para fijarlas acá.</string>
     <string name="dashboard_remove_favorite">Quitar de favoritos</string>
     <string name="dashboard_empty_home_title">Empezá organizando tu hogar</string>
     <string name="dashboard_empty_home_description">Creá tu primera habitación para agrupar tus dispositivos por espacios y empezar a controlar tu casa de forma más ordenada.</string>
@@ -243,7 +247,10 @@
     <string name="dashboard_go_to_routines">Ir a Rutinas</string>
     <string name="dashboard_room_placeholder_label">Habitación favorita</string>
     <string name="dashboard_routine_placeholder_label">Rutina favorita</string>
-    <string name="dashboard_placeholder_status">Lista para completar</string>
+    <string name="dashboard_room_label">Habitación</string>
+    <string name="dashboard_routine_label">Rutina</string>
+    <string name="dashboard_add_favorite">Agregar a favoritos</string>
+    <string name="dashboard_run_routine">Ejecutar rutina</string>
     <string name="dashboard_phone_placeholder">Inicio</string>
     <string name="dashboard_menu_content_description">Abrir hogares</string>
     <string name="dashboard_search_content_description">Abrir búsqueda</string>

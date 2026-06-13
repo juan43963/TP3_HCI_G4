@@ -10,6 +10,7 @@ import com.grupo4.smarthome.core.result.toMessageRes
 import com.grupo4.smarthome.data.model.Device
 import com.grupo4.smarthome.data.model.DeviceType
 import com.grupo4.smarthome.data.model.RoomType
+import com.grupo4.smarthome.data.local.PreferencesDataStore
 import com.grupo4.smarthome.data.remote.socket.SocketEvent
 import com.grupo4.smarthome.data.repository.DevicesRepository
 import com.grupo4.smarthome.data.repository.RoomsRepository
@@ -27,6 +28,7 @@ class RoomsViewModel(
     private val roomsRepository: RoomsRepository,
     private val devicesRepository: DevicesRepository,
     private val deviceEvents: Flow<SocketEvent>,
+    private val preferences: PreferencesDataStore,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(
         RoomsUiState(
@@ -192,13 +194,22 @@ class RoomsViewModel(
 
     fun onFilterSelected(type: RoomType?) = _uiState.update { it.copy(selectedRoomType = type) }
 
-    fun onRoomClick(roomId: String) = _uiState.update { it.copy(selectedRoomId = roomId, searchQuery = "") }
+    fun onRoomClick(roomId: String) = selectRoom(roomId, fromDashboard = false)
+
+    fun onRoomOpenedFromDashboard(roomId: String) = selectRoom(roomId, fromDashboard = true)
+
+    private fun selectRoom(roomId: String, fromDashboard: Boolean) {
+        _uiState.update { it.copy(selectedRoomId = roomId, searchQuery = "", openedFromDashboard = fromDashboard) }
+        viewModelScope.launch { preferences.recordRoomAccess(roomId) }
+    }
 
     fun onSelectedRoomChange(roomId: String?) = _uiState.update {
         it.copy(selectedRoomId = roomId, editDevicesMode = if (roomId == null) false else it.editDevicesMode)
     }
 
-    fun onBackToRooms() = _uiState.update { it.copy(selectedRoomId = null, editDevicesMode = false) }
+    fun onBackToRooms() = _uiState.update {
+        it.copy(selectedRoomId = null, editDevicesMode = false, openedFromDashboard = false)
+    }
 
     fun onEditRoomsToggle() = _uiState.update { it.copy(editRoomsMode = !it.editRoomsMode) }
 
@@ -399,11 +410,12 @@ class RoomsViewModelFactory(
     private val roomsRepository: RoomsRepository,
     private val devicesRepository: DevicesRepository,
     private val deviceEvents: Flow<SocketEvent>,
+    private val preferences: PreferencesDataStore,
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(RoomsViewModel::class.java)) {
-            return RoomsViewModel(roomsRepository, devicesRepository, deviceEvents) as T
+            return RoomsViewModel(roomsRepository, devicesRepository, deviceEvents, preferences) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

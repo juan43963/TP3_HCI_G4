@@ -39,10 +39,16 @@ fun DashboardBodyContent(
         verticalArrangement = Arrangement.spacedBy(22.dp),
     ) {
         DashboardSection(
-            title = stringResource(R.string.dashboard_favorite_rooms_title),
-            subtitle = stringResource(R.string.dashboard_favorite_rooms_subtitle),
-            actionLabel = stringResource(R.string.dashboard_create_room),
-            onActionClick = callbacks.onCreateRoom,
+            title = if (presentation.showingRecentRooms) {
+                stringResource(R.string.dashboard_recent_rooms_title)
+            } else {
+                stringResource(R.string.dashboard_favorite_rooms_title)
+            },
+            subtitle = if (presentation.showingRecentRooms) {
+                stringResource(R.string.dashboard_recent_rooms_subtitle)
+            } else {
+                stringResource(R.string.dashboard_favorite_rooms_subtitle)
+            },
         ) {
             if (presentation.hasRoomsWithoutFavorites) {
                 InfoEmptyStateCard(
@@ -56,12 +62,12 @@ fun DashboardBodyContent(
                 )
             } else {
                 DashboardAdaptiveGrid(
-                    itemCount = presentation.favoriteRooms.size,
+                    itemCount = presentation.displayRooms.size,
                     itemContent = { index ->
                         FavoriteRoomPlaceholderCard(
-                            room = presentation.favoriteRooms[index],
-                            onClick = { callbacks.onRoomClick(presentation.favoriteRooms[index].id) },
-                            onToggleFavorite = { callbacks.onToggleRoomFavorite(presentation.favoriteRooms[index].id) },
+                            room = presentation.displayRooms[index],
+                            onClick = { callbacks.onRoomClick(presentation.displayRooms[index].id) },
+                            onToggleFavorite = { callbacks.onToggleRoomFavorite(presentation.displayRooms[index].id) },
                         )
                     },
                 )
@@ -69,10 +75,16 @@ fun DashboardBodyContent(
         }
 
         DashboardSection(
-            title = stringResource(R.string.dashboard_favorite_routines_title),
-            subtitle = stringResource(R.string.dashboard_favorite_routines_subtitle),
-            actionLabel = stringResource(R.string.dashboard_create_routine),
-            onActionClick = callbacks.onCreateRoutine,
+            title = if (presentation.showingRecentRoutines) {
+                stringResource(R.string.dashboard_recent_routines_title)
+            } else {
+                stringResource(R.string.dashboard_favorite_routines_title)
+            },
+            subtitle = if (presentation.showingRecentRoutines) {
+                stringResource(R.string.dashboard_recent_routines_subtitle)
+            } else {
+                stringResource(R.string.dashboard_favorite_routines_subtitle)
+            },
         ) {
             when {
                 presentation.hasNoRoutines -> {
@@ -101,12 +113,13 @@ fun DashboardBodyContent(
 
                 else -> {
                     DashboardAdaptiveGrid(
-                        itemCount = presentation.favoriteRoutines.size,
+                        itemCount = presentation.displayRoutines.size,
                         itemContent = { index ->
                             FavoriteRoutinePlaceholderCard(
-                                routine = presentation.favoriteRoutines[index],
+                                routine = presentation.displayRoutines[index],
+                                onRun = { callbacks.onRunRoutine(presentation.displayRoutines[index].id) },
                                 onToggleFavorite = {
-                                    callbacks.onToggleRoutineFavorite(presentation.favoriteRoutines[index].id)
+                                    callbacks.onToggleRoutineFavorite(presentation.displayRoutines[index].id)
                                 },
                             )
                         },

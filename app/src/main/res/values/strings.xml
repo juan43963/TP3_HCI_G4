@@ -226,6 +226,10 @@
     <string name="dashboard_favorite_rooms_subtitle">Access and control your most-used spaces.</string>
     <string name="dashboard_favorite_routines_title">Favorite routines</string>
     <string name="dashboard_favorite_routines_subtitle">Automate the actions you use most.</string>
+    <string name="dashboard_recent_rooms_title">Recently used rooms</string>
+    <string name="dashboard_recent_routines_title">Recently used routines</string>
+    <string name="dashboard_recent_rooms_subtitle">Star them to pin them here.</string>
+    <string name="dashboard_recent_routines_subtitle">Star them to pin them here.</string>
     <string name="dashboard_remove_favorite">Remove from favorites</string>
     <string name="dashboard_empty_home_title">Start by organizing your home</string>
     <string name="dashboard_empty_home_description">Create your first room to group your devices by space and start controlling your home in a more organized way.</string>
@@ -244,7 +248,10 @@
     <string name="dashboard_go_to_routines">Go to Routines</string>
     <string name="dashboard_room_placeholder_label">Favorite room</string>
     <string name="dashboard_routine_placeholder_label">Favorite routine</string>
-    <string name="dashboard_placeholder_status">Ready to complete</string>
+    <string name="dashboard_room_label">Room</string>
+    <string name="dashboard_routine_label">Routine</string>
+    <string name="dashboard_add_favorite">Add to favorites</string>
+    <string name="dashboard_run_routine">Run routine</string>
     <string name="dashboard_phone_placeholder">Home</string>
     <string name="dashboard_menu_content_description">Open homes</string>
     <string name="dashboard_search_content_description">Open search</string>
