@@ -72,6 +72,7 @@ fun SelectHomeScreen(
     onProfileClick: () -> Unit,
     modifier: Modifier = Modifier,
     isLoading: Boolean = false,
+    homesLoaded: Boolean = false,
     errorMessage: String? = null,
     onRetry: () -> Unit = {},
     onShareHome: (SelectableHome) -> Unit = {},
@@ -86,6 +87,7 @@ fun SelectHomeScreen(
             onAddHome = onAddHome,
             onProfileClick = onProfileClick,
             isLoading = isLoading,
+            homesLoaded = homesLoaded,
             errorMessage = errorMessage,
             onRetry = onRetry,
             onShareHome = onShareHome,
@@ -101,6 +103,7 @@ fun SelectHomeScreen(
             onAddHome = onAddHome,
             onProfileClick = onProfileClick,
             isLoading = isLoading,
+            homesLoaded = homesLoaded,
             errorMessage = errorMessage,
             onRetry = onRetry,
             onShareHome = onShareHome,
@@ -119,6 +122,7 @@ private fun PhoneSelectHomeLayout(
     onAddHome: () -> Unit,
     onProfileClick: () -> Unit,
     isLoading: Boolean,
+    homesLoaded: Boolean,
     errorMessage: String?,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
@@ -169,7 +173,7 @@ private fun PhoneSelectHomeLayout(
                 }
             }
             when {
-                isLoading && homes.isEmpty() -> item { SelectHomeLoading() }
+                !homesLoaded -> item { SelectHomeLoading() }
                 errorMessage != null && homes.isEmpty() -> item {
                     SelectHomeError(message = errorMessage, onRetry = onRetry)
                 }
@@ -419,6 +423,7 @@ private fun SelectHomeScreenPhonePreview() {
             onAddHome = {},
             onProfileClick = {},
             isLoading = false,
+            homesLoaded = true,
             errorMessage = null,
             onRetry = {},
         )

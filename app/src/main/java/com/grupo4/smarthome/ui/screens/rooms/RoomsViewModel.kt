@@ -203,8 +203,11 @@ class RoomsViewModel(
         viewModelScope.launch { preferences.recordRoomAccess(roomId) }
     }
 
-    fun onSelectedRoomChange(roomId: String?) = _uiState.update {
-        it.copy(selectedRoomId = roomId, editDevicesMode = if (roomId == null) false else it.editDevicesMode)
+    fun onSelectedRoomChange(roomId: String?) {
+        _uiState.update {
+            it.copy(selectedRoomId = roomId, editDevicesMode = if (roomId == null) false else it.editDevicesMode)
+        }
+        if (roomId != null) viewModelScope.launch { preferences.recordRoomAccess(roomId) }
     }
 
     fun onBackToRooms() = _uiState.update {

@@ -426,6 +426,7 @@
     <string name="rooms_retry">Retry</string>
 
     <string name="routines_edit">Edit</string>
+    <string name="routines_finish_editing">Done</string>
     <string name="routines_header_title">Automated routines</string>
     <string name="routines_header_subtitle">Create and manage routines to automate your home.</string>
     <string name="routines_filter_label">Filter by category</string>

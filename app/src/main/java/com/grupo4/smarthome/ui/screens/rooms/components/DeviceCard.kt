@@ -37,12 +37,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.data.model.Device
@@ -170,65 +176,78 @@ private fun PhoneDeviceCard(
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val primary = MaterialTheme.colorScheme.primary
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .defaultMinSize(minHeight = if (editMode) 178.dp else 130.dp),
+            .defaultMinSize(minHeight = 130.dp)
+            .then(if (editMode) Modifier.dashedBorder(primary, 20.dp) else Modifier),
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(
-            width = 1.dp,
-            color = if (editMode) MaterialTheme.colorScheme.primary.copy(alpha = 0.48f) else RoomsSoftBorder,
-        ),
-        shadowElevation = 2.dp,
+        border = if (editMode) null else BorderStroke(1.dp, RoomsSoftBorder),
+        shadowElevation = if (editMode) 0.dp else 2.dp,
     ) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            DeviceCardHeader(
-                device = device,
-                onToggle = onToggle,
-            )
-            DeviceControlContent(
-                device = device,
-                onToggle = onToggle,
-                onValueChange = onValueChange,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            if (editMode) {
-                DeviceCardEditActions(
-                    onEdit = onEdit,
-                    onDelete = onDelete,
+        Box {
+            Column(
+                modifier = Modifier
+                    .padding(20.dp)
+                    .then(if (editMode) Modifier.alpha(0.4f) else Modifier),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                DeviceCardHeader(
+                    device = device,
+                    onToggle = onToggle,
                 )
+                DeviceControlContent(
+                    device = device,
+                    onToggle = onToggle,
+                    onValueChange = onValueChange,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+            if (editMode) {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() },
+                            onClick = {},
+                        ),
+                )
+                Row(
+                    modifier = Modifier.align(Alignment.Center),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    DeviceEditActionButton(
+                        label = stringResource(R.string.rooms_edit_short),
+                        icon = SmartHomeIcons.Edit,
+                        onClick = onEdit,
+                        filled = true,
+                    )
+                    DeviceEditActionButton(
+                        label = stringResource(R.string.rooms_delete),
+                        icon = SmartHomeIcons.Delete,
+                        onClick = onDelete,
+                        destructive = true,
+                        filled = true,
+                    )
+                }
             }
         }
     }
 }
 
-@Composable
-private fun DeviceCardEditActions(
-    onEdit: () -> Unit,
-    onDelete: () -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        DeviceEditActionButton(
-            label = stringResource(R.string.rooms_edit_short),
-            icon = SmartHomeIcons.Edit,
-            onClick = onEdit,
-            modifier = Modifier.weight(1f),
-        )
-        DeviceEditActionButton(
-            label = stringResource(R.string.rooms_delete),
-            icon = SmartHomeIcons.Delete,
-            onClick = onDelete,
-            destructive = true,
-            modifier = Modifier.weight(1f),
-        )
-    }
+private fun Modifier.dashedBorder(color: Color, cornerRadius: Dp): Modifier = drawBehind {
+    drawRoundRect(
+        color = color,
+        cornerRadius = CornerRadius(cornerRadius.toPx()),
+        style = Stroke(
+            width = 1.5.dp.toPx(),
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 8f), 0f),
+        ),
+    )
 }
 
 @Composable
@@ -246,7 +265,7 @@ private fun DeviceEditActionButton(
         modifier = modifier.height(40.dp),
         shape = RoundedCornerShape(10.dp),
         contentPadding = PaddingValues(horizontal = 16.dp),
-        border = BorderStroke(1.dp, contentColor.copy(alpha = 0.42f)),
+        border = BorderStroke(1.dp, if (destructive) contentColor else contentColor.copy(alpha = 0.42f)),
         colors = ButtonDefaults.outlinedButtonColors(
             contentColor = contentColor,
             containerColor = if (filled) MaterialTheme.colorScheme.surface else Color.Transparent,

@@ -425,6 +425,7 @@
     <string name="rooms_retry">Reintentar</string>
 
     <string name="routines_edit">Editar</string>
+    <string name="routines_finish_editing">Listo</string>
     <string name="routines_header_title">Rutinas Automatizadas</string>
     <string name="routines_header_subtitle">Creá y gestioná rutinas para automatizar tu hogar.</string>
     <string name="routines_filter_label">Filtrar por categoría</string>

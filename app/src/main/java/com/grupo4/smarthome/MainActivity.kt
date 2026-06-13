@@ -681,6 +681,7 @@ fun SmartHomeApp(
                     userName = selectHomeUiState.userName,
                     homes = selectHomeUiState.homes,
                     isLoading = selectHomeUiState.isLoading,
+                    homesLoaded = selectHomeUiState.homesLoaded,
                     errorMessage = selectHomeUiState.errorMessage?.let { stringResource(it) },
                     onRetry = selectHomeViewModel::loadHomes,
                     onHomeSelected = { home ->

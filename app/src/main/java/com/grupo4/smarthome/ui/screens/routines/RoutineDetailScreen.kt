@@ -376,6 +376,7 @@ internal fun DetailTopBar(
     onDelete: () -> Unit,
     showTitle: Boolean = true,
     showBackButton: Boolean = true,
+    showOverflowMenu: Boolean = true,
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
@@ -407,7 +408,7 @@ internal fun DetailTopBar(
         } else {
             Spacer(modifier = Modifier.weight(1f))
         }
-        Box {
+        if (showOverflowMenu) Box {
             IconButton(onClick = { menuExpanded = true }) {
                 Icon(
                     imageVector = SmartHomeIcons.MoreOptions,
