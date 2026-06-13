@@ -814,9 +814,17 @@ fun SmartHomeApp(
                 val homeDevices = remember(roomsUiState.rooms) {
                     roomsUiState.rooms.flatMap { it.devices }
                 }
-                // El match exige Rooms cargado; si está vacío lo disparamos al entrar.
+                val devicesLoaded = roomsUiState.devicesLoaded
+                // El match exige los devices del hogar cargados; si todavía no se cargaron, los pedimos al
+                // entrar. También aseguramos el catálogo de tipos (lo usa el alta de un QR nuevo).
                 LaunchedEffect(Unit) {
-                    if (roomsUiState.rooms.isEmpty()) roomsViewModel.loadRooms()
+                    if (!roomsUiState.devicesLoaded && !roomsUiState.isLoading) roomsViewModel.loadRooms()
+                    if (roomsUiState.availableDeviceTypes.isEmpty()) roomsViewModel.refreshDeviceTypes()
+                }
+                // Cuando los devices llegan (o termina la carga), reintentamos resolver un QR que haya
+                // quedado pendiente por haberse leído durante la carga inicial.
+                LaunchedEffect(homeDevices, devicesLoaded) {
+                    scanViewModel.onDevicesUpdated(homeDevices, devicesLoaded)
                 }
                 LaunchedEffect(scanNavEvent) {
                     when (val event = scanNavEvent) {
@@ -837,7 +845,9 @@ fun SmartHomeApp(
                 ScanScreen(
                     uiState = scanState,
                     homeDevices = homeDevices,
-                    onCodeDetected = scanViewModel::onCodeDetected,
+                    onCodeDetected = { raw, devices ->
+                        scanViewModel.onCodeDetected(raw, devices, devicesLoaded)
+                    },
                     onClose = { navController.popBackStack() },
                     onRetry = scanViewModel::resumeScanning,
                 )
@@ -858,6 +868,7 @@ fun SmartHomeApp(
                         onBack = { navController.popBackStack() },
                         onToggle = { roomsViewModel.onToggleDevice(device.id) },
                         onValueChange = { value -> roomsViewModel.onDeviceValueChange(device.id, value) },
+                        onAction = { name, args -> roomsViewModel.runDeviceAction(device.id, name, args) },
                     )
                 }
             }
@@ -1202,6 +1213,11 @@ fun SmartHomeApp(
 
             val scanned = scannedPayload
             if (scanned != null) {
+                // El alta de un QR nuevo necesita el catálogo de tipos; si quedó vacío (p. ej. falló el
+                // GET inicial), lo reintentamos al abrir el diálogo para no dejar al usuario sin opciones.
+                LaunchedEffect(Unit) {
+                    if (roomsUiState.availableDeviceTypes.isEmpty()) roomsViewModel.refreshDeviceTypes()
+                }
                 AddScannedDeviceDialog(
                     payload = scanned,
                     rooms = roomsUiState.rooms,

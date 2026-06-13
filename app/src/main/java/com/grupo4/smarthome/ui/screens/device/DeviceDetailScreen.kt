@@ -28,19 +28,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
+import com.grupo4.smarthome.data.model.ActionArg
 import com.grupo4.smarthome.data.model.Device
 import com.grupo4.smarthome.ui.screens.rooms.components.DeviceCard
 import com.grupo4.smarthome.ui.screens.rooms.components.DeviceCardVariant
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsIconTileGradient
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsSoftBorder
-import com.grupo4.smarthome.ui.screens.rooms.components.deviceTypeIcon
+import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
-// Detalle de un dispositivo. Stateless: recibe el device ya cargado (del hogar activo) y el nombre de
-// su habitación, y delega el control en los callbacks. Reutiliza DeviceCard tal cual (núcleo del
-// control) y agrega solo la fila de "Habitación", que la card no muestra. Pensada para reutilizarse
-// luego en búsqueda global, notificaciones y favoritos.
+/**
+ * Pantalla de detalle de un dispositivo: top bar + [DeviceDetailContent]. Stateless: recibe el device ya
+ * cargado (del hogar activo), el nombre de su habitación y delega el control en los callbacks.
+ *
+ * Es el destino del flujo QR de dispositivo conocido: al escanear un QR que matchea un device del hogar,
+ * `ScanViewModel` emite `ScanNavEvent.OpenDevice` y la navegación (ruta `device_detail/{deviceId}` en
+ * `MainActivity`) abre esta pantalla. El cuerpo reusable vive en [DeviceDetailContent], pensado además
+ * para reutilizarse luego desde búsqueda global (desde su propio scaffold o un bottom sheet) sin
+ * duplicar lógica.
+ */
 @Composable
 fun DeviceDetailScreen(
     device: Device,
@@ -49,6 +57,7 @@ fun DeviceDetailScreen(
     onBack: () -> Unit,
     onToggle: () -> Unit,
     onValueChange: (Int) -> Unit,
+    onAction: (actionName: String, args: List<ActionArg>) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -56,36 +65,70 @@ fun DeviceDetailScreen(
             .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding(),
     ) {
-        DeviceDetailTopBar(onBack = onBack)
+        DeviceDetailTopBar(title = device.name, onBack = onBack)
+        DeviceDetailContent(
+            device = device,
+            roomName = roomName,
+            isTablet = isTablet,
+            onToggle = onToggle,
+            onValueChange = onValueChange,
+            onAction = onAction,
+            modifier = Modifier.fillMaxSize(),
+        )
+    }
+}
 
-        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-            val maxContentWidth = if (isTablet) 640.dp else maxWidth
-            Column(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .widthIn(max = maxContentWidth)
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
-            ) {
-                RoomInfoRow(device = device, roomName = roomName)
-                DeviceCard(
-                    device = device,
-                    editMode = false,
-                    onToggle = onToggle,
-                    onValueChange = onValueChange,
-                    onEdit = {},
-                    onDelete = {},
-                    variant = if (isTablet) DeviceCardVariant.Standard else DeviceCardVariant.Phone,
-                )
+/**
+ * Cuerpo reutilizable del detalle de dispositivo (sin scaffold/top bar): la card de control + la fila de
+ * habitación. Pensado para usarse tanto en el flujo de QR de dispositivo conocido como, más adelante, en
+ * búsqueda global (desde su propio scaffold o un bottom sheet), sin duplicar lógica.
+ *
+ * Reutiliza [DeviceCard] (núcleo del control: ícono/nombre/tipo/estado + acción primaria + "Más
+ * acciones") y los mappings del catálogo (`DeviceTypeInfo`); no agrega lógica de tipos propia. Usa la
+ * variante `Phone` en ambas plataformas (controles inline) porque el detalle es una vista enfocada de un
+ * solo dispositivo; en tablet se centra con un ancho máximo.
+ */
+@Composable
+fun DeviceDetailContent(
+    device: Device,
+    roomName: String?,
+    isTablet: Boolean,
+    onToggle: () -> Unit,
+    onValueChange: (Int) -> Unit,
+    onAction: (actionName: String, args: List<ActionArg>) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    BoxWithConstraints(modifier = modifier) {
+        val maxContentWidth = if (isTablet) 560.dp else maxWidth
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .widthIn(max = maxContentWidth)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            DeviceCard(
+                device = device,
+                editMode = false,
+                onToggle = onToggle,
+                onValueChange = onValueChange,
+                onEdit = {},
+                onDelete = {},
+                onAction = onAction,
+                // Detalle: siempre la variante con controles inline (también en tablet, centrada).
+                variant = DeviceCardVariant.Phone,
+            )
+            if (!roomName.isNullOrBlank()) {
+                DeviceRoomRow(roomName = roomName)
             }
         }
     }
 }
 
 @Composable
-private fun DeviceDetailTopBar(onBack: () -> Unit) {
+private fun DeviceDetailTopBar(title: String, onBack: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -96,26 +139,26 @@ private fun DeviceDetailTopBar(onBack: () -> Unit) {
     ) {
         IconButton(onClick = onBack) {
             Icon(
-                imageVector = com.grupo4.smarthome.ui.theme.SmartHomeIcons.Back,
+                imageVector = SmartHomeIcons.Back,
                 contentDescription = stringResource(R.string.topbar_back_content_description),
                 tint = MaterialTheme.colorScheme.onSurface,
             )
         }
         Text(
-            text = stringResource(R.string.device_detail_title),
+            text = title,
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.ExtraBold,
             color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f),
         )
     }
 }
 
+// Fila de habitación: ícono de habitación (no el del dispositivo, que ya está en la card) + nombre.
 @Composable
-private fun RoomInfoRow(
-    device: Device,
-    roomName: String?,
-) {
+private fun DeviceRoomRow(roomName: String) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -135,7 +178,7 @@ private fun RoomInfoRow(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    imageVector = deviceTypeIcon(device.type),
+                    imageVector = SmartHomeIcons.Rooms,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp),
@@ -149,11 +192,12 @@ private fun RoomInfoRow(
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = roomName?.takeIf { it.isNotBlank() }
-                        ?: stringResource(R.string.device_detail_no_room),
+                    text = roomName,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }

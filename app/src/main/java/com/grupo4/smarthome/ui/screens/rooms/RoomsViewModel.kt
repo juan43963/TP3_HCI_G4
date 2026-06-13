@@ -77,6 +77,7 @@ class RoomsViewModel(
                 editRoomsMode = false,
                 editDevicesMode = false,
                 errorMessage = null,
+                devicesLoaded = false,
             )
         }
         loadRooms()
@@ -85,13 +86,19 @@ class RoomsViewModel(
     fun loadRooms() {
         val currentHome = homeId
         if (currentHome.isNullOrBlank()) {
+            // Sin hogar activo no hay devices que cargar: "settled" para no trabar el flujo QR.
             _uiState.update {
-                it.copy(isLoading = false, rooms = emptyList(), errorMessage = NoActiveHomeMessage)
+                it.copy(
+                    isLoading = false,
+                    rooms = emptyList(),
+                    errorMessage = NoActiveHomeMessage,
+                    devicesLoaded = true,
+                )
             }
             return
         }
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update { it.copy(isLoading = true, errorMessage = null, devicesLoaded = false) }
             when (val result = roomsRepository.getRooms(currentHome)) {
                 is AppResult.Success -> {
                     // Preservamos los dispositivos ya cargados para que no desaparezcan si el refetch falla
@@ -100,12 +107,25 @@ class RoomsViewModel(
                         room.copy(devices = currentDevicesByRoom[room.id].orEmpty())
                     }
                     _uiState.update {
-                        it.copy(isLoading = false, rooms = roomsWithCurrentDevices, errorMessage = null)
+                        it.copy(
+                            isLoading = false,
+                            rooms = roomsWithCurrentDevices,
+                            errorMessage = null,
+                            // Hogar sin habitaciones -> no hay fase de devices: ya queda cargado. Con
+                            // habitaciones, lo marca [loadAllRoomDevices] al terminar.
+                            devicesLoaded = roomsWithCurrentDevices.isEmpty(),
+                        )
                     }
                     loadAllRoomDevices()
                 }
+                // Falló el fetch de habitaciones: damos la carga por "settled" (best-effort) para no dejar
+                // el flujo QR colgado esperando devices que no van a llegar.
                 is AppResult.Error -> _uiState.update {
-                    it.copy(isLoading = false, errorMessage = result.error.kind.toMessageRes())
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = result.error.kind.toMessageRes(),
+                        devicesLoaded = true,
+                    )
                 }
             }
         }
@@ -238,9 +258,10 @@ class RoomsViewModel(
                 }.awaitAll()
             }
             _uiState.update { state ->
-                // Si el listado de habitaciones cambió mientras cargábamos, descartamos el resultado
+                // Si el listado de habitaciones cambió mientras cargábamos, descartamos el resultado (hay
+                // una carga más nueva en curso que dejará devicesLoaded en su valor correcto).
                 if (state.rooms.map { it.id } != updated.map { it.id }) state
-                else state.copy(rooms = updated)
+                else state.copy(rooms = updated, devicesLoaded = true)
             }
         }
     }

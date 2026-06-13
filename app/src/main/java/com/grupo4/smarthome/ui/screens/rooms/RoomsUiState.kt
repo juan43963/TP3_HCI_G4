@@ -16,6 +16,11 @@ data class RoomsUiState(
     val editRoomsMode: Boolean = false,
     val editDevicesMode: Boolean = false,
     val isLoading: Boolean = false,
+    // True una vez que la carga de dispositivos del hogar activo terminó (incluida la fase por
+    // habitación), o cuando el hogar no tiene dispositivos. Lo usa el flujo QR para no clasificar un
+    // dispositivo existente como "nuevo" si se escanea durante la carga inicial. No es `rooms.isNotEmpty()`:
+    // un hogar vacío igual queda "cargado" y no traba la resolución.
+    val devicesLoaded: Boolean = false,
     val unreadNotificationCount: Int = 0,
     @StringRes val errorMessage: Int? = null,
     // Resultado de una acción de solo lectura (p. ej. getPlaylist) para mostrar; transitorio.
