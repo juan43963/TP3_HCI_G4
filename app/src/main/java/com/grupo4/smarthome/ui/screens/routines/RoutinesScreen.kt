@@ -190,7 +190,7 @@ fun RoutinesScreen(
                             Column {
                                 Text(
                                     text = stringResource(R.string.routines_header_title),
-                                    style = MaterialTheme.typography.headlineSmall,
+                                    style = MaterialTheme.typography.headlineMedium,
                                     fontWeight = FontWeight.ExtraBold,
                                     color = MaterialTheme.colorScheme.onSurface,
                                 )

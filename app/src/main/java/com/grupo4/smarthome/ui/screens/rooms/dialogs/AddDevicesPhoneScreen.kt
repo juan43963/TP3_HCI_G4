@@ -218,7 +218,7 @@ private fun PhoneWizardTopBar(title: String, onBack: () -> Unit) {
         Spacer(modifier = Modifier.width(4.dp))
         Text(
             text = title,
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.ExtraBold,
             color = MaterialTheme.colorScheme.onSurface,
         )

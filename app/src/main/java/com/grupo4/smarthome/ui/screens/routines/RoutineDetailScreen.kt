@@ -857,7 +857,7 @@ private fun AddActionButton(onClick: () -> Unit) {
             Spacer(modifier = Modifier.size(8.dp))
             Text(
                 text = stringResource(R.string.routine_detail_add_action),
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
@@ -901,7 +901,7 @@ private fun SaveBar(onSave: () -> Unit) {
                     Spacer(modifier = Modifier.size(8.dp))
                     Text(
                         text = stringResource(R.string.routine_detail_save),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
                     )
@@ -1883,7 +1883,7 @@ internal fun DetailActionBar(
                         )
                         Text(
                             text = stringResource(R.string.routine_detail_delete),
-                            style = MaterialTheme.typography.titleSmall,
+                            style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.error,
                         )
@@ -1913,7 +1913,7 @@ internal fun DetailActionBar(
                     Spacer(modifier = Modifier.size(8.dp))
                     Text(
                         text = stringResource(R.string.routine_detail_save),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
                     )

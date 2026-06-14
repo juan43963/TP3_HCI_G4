@@ -18,6 +18,7 @@ import com.grupo4.smarthome.data.repository.RoomsRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -42,19 +43,32 @@ class RoomsViewModel(
     // Hogar activo actual; lo setea la UI vía onHomeChanged según SelectHome/Preferences
     private var homeId: String? = null
 
+    // Evita lanzar dos reintentos del catálogo a la vez (init + reapertura de la pantalla)
+    private var loadingDeviceTypes = false
+
     init {
         observeDeviceEvents()
         refreshDeviceTypes()
     }
 
     // Catálogo real de tipos (GET /devicetypes): pobla las opciones del alta de dispositivos.
-    // Público para reintentar desde la UI cuando se abre "agregar dispositivo" y la lista está vacía.
+    // Precarga temprano y reintenta hasta lograrlo, así al abrir "agregar dispositivo" ya está.
     fun refreshDeviceTypes() {
+        if (loadingDeviceTypes) return
+        if (_uiState.value.availableDeviceTypes.isNotEmpty()) return
+        loadingDeviceTypes = true
         viewModelScope.launch {
-            when (val result = devicesRepository.getDeviceTypes()) {
-                is AppResult.Success -> _uiState.update { it.copy(availableDeviceTypes = result.data) }
-                is AppResult.Error -> Unit // si falla queda vacío; el usuario puede reintentar al reabrir
+            var loaded = false
+            while (!loaded) {
+                when (val result = devicesRepository.getDeviceTypes()) {
+                    is AppResult.Success -> {
+                        _uiState.update { it.copy(availableDeviceTypes = result.data) }
+                        loaded = true
+                    }
+                    is AppResult.Error -> delay(2000) // espera y reintenta ante un fallo de red
+                }
             }
+            loadingDeviceTypes = false
         }
     }
 

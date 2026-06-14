@@ -289,7 +289,7 @@ private fun PhoneRoomsHeader(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = stringResource(R.string.rooms_header_title),
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
