@@ -410,8 +410,6 @@ private fun DeviceCardHeader(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            Spacer(modifier = Modifier.height(6.dp))
-            DeviceStatusRow(device = device)
         }
         // En tablet (showControl=false) no hay control inline: todo se hace desde "More actions".
         if (showControl) {
