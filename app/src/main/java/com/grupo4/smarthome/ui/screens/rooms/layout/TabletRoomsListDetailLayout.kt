@@ -114,12 +114,11 @@ fun TabletRoomsListDetailLayout(
                 .background(MaterialTheme.colorScheme.background),
         ) {
             RoomsTopBar(
-                searchQuery = state.searchQuery,
-                onSearchChange = callbacks.onSearchChange,
+                onSearchClick = callbacks.onSearchClick,
                 onAvatarClick = callbacks.onAvatarClick,
                 onNotificationsClick = callbacks.onNotificationsClick,
                 notificationCount = state.unreadNotificationCount,
-                searchPlaceholder = stringResource(R.string.rooms_list_detail_search_placeholder),
+                searchPlaceholder = stringResource(R.string.search_placeholder),
                 showHomeSelector = true,
                 onHomeSelectorClick = openDrawer,
                 useCompactHomeMenu = true,

@@ -14,6 +14,7 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     onNavigateRooms: () -> Unit = {},
     onNavigateRoutines: () -> Unit = {},
+    onSearchClick: () -> Unit = {},
     onRoomClick: (String) -> Unit = {},
     onToggleRoomFavorite: (String) -> Unit = {},
     onToggleRoutineFavorite: (String) -> Unit = {},
@@ -37,6 +38,7 @@ fun HomeScreen(
         callbacks = DashboardCallbacks(
             onNavigateRooms = onNavigateRooms,
             onNavigateRoutines = onNavigateRoutines,
+            onSearchClick = onSearchClick,
             onRoomClick = onRoomClick,
             onToggleRoomFavorite = onToggleRoomFavorite,
             onToggleRoutineFavorite = onToggleRoutineFavorite,

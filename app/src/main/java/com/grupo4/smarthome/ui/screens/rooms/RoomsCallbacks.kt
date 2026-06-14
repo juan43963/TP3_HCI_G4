@@ -14,6 +14,7 @@ data class RoomsCallbacks(
     val onDeleteRoom: (String) -> Unit = {},
     val onFilterSelected: (RoomType?) -> Unit = {},
     val onSearchChange: (String) -> Unit = {},
+    val onSearchClick: () -> Unit = {},
     val onAddDeviceClick: (String) -> Unit = {},
     val onEditDevicesToggle: () -> Unit = {},
     val onEditDevice: (String) -> Unit = {},

@@ -1,12 +1,5 @@
 package com.grupo4.smarthome.ui.screens.rooms.layout.phone
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -27,7 +20,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -39,15 +31,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -81,7 +67,6 @@ fun PhoneRoomsLayout(
 ) {
     val openDrawer = LocalOpenDrawer.current
     val selectedRoom = presentation.selectedRoom
-    var isSearchExpanded by rememberSaveable { mutableStateOf(state.searchQuery.isNotBlank()) }
 
     Scaffold(
         modifier = modifier
@@ -95,14 +80,13 @@ fun PhoneRoomsLayout(
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.background)
                     .statusBarsPadding()
-                    .animateContentSize(animationSpec = tween(durationMillis = 220))
                     .padding(start = 8.dp, end = 12.dp, top = 6.dp, bottom = 4.dp),
             ) {
                 if (selectedRoom == null) {
                     SmartHomeTopBar(
                         title = stringResource(R.string.nav_rooms),
                         onMenuClick = openDrawer,
-                        onSearchClick = { isSearchExpanded = true },
+                        onSearchClick = callbacks.onSearchClick,
                         onProfileClick = callbacks.onAvatarClick,
                         onNotificationsClick = callbacks.onNotificationsClick,
                         notificationCount = state.unreadNotificationCount,
@@ -114,37 +98,8 @@ fun PhoneRoomsLayout(
                             callbacks.onSearchChange("")
                             callbacks.onBackToRooms()
                         },
-                        onSearchClick = { isSearchExpanded = true },
+                        onSearchClick = callbacks.onSearchClick,
                         onProfileClick = callbacks.onAvatarClick,
-                    )
-                }
-                AnimatedVisibility(
-                    visible = isSearchExpanded,
-                    enter = fadeIn(animationSpec = tween(140)) +
-                        expandVertically(
-                            animationSpec = tween(220),
-                            expandFrom = Alignment.Top,
-                        ),
-                    exit = fadeOut(animationSpec = tween(120)) +
-                        shrinkVertically(
-                            animationSpec = tween(180),
-                            shrinkTowards = Alignment.Top,
-                        ),
-                ) {
-                    PhoneRoomsSearchRow(
-                        query = state.searchQuery,
-                        onQueryChange = callbacks.onSearchChange,
-                        placeholder = stringResource(
-                            if (selectedRoom == null) {
-                                R.string.rooms_search_placeholder
-                            } else {
-                                R.string.rooms_devices_search_placeholder
-                            },
-                        ),
-                        onClose = {
-                            callbacks.onSearchChange("")
-                            isSearchExpanded = false
-                        },
                     )
                 }
             }
@@ -460,88 +415,6 @@ private fun PhoneRoomDetailTopBar(
             )
         }
         DashboardAvatarButton(onClick = onProfileClick)
-    }
-}
-
-@Composable
-private fun PhoneRoomsSearchRow(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    placeholder: String,
-    onClose: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 8.dp, top = 6.dp, bottom = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        PhoneRoomsSearchField(
-            query = query,
-            onQueryChange = onQueryChange,
-            placeholder = placeholder,
-            modifier = Modifier.weight(1f),
-        )
-        IconButton(onClick = onClose) {
-            Icon(
-                imageVector = SmartHomeIcons.Close,
-                contentDescription = stringResource(R.string.dashboard_search_close_content_description),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
-
-@Composable
-private fun PhoneRoomsSearchField(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    placeholder: String,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        modifier = modifier.height(48.dp),
-        shape = RoundedCornerShape(999.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-        shadowElevation = 1.dp,
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Icon(
-                imageVector = SmartHomeIcons.Search,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Box(modifier = Modifier.weight(1f)) {
-                if (query.isBlank()) {
-                    Text(
-                        text = placeholder,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-                BasicTextField(
-                    value = query,
-                    onValueChange = onQueryChange,
-                    singleLine = true,
-                    textStyle = TextStyle(
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = MaterialTheme.typography.bodySmall.fontSize,
-                    ),
-                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surface),
-                )
-            }
-        }
     }
 }
 

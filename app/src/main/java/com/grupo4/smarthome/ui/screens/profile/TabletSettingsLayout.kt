@@ -85,6 +85,7 @@ fun TabletSettingsLayout(
     notificationPreferences: NotificationPreferences = NotificationPreferences(),
     onNotificationPreferencesChange: (NotificationPreferences) -> Unit = {},
     onNotificationsClick: () -> Unit = {},
+    onSearchClick: () -> Unit = {},
     unreadNotificationCount: Int = 0,
     enteredFromHome: Boolean,
     onNavigateHome: () -> Unit,
@@ -133,7 +134,7 @@ fun TabletSettingsLayout(
                     DashboardTopBar(
                         selectedHomeName = "Departamento",
                         onHomeSelectorClick = openDrawer,
-                        onSearchClick = {},
+                        onSearchClick = onSearchClick,
                         onProfileClick = onProfileAvatarClick,
                         onNotificationsClick = onNotificationsClick,
                         notificationCount = unreadNotificationCount,

@@ -75,6 +75,7 @@ import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 fun TabletRoutinesScreen(
     routines: List<RoutineUi> = sampleRoutines,
     onProfileClick: () -> Unit = {},
+    onSearchClick: () -> Unit = {},
     onNotificationsClick: () -> Unit = {},
     unreadNotificationCount: Int = 0,
     onAddRoutine: () -> Unit = {},
@@ -171,7 +172,7 @@ fun TabletRoutinesScreen(
                 DashboardTopBar(
                     selectedHomeName = "",
                     onHomeSelectorClick = openDrawer,
-                    onSearchClick = {},
+                    onSearchClick = onSearchClick,
                     onProfileClick = onProfileClick,
                     onNotificationsClick = onNotificationsClick,
                     notificationCount = unreadNotificationCount,

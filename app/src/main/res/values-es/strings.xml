@@ -255,6 +255,15 @@
     <string name="dashboard_menu_content_description">Abrir hogares</string>
     <string name="dashboard_search_content_description">Abrir búsqueda</string>
     <string name="dashboard_search_close_content_description">Cerrar búsqueda</string>
+    <string name="search_placeholder">Buscar habitaciones, dispositivos, rutinas…</string>
+    <string name="search_section_rooms">Habitaciones</string>
+    <string name="search_section_devices">Dispositivos</string>
+    <string name="search_section_routines">Rutinas</string>
+    <string name="search_empty_hint">Escribí para buscar en tu hogar.</string>
+    <string name="search_no_results">No encontramos resultados. Probá con otro nombre o tipo de dispositivo.</string>
+    <string name="search_back_content_description">Volver</string>
+    <string name="search_clear_content_description">Limpiar búsqueda</string>
+    <string name="search_device_room">En %1$s</string>
     <string name="dashboard_fab_content_description">Agregar</string>
 
     <string name="quick_add_fab_open">Abrir acciones rápidas</string>
@@ -617,6 +626,7 @@
     </plurals>
 
     <string name="nav_notifications">Notificaciones</string>
+    <string name="nav_search">Buscar</string>
     <string name="notifications_open_content_description">Abrir notificaciones</string>
     <string name="notifications_badge_overflow">9+</string>
     <string name="notifications_badge_count_content_description">%1$d notificaciones sin leer</string>

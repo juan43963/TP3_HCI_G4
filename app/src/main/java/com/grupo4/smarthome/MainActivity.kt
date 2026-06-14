@@ -115,6 +115,9 @@ import com.grupo4.smarthome.ui.screens.scan.ScanNavEvent
 import com.grupo4.smarthome.ui.screens.scan.ScanScreen
 import com.grupo4.smarthome.ui.screens.scan.ScanViewModel
 import com.grupo4.smarthome.ui.screens.scan.ScanViewModelFactory
+import com.grupo4.smarthome.ui.screens.search.SearchCallbacks
+import com.grupo4.smarthome.ui.screens.search.SearchScreen
+import com.grupo4.smarthome.ui.screens.search.SearchViewModel
 import com.grupo4.smarthome.ui.screens.routines.AddRoutineTabletOverlay
 import com.grupo4.smarthome.ui.screens.routines.CreateRoutineOverlay
 import com.grupo4.smarthome.ui.screens.routines.RoutineDetailScreen
@@ -270,6 +273,12 @@ fun SmartHomeApp(
         }
     }
 
+    val searchViewModel: SearchViewModel = viewModel()
+    val searchUiState by searchViewModel.uiState.collectAsStateWithLifecycle()
+    LaunchedEffect(selectHomeUiState.activeHomeId) {
+        searchViewModel.onHomeChanged(selectHomeUiState.activeHomeId)
+    }
+
     val homeViewModel: HomeViewModel = viewModel(
         factory = remember(homesApplication) {
             HomeViewModelFactory(
@@ -403,6 +412,9 @@ fun SmartHomeApp(
     }
     val openNotificationSettings: () -> Unit = {
         navController.navigate(Screen.NotificationSettings.route) { launchSingleTop = true }
+    }
+    val openSearch: () -> Unit = {
+        navController.navigate(Screen.Search.route) { launchSingleTop = true }
     }
 
     val showBottomBar = !isTablet &&
@@ -690,6 +702,7 @@ fun SmartHomeApp(
                         }
                     },
                     onAddHome = { showAddHome = true },
+                    onSearchClick = openSearch,
                     onProfileClick = {
                         navController.navigate(Screen.Profile.route) {
                             launchSingleTop = true
@@ -726,6 +739,7 @@ fun SmartHomeApp(
                             restoreState = true
                         }
                     },
+                    onSearchClick = openSearch,
                     onRoomClick = { roomId ->
                         roomsViewModel.onRoomOpenedFromDashboard(roomId)
                         navController.navigate(Screen.Rooms.route) {
@@ -762,6 +776,38 @@ fun SmartHomeApp(
                 )
                 }
             }
+            composable(Screen.Search.route) {
+                SearchScreen(
+                    windowSize = windowSize,
+                    state = searchUiState,
+                    rooms = roomsUiState.rooms,
+                    routines = routinesUiState.routines,
+                    roomsErrorMessage = roomsUiState.errorMessage?.let { stringResource(it) },
+                    deviceActionResult = roomsUiState.actionResult,
+                    routinesErrorMessage = routinesUiState.errorMessage?.let { stringResource(it) },
+                    routineInfoMessage = routinesUiState.infoMessage,
+                    callbacks = SearchCallbacks(
+                        onQueryChange = searchViewModel::onQueryChange,
+                        onBack = { navController.popBackStack() },
+                        onRoomClick = { roomId ->
+                            roomsViewModel.onRoomClick(roomId)
+                            navController.navigate(Screen.Rooms.route) {
+                                launchSingleTop = true
+                            }
+                        },
+                        onToggleRoomFavorite = roomsViewModel::toggleRoomFavorite,
+                        onToggleDevice = roomsViewModel::onToggleDevice,
+                        onDeviceValueChange = roomsViewModel::onDeviceValueChange,
+                        onDeviceAction = roomsViewModel::runDeviceAction,
+                        onRunRoutine = routinesViewModel::executeRoutine,
+                        onToggleRoutineFavorite = routinesViewModel::toggleFavorite,
+                        onDismissRoomError = roomsViewModel::dismissError,
+                        onConsumeDeviceActionResult = roomsViewModel::consumeActionResult,
+                        onDismissRoutineError = routinesViewModel::dismissError,
+                        onDismissRoutineInfo = routinesViewModel::dismissInfo,
+                    ),
+                )
+            }
             composable(Screen.Rooms.route) {
                 RoomsScreen(
                     viewModel = roomsViewModel,
@@ -790,6 +836,10 @@ fun SmartHomeApp(
                             restoreState = true
                         }
                     },
+                    onSearchClick = {
+                        roomsViewModel.onSearchChange("")
+                        openSearch()
+                    },
                     onNotificationsClick = openNotifications,
                     unreadNotificationCount = unreadNotificationCount,
                     onQuickActionsOpen = openQuickActions,
@@ -799,6 +849,7 @@ fun SmartHomeApp(
                 RoutinesScreen(
                     onNotificationsClick = openNotifications,
                     unreadNotificationCount = unreadNotificationCount,
+                    onSearchClick = openSearch,
                     onProfileClick = {
                         navController.navigate(Screen.Profile.route) {
                             launchSingleTop = true
@@ -987,6 +1038,7 @@ fun SmartHomeApp(
                     notificationPreferences = notificationPreferences,
                     onNotificationPreferencesChange = notificationsViewModel::setPreferences,
                     onNotificationsClick = openNotifications,
+                    onSearchClick = openSearch,
                     unreadNotificationCount = unreadNotificationCount,
                     enteredFromHome = enteredFromHome,
                     onBack = onBack,
@@ -1069,6 +1121,7 @@ fun SmartHomeApp(
                     onRetry = historyViewModel::load,
                     onBack = onBack,
                     selectedHomeName = activeHomeName,
+                    onSearchClick = openSearch,
                     onProfileClick = {
                         navController.navigate(Screen.Profile.route) {
                             launchSingleTop = true
@@ -1113,6 +1166,7 @@ fun SmartHomeApp(
                     onBack = onBack,
                     selectedHomeName = activeHomeName,
                     onHomeSelectorClick = openDrawer,
+                    onSearchClick = openSearch,
                     onProfileClick = {
                         navController.navigate(Screen.Profile.route) {
                             launchSingleTop = true
@@ -1150,6 +1204,7 @@ fun SmartHomeApp(
                     preferences = notificationPreferences,
                     onPreferencesChange = notificationsViewModel::setPreferences,
                     onBack = onBack,
+                    onSearchClick = openSearch,
                     onProfileClick = {
                         navController.navigate(Screen.Profile.route) {
                             launchSingleTop = true

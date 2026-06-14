@@ -70,6 +70,7 @@ fun SelectHomeScreen(
     onHomeSelected: (SelectableHome) -> Unit,
     onAddHome: () -> Unit,
     onProfileClick: () -> Unit,
+    onSearchClick: () -> Unit = {},
     modifier: Modifier = Modifier,
     isLoading: Boolean = false,
     homesLoaded: Boolean = false,
@@ -86,6 +87,7 @@ fun SelectHomeScreen(
             onHomeSelected = onHomeSelected,
             onAddHome = onAddHome,
             onProfileClick = onProfileClick,
+            onSearchClick = onSearchClick,
             isLoading = isLoading,
             homesLoaded = homesLoaded,
             errorMessage = errorMessage,
@@ -102,6 +104,7 @@ fun SelectHomeScreen(
             onHomeSelected = onHomeSelected,
             onAddHome = onAddHome,
             onProfileClick = onProfileClick,
+            onSearchClick = onSearchClick,
             isLoading = isLoading,
             homesLoaded = homesLoaded,
             errorMessage = errorMessage,
@@ -121,6 +124,7 @@ private fun PhoneSelectHomeLayout(
     onHomeSelected: (SelectableHome) -> Unit,
     onAddHome: () -> Unit,
     onProfileClick: () -> Unit,
+    onSearchClick: () -> Unit,
     isLoading: Boolean,
     homesLoaded: Boolean,
     errorMessage: String?,
@@ -132,7 +136,7 @@ private fun PhoneSelectHomeLayout(
 ) {
     MainShellScaffold(
         title = null,
-        onSearchClick = { /* search not implemented yet */ },
+        onSearchClick = onSearchClick,
         onProfileClick = onProfileClick,
         floatingActionButton = {
             PhoneQuickAddFab(
@@ -422,6 +426,7 @@ private fun SelectHomeScreenPhonePreview() {
             onHomeSelected = {},
             onAddHome = {},
             onProfileClick = {},
+            onSearchClick = {},
             isLoading = false,
             homesLoaded = true,
             errorMessage = null,

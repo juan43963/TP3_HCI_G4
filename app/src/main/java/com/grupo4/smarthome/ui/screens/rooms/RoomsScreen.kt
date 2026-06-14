@@ -53,6 +53,7 @@ fun RoomsScreen(
     onNavigateHome: () -> Unit = {},
     onNavigateRoutines: () -> Unit = {},
     onNavigateHistory: () -> Unit = {},
+    onSearchClick: () -> Unit = {},
     onNotificationsClick: () -> Unit = {},
     unreadNotificationCount: Int = 0,
     onQuickActionsOpen: () -> Unit = {},
@@ -98,6 +99,7 @@ fun RoomsScreen(
         },
         onFilterSelected = viewModel::onFilterSelected,
         onSearchChange = viewModel::onSearchChange,
+        onSearchClick = onSearchClick,
         onAddDeviceClick = { roomId ->
             dialogRoomId = roomId
             dialogDeviceId = null

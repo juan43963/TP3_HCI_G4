@@ -16,6 +16,7 @@ sealed class Screen(
     object History : Screen("history", R.string.nav_history, SmartHomeIcons.History)
     object Notifications : Screen("notifications", R.string.nav_notifications, SmartHomeIcons.Notifications)
     object NotificationSettings : Screen("notification_settings", R.string.notification_settings_title, SmartHomeIcons.Notifications)
+    object Search : Screen("search", R.string.nav_search, SmartHomeIcons.Search)
 
     companion object {
         val items: List<Screen> by lazy { listOf(Home, Routines, Rooms) }

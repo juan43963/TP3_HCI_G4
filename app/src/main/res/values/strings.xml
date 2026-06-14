@@ -256,6 +256,15 @@
     <string name="dashboard_menu_content_description">Open homes</string>
     <string name="dashboard_search_content_description">Open search</string>
     <string name="dashboard_search_close_content_description">Close search</string>
+    <string name="search_placeholder">Search rooms, devices, routines…</string>
+    <string name="search_section_rooms">Rooms</string>
+    <string name="search_section_devices">Devices</string>
+    <string name="search_section_routines">Routines</string>
+    <string name="search_empty_hint">Type to search your home.</string>
+    <string name="search_no_results">No results found. Try another name or device type.</string>
+    <string name="search_back_content_description">Go back</string>
+    <string name="search_clear_content_description">Clear search</string>
+    <string name="search_device_room">In %1$s</string>
     <string name="dashboard_fab_content_description">Add</string>
 
     <string name="quick_add_fab_open">Open quick actions</string>
@@ -619,6 +628,7 @@
     </plurals>
 
     <string name="nav_notifications">Notifications</string>
+    <string name="nav_search">Search</string>
     <string name="notifications_open_content_description">Open notifications</string>
     <string name="notifications_badge_overflow">9+</string>
     <string name="notifications_badge_count_content_description">%1$d unread notifications</string>

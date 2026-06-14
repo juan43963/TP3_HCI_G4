@@ -36,6 +36,7 @@ fun TabletSelectHomeLayout(
     onHomeSelected: (SelectableHome) -> Unit,
     onAddHome: () -> Unit,
     onProfileClick: () -> Unit,
+    onSearchClick: () -> Unit = {},
     isLoading: Boolean = false,
     homesLoaded: Boolean = false,
     errorMessage: String? = null,
@@ -61,6 +62,8 @@ fun TabletSelectHomeLayout(
             topBar = {
                 SelectHomeTopBar(
                     onProfileClick = onProfileClick,
+                    onSearchClick = onSearchClick,
+                    searchPlaceholder = stringResource(R.string.search_placeholder),
                     modifier = Modifier.padding(
                         start = contentPadding,
                         top = 24.dp,

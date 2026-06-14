@@ -1238,6 +1238,7 @@ fun TabletRoutinesDetailLayout(
     onBack: () -> Unit = {},
     onNavigateHome: () -> Unit = {},
     onNavigateRooms: () -> Unit = {},
+    onSearchClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
     onAddRoutine: () -> Unit = {},
     onDelete: () -> Unit = {},
@@ -1296,7 +1297,7 @@ fun TabletRoutinesDetailLayout(
             RoutinesTabletNavigationRail(callbacks = callbacks)
             Column(modifier = Modifier.fillMaxSize()) {
                 RoutinesTabletTopBar(
-                    onSearchClick = {},
+                    onSearchClick = onSearchClick,
                     onHelpClick = {},
                     onProfileClick = onProfileClick,
                 )

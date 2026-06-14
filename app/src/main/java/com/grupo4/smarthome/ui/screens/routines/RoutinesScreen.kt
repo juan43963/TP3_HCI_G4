@@ -85,6 +85,7 @@ data class RoutineUi(
 @Composable
 fun RoutinesScreen(
     onProfileClick: () -> Unit = {},
+    onSearchClick: () -> Unit = {},
     onAddRoutine: () -> Unit = {},
     onCreateFirstRoutine: () -> Unit = onAddRoutine,
     onNotificationsClick: () -> Unit = {},
@@ -115,6 +116,7 @@ fun RoutinesScreen(
         TabletRoutinesScreen(
             routines = routines,
             onProfileClick = onProfileClick,
+            onSearchClick = onSearchClick,
             onNotificationsClick = onNotificationsClick,
             unreadNotificationCount = unreadNotificationCount,
             onAddRoutine = onAddRoutine,
@@ -146,7 +148,7 @@ fun RoutinesScreen(
 
     MainShellScaffold(
         title = stringResource(R.string.nav_routines),
-        onSearchClick = {},
+        onSearchClick = onSearchClick,
         onProfileClick = onProfileClick,
         onNotificationsClick = onNotificationsClick,
         notificationCount = unreadNotificationCount,
