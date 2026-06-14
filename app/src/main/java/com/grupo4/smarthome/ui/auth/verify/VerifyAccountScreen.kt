@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -41,9 +42,12 @@ import com.grupo4.smarthome.ui.auth.components.AuthBrandLogo
 import com.grupo4.smarthome.ui.auth.components.AuthRoundedField
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 
+private val VerifyFormMaxWidth = 560.dp
+
 @Composable
 fun VerifyAccountScreen(
     email: String,
+    password: String,
     onVerifySuccess: () -> Unit,
     onChangeEmail: () -> Unit,
     onBackToLogin: () -> Unit,
@@ -62,7 +66,7 @@ fun VerifyAccountScreen(
         uiState = uiState,
         email = email,
         onCodeChange = viewModel::onCodeChange,
-        onVerify = viewModel::verify,
+        onVerify = { viewModel.verify(email, password) },
         onResend = { viewModel.resend(email) },
         onChangeEmail = onChangeEmail,
         onBackToLogin = onBackToLogin,
@@ -91,6 +95,8 @@ fun VerifyAccountContent(
 
         Column(
             modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .widthIn(max = VerifyFormMaxWidth)
                 .fillMaxWidth()
                 .weight(1f),
             verticalArrangement = Arrangement.Center,
@@ -194,7 +200,11 @@ fun VerifyAccountContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            ResendFooter(onResendClick = onResend)
+            ResendFooter(
+                onResendClick = onResend,
+                cooldownSeconds = uiState.resendCooldownSeconds,
+                hasSent = uiState.hasSent,
+            )
 
             TextButton(onClick = onBackToLogin) {
                 Text(
@@ -228,18 +238,29 @@ private fun EmailBadge() {
 }
 
 @Composable
-private fun ResendFooter(onResendClick: () -> Unit) {
+private fun ResendFooter(onResendClick: () -> Unit, cooldownSeconds: Int, hasSent: Boolean) {
     val primary = MaterialTheme.colorScheme.primary
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
-    TextButton(onClick = onResendClick) {
+    val onCooldown = cooldownSeconds > 0
+    val linkText = when {
+        onCooldown -> stringResource(R.string.verify_resend_cooldown, cooldownSeconds)
+        hasSent -> stringResource(R.string.verify_resend_link)
+        else -> stringResource(R.string.verify_send_link)
+    }
+    TextButton(onClick = onResendClick, enabled = !onCooldown) {
         Text(
             text = buildAnnotatedString {
                 withStyle(SpanStyle(color = muted)) {
                     append(stringResource(R.string.verify_resend_question))
                     append(" ")
                 }
-                withStyle(SpanStyle(color = primary, fontWeight = FontWeight.SemiBold)) {
-                    append(stringResource(R.string.verify_resend_link))
+                withStyle(
+                    SpanStyle(
+                        color = if (onCooldown) muted else primary,
+                        fontWeight = FontWeight.SemiBold,
+                    ),
+                ) {
+                    append(linkText)
                 }
             },
             style = MaterialTheme.typography.bodyMedium,

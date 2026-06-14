@@ -58,6 +58,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.components.LocalOpenDrawer
+import com.grupo4.smarthome.ui.components.SectionEditIconButton
 import com.grupo4.smarthome.ui.components.TabletMainSidebar
 import com.grupo4.smarthome.ui.components.TabletPanelSurface
 import com.grupo4.smarthome.ui.components.TabletSidebarDestination
@@ -74,6 +75,8 @@ import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 fun TabletRoutinesScreen(
     routines: List<RoutineUi> = sampleRoutines,
     onProfileClick: () -> Unit = {},
+    onNotificationsClick: () -> Unit = {},
+    unreadNotificationCount: Int = 0,
     onAddRoutine: () -> Unit = {},
     onCreateRoom: () -> Unit = {},
     onCreateDevice: () -> Unit = {},
@@ -82,6 +85,7 @@ fun TabletRoutinesScreen(
     onNavigateHistory: () -> Unit = {},
     onRoutineClick: (String) -> Unit = {},
     onExecuteRoutine: (String) -> Unit = {},
+    onToggleRoutineFavorite: (String) -> Unit = {},
     onSaveRoutine: (id: String, name: String, time24h: String, days: List<Boolean>, enabled: Boolean) -> Unit = { _, _, _, _, _ -> },
     onDeleteRoutine: (String) -> Unit = {},
     detailFor: (String) -> RoutineDetailUi? = { null },
@@ -102,6 +106,13 @@ fun TabletRoutinesScreen(
     val selectedRoutine = remember(selectedRoutineId, visibleRoutines) {
         visibleRoutines.firstOrNull { it.id == selectedRoutineId }
     }
+    var openedRoutineId by remember(routines) { mutableStateOf<String?>(null) }
+    val openedRoutine = remember(openedRoutineId, routines) {
+        routines.firstOrNull { it.id == openedRoutineId }
+    }
+    var editMode by remember { mutableStateOf(false) }
+    var renameTarget by remember { mutableStateOf<RoutineUi?>(null) }
+    var deleteTarget by remember { mutableStateOf<RoutineUi?>(null) }
 
     LaunchedEffect(visibleRoutines, selectedRoutineId) {
         if (visibleRoutines.isEmpty()) {
@@ -128,6 +139,23 @@ fun TabletRoutinesScreen(
         val portraitLike = maxWidth < 900.dp
         val contentPadding = if (portraitLike) 24.dp else 32.dp
 
+        if (phoneLandscape && openedRoutine != null) {
+            BackHandler { openedRoutineId = null }
+            RoutineDetailScreen(
+                routine = detailFor(openedRoutine.id) ?: openedRoutine.toDetailUi(),
+                onBack = { openedRoutineId = null },
+                onDelete = {
+                    openedRoutineId = null
+                    onDeleteRoutine(openedRoutine.id)
+                },
+                onAddAction = onAddRoutine,
+                onSave = { name, time24h, days, enabled ->
+                    onSaveRoutine(openedRoutine.id, name, time24h, days, enabled)
+                },
+            )
+            return@BoxWithConstraints
+        }
+
         DashboardScaffold(
             sidebar = {
                 TabletMainSidebar(
@@ -145,6 +173,8 @@ fun TabletRoutinesScreen(
                     onHomeSelectorClick = openDrawer,
                     onSearchClick = {},
                     onProfileClick = onProfileClick,
+                    onNotificationsClick = onNotificationsClick,
+                    notificationCount = unreadNotificationCount,
                     useCompactHomeMenu = true,
                     modifier = Modifier.padding(
                         start = contentPadding,
@@ -155,7 +185,27 @@ fun TabletRoutinesScreen(
                 )
             },
             content = {
-                if (routines.isEmpty() && !portraitLike && !phoneLandscape) {
+                if (phoneLandscape) {
+                    TabletRoutinesGrid(
+                        routines = routines,
+                        visibleRoutines = visibleRoutines,
+                        selectedCategory = selectedCategory,
+                        onCategorySelected = { selectedCategory = it },
+                        portraitLike = true,
+                        contentPadding = contentPadding,
+                        onAddRoutine = onAddRoutine,
+                        editMode = editMode,
+                        onToggleEdit = { editMode = !editMode },
+                        onRenameRoutine = { renameTarget = it },
+                        onDeleteRoutineRequest = { deleteTarget = it },
+                        onRoutineSelected = { routine ->
+                            openedRoutineId = routine.id
+                            onRoutineClick(routine.id)
+                        },
+                        onExecuteRoutine = onExecuteRoutine,
+                        onToggleRoutineFavorite = onToggleRoutineFavorite,
+                    )
+                } else if (routines.isEmpty() && !portraitLike) {
                     TabletRoutinesEmptyTwoPane(
                         routines = routines,
                         selectedCategory = selectedCategory,
@@ -172,11 +222,16 @@ fun TabletRoutinesScreen(
                         portraitLike = portraitLike,
                         contentPadding = contentPadding,
                         onAddRoutine = onAddRoutine,
+                        editMode = editMode,
+                        onToggleEdit = { editMode = !editMode },
+                        onRenameRoutine = { renameTarget = it },
+                        onDeleteRoutineRequest = { deleteTarget = it },
                         onRoutineSelected = { routine ->
                             selectedRoutineId = routine.id
                             onRoutineClick(routine.id)
                         },
                         onExecuteRoutine = onExecuteRoutine,
+                        onToggleRoutineFavorite = onToggleRoutineFavorite,
                     )
                 } else {
                     TabletRoutinesTwoPane(
@@ -187,9 +242,14 @@ fun TabletRoutinesScreen(
                         onCategorySelected = { selectedCategory = it },
                         onRoutineSelected = { selectedRoutineId = it.id },
                         onAddRoutine = onAddRoutine,
+                        editMode = editMode,
+                        onToggleEdit = { editMode = !editMode },
+                        onRenameRoutine = { renameTarget = it },
+                        onDeleteRoutineRequest = { deleteTarget = it },
                         contentPadding = contentPadding,
                         forceSinglePane = phoneLandscape,
                         onExecuteRoutine = onExecuteRoutine,
+                        onToggleRoutineFavorite = onToggleRoutineFavorite,
                         onSaveRoutine = onSaveRoutine,
                         onDeleteRoutine = onDeleteRoutine,
                         detailFor = detailFor,
@@ -217,6 +277,30 @@ fun TabletRoutinesScreen(
             modifier = Modifier.align(Alignment.BottomCenter),
         )
 
+        renameTarget?.let { target ->
+            RenameRoutineDialog(
+                currentName = target.name,
+                onDismiss = { renameTarget = null },
+                onConfirm = { newName ->
+                    val d = detailFor(target.id) ?: target.toDetailUi()
+                    onSaveRoutine(target.id, newName, parseDisplayTimeTo24h(d.time), d.days, d.enabled)
+                    renameTarget = null
+                    editMode = false
+                },
+            )
+        }
+        deleteTarget?.let { target ->
+            DeleteRoutineDialog(
+                routineName = target.name,
+                onDismiss = { deleteTarget = null },
+                onConfirm = {
+                    onDeleteRoutine(target.id)
+                    deleteTarget = null
+                    editMode = false
+                },
+            )
+        }
+
         if (phoneLandscape) {
             PhoneQuickAddFab(
                 onClick = onQuickAddClick,
@@ -239,8 +323,13 @@ private fun TabletRoutinesGrid(
     portraitLike: Boolean,
     contentPadding: androidx.compose.ui.unit.Dp,
     onAddRoutine: () -> Unit,
+    editMode: Boolean,
+    onToggleEdit: () -> Unit,
+    onRenameRoutine: (RoutineUi) -> Unit,
+    onDeleteRoutineRequest: (RoutineUi) -> Unit,
     onRoutineSelected: (RoutineUi) -> Unit,
     onExecuteRoutine: (String) -> Unit = {},
+    onToggleRoutineFavorite: (String) -> Unit = {},
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(if (portraitLike) 1 else 2),
@@ -255,7 +344,16 @@ private fun TabletRoutinesGrid(
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         item(span = { GridItemSpan(maxLineSpan) }) {
-            TabletRoutinesHeader()
+            TabletRoutinesHeader(
+                actions = {
+                    TabletRoutinesEditCreateActions(
+                        editMode = editMode,
+                        showEditButton = routines.isNotEmpty(),
+                        onToggleEdit = onToggleEdit,
+                        onAddRoutine = onAddRoutine,
+                    )
+                },
+            )
         }
         item(span = { GridItemSpan(maxLineSpan) }) {
             CategoryFilter(
@@ -275,11 +373,18 @@ private fun TabletRoutinesGrid(
             }
         } else {
             gridItems(items = visibleRoutines, key = { it.id }) { routine ->
-                RoutineCard(
-                    routine = routine,
-                    onClick = { onRoutineSelected(routine) },
-                    onExecute = { onExecuteRoutine(routine.id) },
-                )
+                EditableRoutineCard(
+                    editMode = editMode,
+                    onEdit = { onRenameRoutine(routine) },
+                    onDelete = { onDeleteRoutineRequest(routine) },
+                ) {
+                    RoutineCard(
+                        routine = routine,
+                        onClick = { onRoutineSelected(routine) },
+                        onExecute = { onExecuteRoutine(routine.id) },
+                        onToggleFavorite = { onToggleRoutineFavorite(routine.id) },
+                    )
+                }
             }
         }
     }
@@ -339,6 +444,50 @@ private fun TabletRoutinesEmptyTwoPane(
 }
 
 @Composable
+private fun TabletRoutinesEditCreateActions(
+    editMode: Boolean,
+    showEditButton: Boolean,
+    onToggleEdit: () -> Unit,
+    onAddRoutine: () -> Unit,
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (showEditButton) {
+            SectionEditIconButton(
+                onClick = onToggleEdit,
+                contentDescription = stringResource(
+                    if (editMode) R.string.routines_finish_editing else R.string.routines_edit,
+                ),
+            )
+        }
+        Button(
+            onClick = onAddRoutine,
+            modifier = Modifier.height(40.dp),
+            shape = RoundedCornerShape(10.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = BrandIndigoDark,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+            ),
+            contentPadding = PaddingValues(horizontal = 12.dp),
+        ) {
+            Icon(
+                imageVector = SmartHomeIcons.Add,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = stringResource(R.string.routines_create_short),
+                fontWeight = FontWeight.Bold,
+            )
+        }
+    }
+}
+
+
+@Composable
 private fun TabletRoutinesHeaderActions(onAddRoutine: () -> Unit) {
     TabletRoutinesHeader(
         actions = {
@@ -377,9 +526,14 @@ private fun TabletRoutinesTwoPane(
     onCategorySelected: (RoutineCategory?) -> Unit,
     onRoutineSelected: (RoutineUi) -> Unit,
     onAddRoutine: () -> Unit,
+    editMode: Boolean,
+    onToggleEdit: () -> Unit,
+    onRenameRoutine: (RoutineUi) -> Unit,
+    onDeleteRoutineRequest: (RoutineUi) -> Unit,
     contentPadding: androidx.compose.ui.unit.Dp,
     forceSinglePane: Boolean = false,
     onExecuteRoutine: (String) -> Unit = {},
+    onToggleRoutineFavorite: (String) -> Unit = {},
     onSaveRoutine: (id: String, name: String, time24h: String, days: List<Boolean>, enabled: Boolean) -> Unit = { _, _, _, _, _ -> },
     onDeleteRoutine: (String) -> Unit = {},
     detailFor: (String) -> RoutineDetailUi? = { null },
@@ -409,7 +563,16 @@ private fun TabletRoutinesTwoPane(
                         verticalArrangement = Arrangement.spacedBy(14.dp),
                     ) {
                         item {
-                            TabletRoutinesHeader()
+                            TabletRoutinesHeader(
+                                actions = {
+                                    TabletRoutinesEditCreateActions(
+                                        editMode = editMode,
+                                        showEditButton = routines.isNotEmpty(),
+                                        onToggleEdit = onToggleEdit,
+                                        onAddRoutine = onAddRoutine,
+                                    )
+                                },
+                            )
                         }
                         item {
                             CategoryFilter(
@@ -420,17 +583,24 @@ private fun TabletRoutinesTwoPane(
                             )
                         }
                         lazyItems(items = visibleRoutines, key = { it.id }) { routine ->
-                            MasterRoutineCard(
-                                routine = routine,
-                                selected = routine.id == selectedRoutine.id,
-                                onClick = {
-                                    onRoutineSelected(routine)
-                                    scope.launch {
-                                        navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, routine.id)
-                                    }
-                                },
-                                onExecute = { onExecuteRoutine(routine.id) },
-                            )
+                            EditableRoutineCard(
+                                editMode = editMode,
+                                onEdit = { onRenameRoutine(routine) },
+                                onDelete = { onDeleteRoutineRequest(routine) },
+                            ) {
+                                MasterRoutineCard(
+                                    routine = routine,
+                                    selected = routine.id == selectedRoutine.id,
+                                    onClick = {
+                                        onRoutineSelected(routine)
+                                        scope.launch {
+                                            navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, routine.id)
+                                        }
+                                    },
+                                    onExecute = { onExecuteRoutine(routine.id) },
+                                    onToggleFavorite = { onToggleRoutineFavorite(routine.id) },
+                                )
+                            }
                         }
                     }
                 }
@@ -504,6 +674,7 @@ private fun TabletRoutineDetailPane(
     onDeleteRoutine: () -> Unit,
     contentPadding: androidx.compose.ui.unit.Dp,
     modifier: Modifier = Modifier,
+    onBack: (() -> Unit)? = null,
 ) {
     val detail = detail ?: remember(routine.id) { routine.toDetailUi() }
     var enabled by remember(routine.id) { mutableStateOf(detail.enabled) }
@@ -518,11 +689,12 @@ private fun TabletRoutineDetailPane(
 
     Column(modifier = modifier) {
         DetailTopBar(
-            onBack = {},
+            onBack = { onBack?.invoke() },
             onRename = { showRenameDialog = true },
             onDelete = { showDeleteDialog = true },
             showTitle = false,
-            showBackButton = false,
+            showBackButton = onBack != null,
+            showOverflowMenu = false,
         )
 
         LazyColumn(

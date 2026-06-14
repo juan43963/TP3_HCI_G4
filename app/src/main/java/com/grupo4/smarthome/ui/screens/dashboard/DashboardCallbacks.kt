@@ -10,6 +10,7 @@ data class DashboardCallbacks(
     val onRoomClick: (String) -> Unit = {},
     val onToggleRoomFavorite: (String) -> Unit = {},
     val onToggleRoutineFavorite: (String) -> Unit = {},
+    val onRunRoutine: (String) -> Unit = {},
     val onCreateRoom: () -> Unit = {},
     val onCreateDevice: () -> Unit = {},
     val onCreateRoutine: () -> Unit = {},

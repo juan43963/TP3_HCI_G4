@@ -11,7 +11,6 @@ interface HomesRepository {
     suspend fun createHome(
         name: String,
         type: HomeType,
-        photoIndex: Int?,
     ): AppResult<Home>
 
     suspend fun renameHome(homeId: String, name: String): AppResult<Home>

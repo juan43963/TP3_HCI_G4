@@ -3,6 +3,8 @@ package com.grupo4.smarthome.ui.screens.rooms.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -34,16 +36,23 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.data.model.ActionArg
@@ -84,13 +93,14 @@ fun DeviceCard(
         return
     }
 
+    val cardShape = RoundedCornerShape(16.dp)
     Surface(
         modifier = modifier
             .fillMaxWidth()
             // Alto mínimo uniforme: las cards sin línea de estado (heladera/persiana) quedan igual de
             // altas que las de 3 líneas. Como en tablet no hay controles inline, todas entran parejas.
             .defaultMinSize(minHeight = 176.dp),
-        shape = RoundedCornerShape(16.dp),
+        shape = cardShape,
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(
             width = 1.dp,
@@ -98,29 +108,68 @@ fun DeviceCard(
         ),
         shadowElevation = 1.dp,
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(22.dp),
-        ) {
-            // Tablet: la card NO tiene controles inline (toggle/slider). Todo va por "More actions",
-            // así todas las cards mantienen el mismo tamaño. El sheet incluye la acción primaria.
-            DeviceCardHeader(
-                device = device,
-                onToggle = onToggle,
-                showControl = false,
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            if (!editMode) {
-                DeviceMoreActions(device = device, onAction = onAction, includePrimary = true)
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(22.dp),
+            ) {
+                // Tablet: la card NO tiene controles inline (toggle/slider). Todo va por "More actions",
+                // así todas las cards mantienen el mismo tamaño. El sheet incluye la acción primaria.
+                DeviceCardHeader(
+                    device = device,
+                    onToggle = onToggle,
+                    showControl = false,
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                if (!editMode) {
+                    DeviceMoreActions(device = device, onAction = onAction, includePrimary = true)
+                }
             }
             if (editMode) {
-                Spacer(modifier = Modifier.height(16.dp))
-                DeviceCardEditActions(
+                DeviceCardEditOverlay(
                     onEdit = onEdit,
                     onDelete = onDelete,
+                    shape = cardShape,
+                    modifier = Modifier.matchParentSize(),
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun DeviceCardEditOverlay(
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    shape: androidx.compose.ui.graphics.Shape,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.72f))
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() },
+                onClick = {},
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            DeviceEditActionButton(
+                label = stringResource(R.string.rooms_edit_short),
+                icon = SmartHomeIcons.Edit,
+                onClick = onEdit,
+                filled = true,
+            )
+            DeviceEditActionButton(
+                label = stringResource(R.string.rooms_delete),
+                icon = SmartHomeIcons.Delete,
+                onClick = onDelete,
+                destructive = true,
+                filled = true,
+            )
         }
     }
 }
@@ -136,43 +185,71 @@ private fun PhoneDeviceCard(
     onAction: (String, List<ActionArg>) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val primary = MaterialTheme.colorScheme.primary
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .defaultMinSize(minHeight = if (editMode) 178.dp else 130.dp),
+            .defaultMinSize(minHeight = 130.dp)
+            .then(if (editMode) Modifier.dashedBorder(primary, 20.dp) else Modifier),
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(
-            width = 1.dp,
-            color = if (editMode) MaterialTheme.colorScheme.primary.copy(alpha = 0.48f) else RoomsSoftBorder,
-        ),
-        shadowElevation = 2.dp,
+        border = if (editMode) null else BorderStroke(1.dp, RoomsSoftBorder),
+        shadowElevation = if (editMode) 0.dp else 2.dp,
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            DeviceCardHeader(
-                device = device,
-                onToggle = onToggle,
-            )
-            if (hasPrimarySlider(device)) {
-                Spacer(modifier = Modifier.height(14.dp))
-                HorizontalDivider(color = RoomsSoftBorder)
-                Spacer(modifier = Modifier.height(14.dp))
-                DeviceControlContent(
+        Box {
+            Column(
+                modifier = Modifier
+                    .padding(20.dp)
+                    .then(if (editMode) Modifier.alpha(0.4f) else Modifier),
+            ) {
+                DeviceCardHeader(
                     device = device,
-                    onValueChange = onValueChange,
-                    modifier = Modifier.fillMaxWidth(),
+                    onToggle = onToggle,
                 )
-            }
-            if (!editMode) {
-                Spacer(modifier = Modifier.height(14.dp))
-                DeviceMoreActions(device = device, onAction = onAction)
+                if (hasPrimarySlider(device)) {
+                    Spacer(modifier = Modifier.height(14.dp))
+                    HorizontalDivider(color = RoomsSoftBorder)
+                    Spacer(modifier = Modifier.height(14.dp))
+                    DeviceControlContent(
+                        device = device,
+                        onValueChange = onValueChange,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+                if (!editMode) {
+                    Spacer(modifier = Modifier.height(14.dp))
+                    DeviceMoreActions(device = device, onAction = onAction)
+                }
             }
             if (editMode) {
-                Spacer(modifier = Modifier.height(14.dp))
-                DeviceCardEditActions(
-                    onEdit = onEdit,
-                    onDelete = onDelete,
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() },
+                            onClick = {},
+                        ),
                 )
+                Row(
+                    modifier = Modifier.align(Alignment.Center),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    DeviceEditActionButton(
+                        label = stringResource(R.string.rooms_edit_short),
+                        icon = SmartHomeIcons.Edit,
+                        onClick = onEdit,
+                        filled = true,
+                    )
+                    DeviceEditActionButton(
+                        label = stringResource(R.string.rooms_delete),
+                        icon = SmartHomeIcons.Delete,
+                        onClick = onDelete,
+                        destructive = true,
+                        filled = true,
+                    )
+                }
             }
         }
     }
@@ -244,6 +321,17 @@ private fun DeviceCardEditActions(
     }
 }
 
+private fun Modifier.dashedBorder(color: Color, cornerRadius: Dp): Modifier = drawBehind {
+    drawRoundRect(
+        color = color,
+        cornerRadius = CornerRadius(cornerRadius.toPx()),
+        style = Stroke(
+            width = 1.5.dp.toPx(),
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 8f), 0f),
+        ),
+    )
+}
+
 @Composable
 private fun DeviceEditActionButton(
     label: String,
@@ -251,15 +339,19 @@ private fun DeviceEditActionButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     destructive: Boolean = false,
+    filled: Boolean = false,
 ) {
     val contentColor = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
     OutlinedButton(
         onClick = onClick,
         modifier = modifier.height(40.dp),
         shape = RoundedCornerShape(10.dp),
-        contentPadding = PaddingValues(horizontal = 10.dp),
-        border = BorderStroke(1.dp, contentColor.copy(alpha = 0.42f)),
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = contentColor),
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        border = BorderStroke(1.dp, if (destructive) contentColor else contentColor.copy(alpha = 0.42f)),
+        colors = ButtonDefaults.outlinedButtonColors(
+            contentColor = contentColor,
+            containerColor = if (filled) MaterialTheme.colorScheme.surface else Color.Transparent,
+        ),
     ) {
         Icon(
             imageVector = icon,

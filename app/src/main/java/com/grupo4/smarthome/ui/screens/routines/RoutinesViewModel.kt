@@ -11,6 +11,7 @@ import com.grupo4.smarthome.data.model.DeviceActionInfo
 import com.grupo4.smarthome.data.model.Routine
 import com.grupo4.smarthome.data.model.RoutineAction
 import com.grupo4.smarthome.data.model.RoutineCategory
+import com.grupo4.smarthome.data.local.PreferencesDataStore
 import com.grupo4.smarthome.data.repository.DevicesRepository
 import com.grupo4.smarthome.data.repository.RoomsRepository
 import com.grupo4.smarthome.data.repository.RoutinesRepository
@@ -27,6 +28,7 @@ class RoutinesViewModel(
     private val routinesRepository: RoutinesRepository,
     private val roomsRepository: RoomsRepository,
     private val devicesRepository: DevicesRepository,
+    private val preferences: PreferencesDataStore,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(RoutinesUiState())
     val uiState: StateFlow<RoutinesUiState> = _uiState.asStateFlow()
@@ -156,6 +158,7 @@ class RoutinesViewModel(
             when (val result = routinesRepository.executeRoutine(routineId)) {
                 is AppResult.Success -> {
                     _uiState.update { it.copy(executingRoutineId = null, infoMessage = routine.name) }
+                    preferences.recordRoutineAccess(routineId)
                     homeId?.let { currentHome -> loadDevices(currentHome) }
                 }
                 is AppResult.Error -> _uiState.update {
@@ -230,11 +233,12 @@ class RoutinesViewModelFactory(
     private val routinesRepository: RoutinesRepository,
     private val roomsRepository: RoomsRepository,
     private val devicesRepository: DevicesRepository,
+    private val preferences: PreferencesDataStore,
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(RoutinesViewModel::class.java)) {
-            return RoutinesViewModel(routinesRepository, roomsRepository, devicesRepository) as T
+            return RoutinesViewModel(routinesRepository, roomsRepository, devicesRepository, preferences) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

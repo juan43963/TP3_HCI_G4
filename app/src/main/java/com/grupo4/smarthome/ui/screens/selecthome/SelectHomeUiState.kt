@@ -7,6 +7,7 @@ data class SelectHomeUiState(
     val userName: String = "",
     val homes: List<SelectableHome> = emptyList(),
     val isLoading: Boolean = false,
+    val homesLoaded: Boolean = false,
     @StringRes val errorMessage: Int? = null,
     val isCreating: Boolean = false,
     @StringRes val createError: Int? = null,

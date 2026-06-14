@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.core.result.AppResult
 import com.grupo4.smarthome.core.result.ErrorKind
+import com.grupo4.smarthome.core.result.isUnverifiedAccount
 import com.grupo4.smarthome.core.result.toMessageRes
 import com.grupo4.smarthome.data.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,7 +39,11 @@ class LoginViewModel(
             when (val result = authRepository.login(current.email, current.password)) {
                 is AppResult.Success -> _uiState.update { it.copy(isLoading = false, loggedIn = true) }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(isLoading = false, errorMessage = messageFor(result.error.kind))
+                    if (result.error.isUnverifiedAccount()) {
+                        it.copy(isLoading = false, needsVerification = true)
+                    } else {
+                        it.copy(isLoading = false, errorMessage = messageFor(result.error.kind))
+                    }
                 }
             }
         }
@@ -46,6 +51,10 @@ class LoginViewModel(
 
     fun consumeLoggedIn() {
         _uiState.update { it.copy(loggedIn = false) }
+    }
+
+    fun consumeNeedsVerification() {
+        _uiState.update { it.copy(needsVerification = false) }
     }
 
     @StringRes

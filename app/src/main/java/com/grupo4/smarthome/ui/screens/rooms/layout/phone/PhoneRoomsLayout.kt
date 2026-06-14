@@ -272,7 +272,7 @@ private fun PhoneRoomDetail(
                 activeDevices = presentation.selectedRoomActiveDevices,
                 devicesTotal = presentation.selectedRoomDevicesTotal,
                 editMode = state.editDevicesMode,
-                onAddDevice = { callbacks.onAddDeviceClick(room.id) },
+                showEditButton = presentation.hasDevicesInSelectedRoom,
                 onEditDevicesToggle = callbacks.onEditDevicesToggle,
             )
         }
@@ -364,85 +364,47 @@ private fun PhoneRoomDetailHeader(
     activeDevices: Int,
     devicesTotal: Int,
     editMode: Boolean,
-    onAddDevice: () -> Unit,
+    showEditButton: Boolean,
     onEditDevicesToggle: () -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        Text(
-            text = stringResource(R.string.rooms_detail_subtitle),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .background(MaterialTheme.colorScheme.primary, CircleShape),
-            )
             Text(
-                text = stringResource(R.string.rooms_detail_summary, activeDevices, devicesTotal),
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.SemiBold,
+                text = stringResource(R.string.rooms_detail_subtitle),
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .background(MaterialTheme.colorScheme.primary, CircleShape),
+                )
+                Text(
+                    text = stringResource(R.string.rooms_detail_summary, activeDevices, devicesTotal),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Button(
-                onClick = onAddDevice,
-                modifier = Modifier
-                    .weight(1f)
-                    .height(48.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = BrandIndigoDark,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                ),
-            ) {
-                Icon(
-                    imageVector = SmartHomeIcons.Add,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(R.string.rooms_add_device_short),
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            OutlinedButton(
+        if (showEditButton) {
+            RoomsEditIconButton(
                 onClick = onEditDevicesToggle,
-                modifier = Modifier
-                    .weight(1f)
-                    .height(48.dp),
-                shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, RoomsSoftBorder),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.primary,
+                contentDescription = stringResource(
+                    if (editMode) R.string.rooms_finish_editing_short else R.string.rooms_edit_short,
                 ),
-            ) {
-                Icon(
-                    imageVector = SmartHomeIcons.Edit,
-                    contentDescription = null,
-                    modifier = Modifier.size(19.dp),
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(
-                        if (editMode) R.string.rooms_finish_editing_short else R.string.rooms_edit_short,
-                    ),
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+            )
         }
     }
 }

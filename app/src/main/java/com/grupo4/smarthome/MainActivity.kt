@@ -16,6 +16,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.window.core.layout.WindowSizeClass
@@ -28,6 +30,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -80,6 +83,7 @@ import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeViewModel
 import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeViewModelFactory
 import com.grupo4.smarthome.ui.navigation.Screen
 import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneHomeDrawer
+import com.grupo4.smarthome.ui.screens.firsthome.CreateFirstHomeScreen
 import com.grupo4.smarthome.ui.screens.history.HistoryScreen
 import com.grupo4.smarthome.ui.screens.history.HistoryViewModel
 import com.grupo4.smarthome.ui.screens.history.HistoryViewModelFactory
@@ -237,6 +241,7 @@ fun SmartHomeApp(
                 homesApplication.appContainer.roomsRepository,
                 homesApplication.appContainer.devicesRepository,
                 homesApplication.appContainer.socketEvents,
+                homesApplication.appContainer.preferencesDataStore,
             )
         },
     )
@@ -251,6 +256,7 @@ fun SmartHomeApp(
                 homesApplication.appContainer.routinesRepository,
                 homesApplication.appContainer.roomsRepository,
                 homesApplication.appContainer.devicesRepository,
+                homesApplication.appContainer.preferencesDataStore,
             )
         },
     )
@@ -270,6 +276,7 @@ fun SmartHomeApp(
                 homesApplication.appContainer.roomsRepository,
                 homesApplication.appContainer.devicesRepository,
                 homesApplication.appContainer.routinesRepository,
+                homesApplication.appContainer.preferencesDataStore,
             )
         },
     )
@@ -292,10 +299,31 @@ fun SmartHomeApp(
         }
     }
 
+    LaunchedEffect(
+        currentBaseRoute,
+        selectHomeUiState.homesLoaded,
+        selectHomeUiState.homes.isEmpty(),
+    ) {
+        if (currentBaseRoute == Screen.SELECT_HOME_ROUTE &&
+            selectHomeUiState.homesLoaded &&
+            selectHomeUiState.errorMessage == null &&
+            selectHomeUiState.homes.isEmpty()
+        ) {
+            navController.navigate(Screen.CREATE_FIRST_HOME_ROUTE) {
+                popUpTo(Screen.SELECT_HOME_ROUTE) { inclusive = true }
+            }
+        }
+    }
+
     LaunchedEffect(selectHomeUiState.homeJustCreated) {
         if (selectHomeUiState.homeJustCreated) {
             selectHomeViewModel.consumeHomeCreated()
             showAddHome = false
+            if (currentBaseRoute == Screen.CREATE_FIRST_HOME_ROUTE) {
+                navController.navigate(Screen.Home.route) {
+                    popUpTo(Screen.CREATE_FIRST_HOME_ROUTE) { inclusive = true }
+                }
+            }
         }
     }
     var showQuickActions by rememberSaveable { mutableStateOf(false) }
@@ -473,11 +501,23 @@ fun SmartHomeApp(
                     }
                     Unit
                 }
+                val loginContext = LocalContext.current
+                val onNeedsVerification: (String, String) -> Unit = { email, password ->
+                    Toast.makeText(
+                        loginContext,
+                        loginContext.getString(R.string.login_account_not_verified),
+                        Toast.LENGTH_LONG,
+                    ).show()
+                    navController.navigate(
+                        AuthScreen.VerifyAccount.createRoute(Uri.encode(email), Uri.encode(password))
+                    )
+                }
                 if (isTablet) {
                     LoginScreenTablet(
                         onNavigateToRegister = onNavigateToRegister,
                         onNavigateToForgotPassword = onNavigateToForgotPassword,
                         onLoginSuccess = onLoginSuccess,
+                        onNeedsVerification = onNeedsVerification,
                         viewModel = loginViewModel,
                     )
                 } else {
@@ -485,6 +525,7 @@ fun SmartHomeApp(
                         onNavigateToRegister = onNavigateToRegister,
                         onNavigateToForgotPassword = onNavigateToForgotPassword,
                         onLoginSuccess = onLoginSuccess,
+                        onNeedsVerification = onNeedsVerification,
                         viewModel = loginViewModel,
                     )
                 }
@@ -501,8 +542,10 @@ fun SmartHomeApp(
                     }
                     Unit
                 }
-                val onRegisterSuccess: (String) -> Unit = { email ->
-                    navController.navigate(AuthScreen.VerifyAccount.createRoute(Uri.encode(email)))
+                val onRegisterSuccess: (String, String) -> Unit = { email, password ->
+                    navController.navigate(
+                        AuthScreen.VerifyAccount.createRoute(Uri.encode(email), Uri.encode(password))
+                    )
                     Unit
                 }
                 if (isTablet) {
@@ -525,11 +568,18 @@ fun SmartHomeApp(
                     navArgument(AuthScreen.VerifyAccount.emailArg) {
                         type = NavType.StringType
                         defaultValue = ""
+                    },
+                    navArgument(AuthScreen.VerifyAccount.passwordArg) {
+                        type = NavType.StringType
+                        defaultValue = ""
                     }
                 ),
             ) { backStackEntry ->
                 val email = backStackEntry.arguments
                     ?.getString(AuthScreen.VerifyAccount.emailArg)
+                    .orEmpty()
+                val password = backStackEntry.arguments
+                    ?.getString(AuthScreen.VerifyAccount.passwordArg)
                     .orEmpty()
                 val application = LocalContext.current.applicationContext as SmartHomeApplication
                 val verifyFactory = remember(application) {
@@ -538,8 +588,9 @@ fun SmartHomeApp(
                 val verifyViewModel: VerifyAccountViewModel = viewModel(factory = verifyFactory)
                 VerifyAccountScreen(
                     email = email,
+                    password = password,
                     onVerifySuccess = {
-                        navController.navigate(AuthScreen.Login.route) {
+                        navController.navigate(Screen.CREATE_FIRST_HOME_ROUTE) {
                             popUpTo(AuthScreen.Welcome.route) { inclusive = true }
                         }
                     },
@@ -616,12 +667,20 @@ fun SmartHomeApp(
                 }
             }
 
+            composable(Screen.CREATE_FIRST_HOME_ROUTE) {
+                CreateFirstHomeScreen(
+                    windowSize = windowSize,
+                    onCreateHome = { showAddHome = true },
+                )
+            }
+
             composable(Screen.SELECT_HOME_ROUTE) {
                 SelectHomeScreen(
                     windowSize = windowSize,
                     userName = selectHomeUiState.userName,
                     homes = selectHomeUiState.homes,
                     isLoading = selectHomeUiState.isLoading,
+                    homesLoaded = selectHomeUiState.homesLoaded,
                     errorMessage = selectHomeUiState.errorMessage?.let { stringResource(it) },
                     onRetry = selectHomeViewModel::loadHomes,
                     onHomeSelected = { home ->
@@ -643,6 +702,15 @@ fun SmartHomeApp(
             }
 
             composable(Screen.Home.route) {
+                val dashboardSnackbarHostState = remember { SnackbarHostState() }
+                val routineExecutedTemplate = stringResource(R.string.routines_executed)
+                LaunchedEffect(routinesUiState.infoMessage) {
+                    routinesUiState.infoMessage?.let {
+                        dashboardSnackbarHostState.showSnackbar(routineExecutedTemplate.format(it))
+                        routinesViewModel.dismissInfo()
+                    }
+                }
+                Box(modifier = Modifier.fillMaxSize()) {
                 HomeScreen(
                     windowSize = windowSize,
                     state = homeUiState,
@@ -659,7 +727,7 @@ fun SmartHomeApp(
                         }
                     },
                     onRoomClick = { roomId ->
-                        roomsViewModel.onRoomClick(roomId)
+                        roomsViewModel.onRoomOpenedFromDashboard(roomId)
                         navController.navigate(Screen.Rooms.route) {
                             launchSingleTop = true
                             restoreState = true
@@ -667,6 +735,7 @@ fun SmartHomeApp(
                     },
                     onToggleRoomFavorite = homeViewModel::toggleRoomFavorite,
                     onToggleRoutineFavorite = homeViewModel::toggleRoutineFavorite,
+                    onRunRoutine = routinesViewModel::executeRoutine,
                     onNavigateProfile = {
                         navController.navigate(Screen.Profile.route) {
                             launchSingleTop = true
@@ -687,6 +756,11 @@ fun SmartHomeApp(
                     showQuickAddFab = !isTablet && !showQuickActions && !showCreateRoom &&
                         !showCreateDevice && !showCreateRoutine,
                 )
+                SnackbarHost(
+                    hostState = dashboardSnackbarHostState,
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                )
+                }
             }
             composable(Screen.Rooms.route) {
                 RoomsScreen(
@@ -733,6 +807,7 @@ fun SmartHomeApp(
                     onCreateRoom = openCreateRoom,
                     onCreateDevice = openCreateDevice,
                     onAddRoutine = if (isTablet) openCreateRoutine else openQuickActions,
+                    onCreateFirstRoutine = openCreateRoutine,
                     onQuickAddClick = openQuickActions,
                     showQuickAddFab = !isTablet && !showQuickActions && !showCreateRoom &&
                         !showCreateDevice && !showCreateRoutine,
@@ -767,6 +842,7 @@ fun SmartHomeApp(
                     errorMessage = routinesUiState.errorMessage?.let { stringResource(it) },
                     infoMessage = routinesUiState.infoMessage,
                     onExecuteRoutine = routinesViewModel::executeRoutine,
+                    onToggleRoutineFavorite = routinesViewModel::toggleFavorite,
                     onSaveRoutine = { id, name, time24h, days, enabled ->
                         routinesViewModel.saveRoutine(id, name, time24h, days, enabled)
                     },
@@ -1148,8 +1224,8 @@ fun SmartHomeApp(
                 onDismiss = { showAddHome = false },
                 isCreating = selectHomeUiState.isCreating,
                 errorMessage = selectHomeUiState.createError?.let { stringResource(it) },
-                onCreate = { name, typeIndex, photoIndex, shareEmail ->
-                    selectHomeViewModel.createHome(name, typeIndex, photoIndex, shareEmail)
+                onCreate = { name, typeIndex, shareEmails ->
+                    selectHomeViewModel.createHome(name, typeIndex, shareEmails)
                 },
             )
 
@@ -1200,11 +1276,12 @@ fun SmartHomeApp(
                     )
                 } else {
                     AddDevicesToRoomDialog(
-                        roomName = targetRoom.name,
+                        rooms = roomsUiState.rooms,
+                        initialRoomId = targetRoom.id,
                         availableDeviceTypes = roomsUiState.availableDeviceTypes,
                         onDismiss = { showCreateDevice = false },
-                        onConfirm = { pendingDevices ->
-                            roomsViewModel.addDevices(targetRoom.id, pendingDevices)
+                        onConfirm = { roomId, pendingDevices ->
+                            roomsViewModel.addDevices(roomId, pendingDevices)
                             showCreateDevice = false
                         },
                     )
@@ -1230,7 +1307,8 @@ fun SmartHomeApp(
                 )
             }
 
-            if (isTablet) {
+            val routineIsTablet = windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
+            if (routineIsTablet) {
                 AddRoutineTabletOverlay(
                     visible = showCreateRoutine,
                     onDismiss = { showCreateRoutine = false },

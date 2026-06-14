@@ -1,6 +1,5 @@
 package com.grupo4.smarthome.ui.screens.selecthome
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,8 +38,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -60,7 +57,6 @@ data class SelectableHome(
     val name: String,
     val roomsCount: Int,
     val devicesCount: Int,
-    val photoIndex: Int? = null,
     val type: HomeType = HomeType.OTRO,
     val ownerName: String? = null,
     val ownerEmail: String? = null,
@@ -76,6 +72,7 @@ fun SelectHomeScreen(
     onProfileClick: () -> Unit,
     modifier: Modifier = Modifier,
     isLoading: Boolean = false,
+    homesLoaded: Boolean = false,
     errorMessage: String? = null,
     onRetry: () -> Unit = {},
     onShareHome: (SelectableHome) -> Unit = {},
@@ -90,6 +87,7 @@ fun SelectHomeScreen(
             onAddHome = onAddHome,
             onProfileClick = onProfileClick,
             isLoading = isLoading,
+            homesLoaded = homesLoaded,
             errorMessage = errorMessage,
             onRetry = onRetry,
             onShareHome = onShareHome,
@@ -105,6 +103,7 @@ fun SelectHomeScreen(
             onAddHome = onAddHome,
             onProfileClick = onProfileClick,
             isLoading = isLoading,
+            homesLoaded = homesLoaded,
             errorMessage = errorMessage,
             onRetry = onRetry,
             onShareHome = onShareHome,
@@ -123,6 +122,7 @@ private fun PhoneSelectHomeLayout(
     onAddHome: () -> Unit,
     onProfileClick: () -> Unit,
     isLoading: Boolean,
+    homesLoaded: Boolean,
     errorMessage: String?,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
@@ -173,7 +173,7 @@ private fun PhoneSelectHomeLayout(
                 }
             }
             when {
-                isLoading && homes.isEmpty() -> item { SelectHomeLoading() }
+                !homesLoaded -> item { SelectHomeLoading() }
                 errorMessage != null && homes.isEmpty() -> item {
                     SelectHomeError(message = errorMessage, onRetry = onRetry)
                 }
@@ -275,19 +275,7 @@ internal fun HomeCard(
         shadowElevation = 1.dp,
     ) {
         Column {
-            val photoRes = homePhotoRes(home.photoIndex)
-            if (photoRes != null) {
-                Image(
-                    painter = painterResource(photoRes),
-                    contentDescription = home.name,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(160.dp),
-                )
-            } else {
-                HomePhotoPlaceholder(homeName = home.name)
-            }
+            HomePhotoPlaceholder(homeName = home.name)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -435,6 +423,7 @@ private fun SelectHomeScreenPhonePreview() {
             onAddHome = {},
             onProfileClick = {},
             isLoading = false,
+            homesLoaded = true,
             errorMessage = null,
             onRetry = {},
         )

@@ -8,13 +8,12 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,6 +21,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -45,15 +46,17 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -88,7 +91,7 @@ fun BoxScope.AddHomeOverlay(
     onDismiss: () -> Unit,
     isCreating: Boolean = false,
     errorMessage: String? = null,
-    onCreate: (name: String, typeIndex: Int, photoIndex: Int?, shareEmail: String?) -> Unit = { _, _, _, _ -> },
+    onCreate: (name: String, typeIndex: Int, shareEmails: List<String>) -> Unit = { _, _, _ -> },
 ) {
     AnimatedVisibility(
         visible = visible && !isTablet,
@@ -109,13 +112,14 @@ fun BoxScope.AddHomeOverlay(
             onDismissRequest = onDismiss,
             properties = DialogProperties(usePlatformDefaultWidth = false),
         ) {
-            Box(
+            BoxWithConstraints(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 32.dp),
+                    .fillMaxSize()
+                    .padding(horizontal = 32.dp, vertical = 24.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 TabletAddHomeDialogContent(
+                    maxHeight = maxHeight,
                     onDismiss = onDismiss,
                     isCreating = isCreating,
                     errorMessage = errorMessage,
@@ -133,13 +137,20 @@ private fun PhoneAddHomeScreen(
     onDismiss: () -> Unit,
     isCreating: Boolean,
     errorMessage: String?,
-    onCreate: (name: String, typeIndex: Int, photoIndex: Int?, shareEmail: String?) -> Unit,
+    onCreate: (name: String, typeIndex: Int, shareEmails: List<String>) -> Unit,
 ) {
     var homeName by rememberSaveable { mutableStateOf("") }
     var nameError by rememberSaveable { mutableStateOf(false) }
     var selectedTypeIndex by rememberSaveable { mutableStateOf(0) }
-    var selectedPhotoIndex by rememberSaveable { mutableStateOf<Int?>(null) }
     var shareEmail by rememberSaveable { mutableStateOf("") }
+    val invitedEmails = rememberSaveable(saver = invitedEmailsSaver) { mutableStateListOf<String>() }
+    val onAddInvite = {
+        val email = shareEmail.trim()
+        if (isValidShareEmail(email) && invitedEmails.none { it.equals(email, ignoreCase = true) }) {
+            invitedEmails.add(email)
+            shareEmail = ""
+        }
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -186,14 +197,13 @@ private fun PhoneAddHomeScreen(
                     AddHomeShareField(
                         value = shareEmail,
                         onValueChange = { shareEmail = it },
+                        onAdd = onAddInvite,
                     )
                 }
                 AddHomeFormCard {
-                    AddHomeSectionLabel(stringResource(R.string.add_home_fotos_section))
-                    Spacer(modifier = Modifier.height(12.dp))
-                    AddHomePhotoPicker(
-                        selectedIndex = selectedPhotoIndex,
-                        onSelect = { selectedPhotoIndex = it },
+                    AddHomeInvitedList(
+                        emails = invitedEmails,
+                        onRemove = { invitedEmails.remove(it) },
                     )
                 }
                 AddHomeErrorText(errorMessage)
@@ -201,7 +211,7 @@ private fun PhoneAddHomeScreen(
                     isCreating = isCreating,
                     onSubmit = {
                         if (homeName.isBlank()) nameError = true
-                        else onCreate(homeName, selectedTypeIndex, selectedPhotoIndex, shareEmail.ifBlank { null })
+                        else onCreate(homeName, selectedTypeIndex, collectInvited(invitedEmails, shareEmail))
                     },
                 )
             }
@@ -284,21 +294,30 @@ private fun AddHomeErrorText(message: String?) {
 
 @Composable
 private fun TabletAddHomeDialogContent(
+    maxHeight: Dp,
     onDismiss: () -> Unit,
     isCreating: Boolean,
     errorMessage: String?,
-    onCreate: (name: String, typeIndex: Int, photoIndex: Int?, shareEmail: String?) -> Unit,
+    onCreate: (name: String, typeIndex: Int, shareEmails: List<String>) -> Unit,
 ) {
     var homeName by rememberSaveable { mutableStateOf("") }
     var nameError by rememberSaveable { mutableStateOf(false) }
     var selectedTypeIndex by rememberSaveable { mutableStateOf(0) }
-    var selectedPhotoIndex by rememberSaveable { mutableStateOf<Int?>(null) }
     var shareEmail by rememberSaveable { mutableStateOf("") }
+    val invitedEmails = rememberSaveable(saver = invitedEmailsSaver) { mutableStateListOf<String>() }
+    val onAddInvite = {
+        val email = shareEmail.trim()
+        if (isValidShareEmail(email) && invitedEmails.none { it.equals(email, ignoreCase = true) }) {
+            invitedEmails.add(email)
+            shareEmail = ""
+        }
+    }
 
     Surface(
         modifier = Modifier
             .widthIn(max = 760.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .heightIn(max = maxHeight),
         shape = RoundedCornerShape(24.dp),
         color = MaterialTheme.colorScheme.background,
         shadowElevation = 6.dp,
@@ -346,44 +365,50 @@ private fun TabletAddHomeDialogContent(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            AddHomeFormCard {
-                HomeNameField(
-                    value = homeName,
-                    error = nameError,
-                    onValueChange = { homeName = it; if (nameError) nameError = false },
-                    placeholderRes = R.string.add_home_name_placeholder_mobile,
-                )
-            }
-            AddHomeFormCard {
-                AddHomeSectionLabel(stringResource(R.string.add_home_type_section))
-                Spacer(modifier = Modifier.height(8.dp))
-                AddHomeTypeGrid(
-                    selectedIndex = selectedTypeIndex,
-                    onSelect = { selectedTypeIndex = it },
-                    cellHeight = 56.dp,
-                )
-            }
-            AddHomeFormCard {
-                AddHomeShareField(
-                    value = shareEmail,
-                    onValueChange = { shareEmail = it },
-                )
-            }
-            AddHomeFormCard {
-                AddHomeSectionLabel(stringResource(R.string.add_home_fotos_section))
-                Spacer(modifier = Modifier.height(8.dp))
-                AddHomePhotoPicker(
-                    selectedIndex = selectedPhotoIndex,
-                    onSelect = { selectedPhotoIndex = it },
-                    tileHeight = 96.dp,
-                )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f, fill = false)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                AddHomeFormCard {
+                    HomeNameField(
+                        value = homeName,
+                        error = nameError,
+                        onValueChange = { homeName = it; if (nameError) nameError = false },
+                        placeholderRes = R.string.add_home_name_placeholder_mobile,
+                    )
+                }
+                AddHomeFormCard {
+                    AddHomeSectionLabel(stringResource(R.string.add_home_type_section))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    AddHomeTypeGrid(
+                        selectedIndex = selectedTypeIndex,
+                        onSelect = { selectedTypeIndex = it },
+                        cellHeight = 56.dp,
+                    )
+                }
+                AddHomeFormCard {
+                    AddHomeShareField(
+                        value = shareEmail,
+                        onValueChange = { shareEmail = it },
+                        onAdd = onAddInvite,
+                    )
+                }
+                AddHomeFormCard {
+                    AddHomeInvitedList(
+                        emails = invitedEmails,
+                        onRemove = { invitedEmails.remove(it) },
+                    )
+                }
             }
             AddHomeErrorText(errorMessage)
             AddHomeSubmitButton(
                 isCreating = isCreating,
                 onSubmit = {
                     if (homeName.isBlank()) nameError = true
-                    else onCreate(homeName, selectedTypeIndex, selectedPhotoIndex, shareEmail.ifBlank { null })
+                    else onCreate(homeName, selectedTypeIndex, collectInvited(invitedEmails, shareEmail))
                 },
             )
         }
@@ -459,32 +484,119 @@ private fun HomeNameField(
     }
 }
 
+private fun isValidShareEmail(email: String): Boolean {
+    val trimmed = email.trim()
+    return trimmed.contains("@") && trimmed.substringAfter("@").contains(".")
+}
+
 @Composable
 private fun AddHomeShareField(
     value: String,
     onValueChange: (String) -> Unit,
+    onAdd: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         AddHomeSectionLabel(stringResource(R.string.add_home_share_section))
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            placeholder = {
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            OutlinedTextField(
+                value = value,
+                onValueChange = onValueChange,
+                modifier = Modifier.weight(1f),
+                placeholder = {
+                    Text(
+                        text = stringResource(R.string.add_home_share_placeholder),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                ),
+            )
+            Button(
+                onClick = onAdd,
+                enabled = isValidShareEmail(value),
+                modifier = Modifier.height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                ),
+            ) {
                 Text(
-                    text = stringResource(R.string.add_home_share_placeholder),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    text = stringResource(R.string.add_home_share_add_button),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.ExtraBold,
                 )
-            },
-            singleLine = true,
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-            ),
+            }
+        }
+    }
+}
+
+@Composable
+private fun AddHomeInvitedList(
+    emails: List<String>,
+    onRemove: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        AddHomeSectionLabel(stringResource(R.string.add_home_invited_section))
+        if (emails.isEmpty()) {
+            Text(
+                text = stringResource(R.string.add_home_invited_empty),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        } else {
+            emails.forEach { email ->
+                AddHomeInvitedRow(email = email, onRemove = { onRemove(email) })
+            }
+        }
+    }
+}
+
+@Composable
+private fun AddHomeInvitedRow(email: String, onRemove: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = email.take(1).uppercase(),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
+        Text(
+            text = email,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f),
         )
+        IconButton(onClick = onRemove) {
+            Icon(
+                imageVector = SmartHomeIcons.Delete,
+                contentDescription = stringResource(R.string.add_home_invited_remove),
+                tint = ErrorRed,
+            )
+        }
     }
 }
 
@@ -592,41 +704,15 @@ private fun AddHomeTypeGridCell(
     }
 }
 
-// Selección de 1 de las fotos preset empaquetadas (se guarda el índice en metadata)
-@Composable
-private fun AddHomePhotoPicker(
-    selectedIndex: Int?,
-    onSelect: (Int) -> Unit,
-    tileHeight: Dp = 84.dp,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        homePresetPhotos.forEachIndexed { index, photoRes ->
-            val selected = selectedIndex == index
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(tileHeight)
-                    .clip(RoundedCornerShape(12.dp))
-                    .border(
-                        width = if (selected) 3.dp else 1.dp,
-                        color = if (selected) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.outlineVariant,
-                        shape = RoundedCornerShape(12.dp),
-                    )
-                    .clickable { onSelect(index) },
-            ) {
-                Image(
-                    painter = painterResource(photoRes),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            }
-        }
-    }
+private val invitedEmailsSaver = listSaver<SnapshotStateList<String>, String>(
+    save = { it.toList() },
+    restore = { it.toMutableStateList() },
+)
+
+private fun collectInvited(invited: List<String>, pending: String): List<String> = buildList {
+    addAll(invited)
+    val email = pending.trim()
+    if (isValidShareEmail(email) && none { it.equals(email, ignoreCase = true) }) add(email)
 }
 
 // Previews
@@ -635,7 +721,7 @@ private fun AddHomePhotoPicker(
 @Composable
 private fun AddHomePhoneLightPreview() {
     SmartHomeTheme(darkTheme = false) {
-        PhoneAddHomeScreen(onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _, _ -> })
+        PhoneAddHomeScreen(onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _ -> })
     }
 }
 
@@ -643,7 +729,7 @@ private fun AddHomePhoneLightPreview() {
 @Composable
 private fun AddHomePhoneDarkPreview() {
     SmartHomeTheme(darkTheme = true) {
-        PhoneAddHomeScreen(onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _, _ -> })
+        PhoneAddHomeScreen(onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _ -> })
     }
 }
 
@@ -651,8 +737,11 @@ private fun AddHomePhoneDarkPreview() {
 @Composable
 private fun AddHomeTabletLandscapePreview() {
     SmartHomeTheme(darkTheme = false) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            TabletAddHomeDialogContent(onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _, _ -> })
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxSize().padding(vertical = 24.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            TabletAddHomeDialogContent(maxHeight = maxHeight, onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _ -> })
         }
     }
 }
@@ -661,8 +750,11 @@ private fun AddHomeTabletLandscapePreview() {
 @Composable
 private fun AddHomeTabletPortraitPreview() {
     SmartHomeTheme(darkTheme = true) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            TabletAddHomeDialogContent(onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _, _ -> })
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxSize().padding(vertical = 24.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            TabletAddHomeDialogContent(maxHeight = maxHeight, onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _ -> })
         }
     }
 }

@@ -9,6 +9,7 @@ import com.grupo4.smarthome.core.result.AppResult
 import com.grupo4.smarthome.core.result.ErrorKind
 import com.grupo4.smarthome.core.result.toMessageRes
 import com.grupo4.smarthome.data.repository.AuthRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,14 +28,21 @@ class VerifyAccountViewModel(
         _uiState.update { it.copy(code = trimmed, errorMessage = null) }
     }
 
-    fun verify() {
+    fun verify(email: String, password: String) {
         val current = _uiState.value
         if (!current.canSubmit) return
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             when (val result = authRepository.verifyAccount(current.code)) {
-                is AppResult.Success -> _uiState.update { it.copy(isLoading = false, verified = true) }
+                is AppResult.Success -> {
+                    when (val login = authRepository.login(email, password)) {
+                        is AppResult.Success -> _uiState.update { it.copy(isLoading = false, verified = true) }
+                        is AppResult.Error -> _uiState.update {
+                            it.copy(isLoading = false, errorMessage = login.error.kind.toMessageRes())
+                        }
+                    }
+                }
                 is AppResult.Error -> _uiState.update {
                     it.copy(isLoading = false, errorMessage = messageFor(result.error.kind))
                 }
@@ -44,9 +52,23 @@ class VerifyAccountViewModel(
 
     fun resend(email: String) {
         if (email.isBlank()) return
+        if (_uiState.value.resendCooldownSeconds > 0) return
         viewModelScope.launch {
-            _uiState.update { it.copy(code = "", errorMessage = null) }
+            _uiState.update { it.copy(code = "", errorMessage = null, hasSent = true) }
             authRepository.sendVerification(email)
+        }
+        startResendCooldown()
+    }
+
+    private fun startResendCooldown() {
+        viewModelScope.launch {
+            var remaining = RESEND_COOLDOWN_SECONDS
+            while (remaining > 0) {
+                _uiState.update { it.copy(resendCooldownSeconds = remaining) }
+                delay(1000)
+                remaining--
+            }
+            _uiState.update { it.copy(resendCooldownSeconds = 0) }
         }
     }
 

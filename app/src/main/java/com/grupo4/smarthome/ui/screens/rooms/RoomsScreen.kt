@@ -75,7 +75,11 @@ fun RoomsScreen(
     }
 
     val callbacks = RoomsCallbacks(
-        onBackToRooms = viewModel::onBackToRooms,
+        onBackToRooms = {
+            val cameFromDashboard = state.openedFromDashboard
+            viewModel.onBackToRooms()
+            if (cameFromDashboard) onNavigateHome()
+        },
         onRoomClick = viewModel::onRoomClick,
         onSelectedRoomChange = viewModel::onSelectedRoomChange,
         onToggleRoomFavorite = viewModel::toggleRoomFavorite,
@@ -211,11 +215,12 @@ fun RoomsScreen(
         RoomsDialogKind.AddDevices -> {
             dialogRoom?.let { room ->
                 AddDevicesToRoomDialog(
-                    roomName = room.name,
+                    rooms = state.rooms,
+                    initialRoomId = room.id,
                     availableDeviceTypes = state.availableDeviceTypes,
                     onDismiss = { dialogKindName = RoomsDialogKind.None.name },
-                    onConfirm = { pendingDevices ->
-                        viewModel.addDevices(room.id, pendingDevices)
+                    onConfirm = { roomId, pendingDevices ->
+                        viewModel.addDevices(roomId, pendingDevices)
                         dialogKindName = RoomsDialogKind.None.name
                     },
                 )

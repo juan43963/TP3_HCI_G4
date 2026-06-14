@@ -376,6 +376,7 @@ internal fun DetailTopBar(
     onDelete: () -> Unit,
     showTitle: Boolean = true,
     showBackButton: Boolean = true,
+    showOverflowMenu: Boolean = true,
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
@@ -407,7 +408,7 @@ internal fun DetailTopBar(
         } else {
             Spacer(modifier = Modifier.weight(1f))
         }
-        Box {
+        if (showOverflowMenu) Box {
             IconButton(onClick = { menuExpanded = true }) {
                 Icon(
                     imageVector = SmartHomeIcons.MoreOptions,
@@ -1675,6 +1676,7 @@ internal fun MasterRoutineCard(
     selected: Boolean,
     onClick: () -> Unit,
     onExecute: () -> Unit = {},
+    onToggleFavorite: () -> Unit = {},
 ) {
     val border = if (selected) {
         BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
@@ -1714,14 +1716,16 @@ internal fun MasterRoutineCard(
                     Spacer(modifier = Modifier.height(4.dp))
                     MasterCategoryPill(category = routine.category)
                 }
-                Icon(
-                    imageVector = if (routine.favorite) SmartHomeIcons.Favorite
-                    else SmartHomeIcons.FavoriteBorder,
-                    contentDescription = null,
-                    tint = if (routine.favorite) StarActive
-                    else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(22.dp),
-                )
+                IconButton(onClick = onToggleFavorite) {
+                    Icon(
+                        imageVector = if (routine.favorite) SmartHomeIcons.Favorite
+                        else SmartHomeIcons.FavoriteBorder,
+                        contentDescription = null,
+                        tint = if (routine.favorite) StarActive
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(22.dp),
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(12.dp))

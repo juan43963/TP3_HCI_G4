@@ -13,6 +13,7 @@ object ErrorMapper {
             kind = kindFor(status, parsed?.code),
             httpStatus = status.value,
             apiCode = parsed?.code,
+            apiMessage = parsed?.description,
         )
     }
 
@@ -57,4 +58,5 @@ private data class ApiErrorResponseBody(
 @Serializable
 private data class ApiErrorBody(
     val code: Int? = null,
+    val description: String? = null,
 )

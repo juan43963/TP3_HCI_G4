@@ -86,6 +86,7 @@ data class RoutineUi(
 fun RoutinesScreen(
     onProfileClick: () -> Unit = {},
     onAddRoutine: () -> Unit = {},
+    onCreateFirstRoutine: () -> Unit = onAddRoutine,
     onNotificationsClick: () -> Unit = {},
     unreadNotificationCount: Int = 0,
     onRoutineClick: (String) -> Unit = {},
@@ -102,6 +103,7 @@ fun RoutinesScreen(
     errorMessage: String? = null,
     infoMessage: String? = null,
     onExecuteRoutine: (String) -> Unit = {},
+    onToggleRoutineFavorite: (String) -> Unit = {},
     onSaveRoutine: (id: String, name: String, time24h: String, days: List<Boolean>, enabled: Boolean) -> Unit = { _, _, _, _, _ -> },
     onDeleteRoutine: (String) -> Unit = {},
     onRetry: () -> Unit = {},
@@ -113,6 +115,8 @@ fun RoutinesScreen(
         TabletRoutinesScreen(
             routines = routines,
             onProfileClick = onProfileClick,
+            onNotificationsClick = onNotificationsClick,
+            unreadNotificationCount = unreadNotificationCount,
             onAddRoutine = onAddRoutine,
             onCreateRoom = onCreateRoom,
             onCreateDevice = onCreateDevice,
@@ -121,6 +125,7 @@ fun RoutinesScreen(
             onNavigateHistory = onNavigateHistory,
             onRoutineClick = onRoutineClick,
             onExecuteRoutine = onExecuteRoutine,
+            onToggleRoutineFavorite = onToggleRoutineFavorite,
             onSaveRoutine = onSaveRoutine,
             onDeleteRoutine = onDeleteRoutine,
             detailFor = detailFor,
@@ -205,7 +210,7 @@ fun RoutinesScreen(
                         if (routines.isEmpty()) {
                             item {
                                 RoutinesEmptyStateCard(
-                                    onCreateRoutineClick = onAddRoutine,
+                                    onCreateRoutineClick = onCreateFirstRoutine,
                                     compact = true,
                                 )
                             }
@@ -215,6 +220,7 @@ fun RoutinesScreen(
                                     routine = routine,
                                     onClick = { onRoutineClick(routine.id) },
                                     onExecute = { onExecuteRoutine(routine.id) },
+                                    onToggleFavorite = { onToggleRoutineFavorite(routine.id) },
                                 )
                             }
                         }
@@ -478,7 +484,12 @@ private fun RoomsStyleFilterChip(
 }
 
 @Composable
-internal fun RoutineCard(routine: RoutineUi, onClick: () -> Unit = {}, onExecute: () -> Unit = {}) {
+internal fun RoutineCard(
+    routine: RoutineUi,
+    onClick: () -> Unit = {},
+    onExecute: () -> Unit = {},
+    onToggleFavorite: () -> Unit = {},
+) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -518,13 +529,15 @@ internal fun RoutineCard(routine: RoutineUi, onClick: () -> Unit = {}, onExecute
                     Spacer(modifier = Modifier.height(4.dp))
                     CategoryChip(category = routine.category)
                 }
-                Icon(
-                    imageVector = if (routine.favorite) SmartHomeIcons.Favorite
-                    else SmartHomeIcons.FavoriteBorder,
-                    contentDescription = stringResource(R.string.routines_favorite_content_description),
-                    tint = if (routine.favorite) StarActive else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(24.dp),
-                )
+                IconButton(onClick = onToggleFavorite) {
+                    Icon(
+                        imageVector = if (routine.favorite) SmartHomeIcons.Favorite
+                        else SmartHomeIcons.FavoriteBorder,
+                        contentDescription = stringResource(R.string.routines_favorite_content_description),
+                        tint = if (routine.favorite) StarActive else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(14.dp))

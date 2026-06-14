@@ -55,6 +55,7 @@ fun LoginScreen(
     onNavigateToRegister: () -> Unit,
     onNavigateToForgotPassword: () -> Unit,
     onLoginSuccess: () -> Unit,
+    onNeedsVerification: (email: String, password: String) -> Unit,
     viewModel: LoginViewModel,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -63,6 +64,15 @@ fun LoginScreen(
         if (uiState.loggedIn) {
             viewModel.consumeLoggedIn()
             onLoginSuccess()
+        }
+    }
+
+    LaunchedEffect(uiState.needsVerification) {
+        if (uiState.needsVerification) {
+            val email = uiState.email
+            val password = uiState.password
+            viewModel.consumeNeedsVerification()
+            onNeedsVerification(email, password)
         }
     }
 

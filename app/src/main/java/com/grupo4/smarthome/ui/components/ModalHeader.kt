@@ -50,6 +50,7 @@ fun ModalHeader(
     icon: ImageVector? = null,
     subtitle: String? = null,
     eyebrow: String? = null,
+    compact: Boolean = false,
 ) {
     Box(
         modifier = modifier
@@ -59,15 +60,15 @@ fun ModalHeader(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(22.dp)
+                .padding(if (compact) 14.dp else 22.dp)
                 .padding(end = 40.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(if (compact) 12.dp else 14.dp),
         ) {
             if (icon != null) {
                 Box(
                     modifier = Modifier
-                        .size(52.dp)
+                        .size(if (compact) 40.dp else 52.dp)
                         .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(14.dp)),
                     contentAlignment = Alignment.Center,
                 ) {
@@ -90,11 +91,15 @@ fun ModalHeader(
                 }
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = if (compact) {
+                        MaterialTheme.typography.titleLarge
+                    } else {
+                        MaterialTheme.typography.headlineSmall
+                    },
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
-                if (subtitle != null) {
+                if (subtitle != null && !compact) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = subtitle,

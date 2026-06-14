@@ -37,6 +37,7 @@ fun TabletSelectHomeLayout(
     onAddHome: () -> Unit,
     onProfileClick: () -> Unit,
     isLoading: Boolean = false,
+    homesLoaded: Boolean = false,
     errorMessage: String? = null,
     onRetry: () -> Unit = {},
     modifier: Modifier = Modifier,
@@ -102,7 +103,7 @@ fun TabletSelectHomeLayout(
                         }
                     }
                     when {
-                        isLoading && homes.isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) {
+                        !homesLoaded -> item(span = { GridItemSpan(maxLineSpan) }) {
                             SelectHomeLoading()
                         }
                         errorMessage != null && homes.isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) {

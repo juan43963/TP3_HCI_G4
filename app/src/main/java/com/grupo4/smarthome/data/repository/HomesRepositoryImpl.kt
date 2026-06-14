@@ -44,13 +44,12 @@ class HomesRepositoryImpl(
     override suspend fun createHome(
         name: String,
         type: HomeType,
-        photoIndex: Int?,
     ): AppResult<Home> =
         runCatching {
             val response = homesApi.createHome(
                 HomeCreateDto(
                     name = name.trim(),
-                    metadata = buildHomeMetadata(type, photoIndex),
+                    metadata = buildHomeMetadata(type),
                 )
             )
             val body = response.bodyAsText()
@@ -68,7 +67,7 @@ class HomesRepositoryImpl(
 
     override suspend fun renameHome(homeId: String, name: String): AppResult<Home> =
         runCatching {
-            // Preservamos el tipo y la foto guardados en metadata; solo cambia el nombre
+            // Preservamos el tipo guardado en metadata; solo cambia el nombre
             val current = cachedHomes.firstOrNull { it.id == homeId }
             val response = homesApi.updateHome(
                 homeId,
@@ -76,7 +75,6 @@ class HomesRepositoryImpl(
                     name = name.trim(),
                     metadata = buildHomeMetadata(
                         type = current?.type ?: HomeType.OTRO,
-                        photoIndex = current?.photoIndex,
                     ),
                 )
             )

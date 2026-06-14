@@ -32,12 +32,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -53,6 +60,7 @@ import com.grupo4.smarthome.data.model.RoomType
 import com.grupo4.smarthome.ui.components.SectionEditIconButton
 import com.grupo4.smarthome.ui.theme.BorderDefault
 import com.grupo4.smarthome.ui.theme.BrandIndigoDark
+import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 import com.grupo4.smarthome.ui.theme.StarActive
 import kotlin.math.min
 
@@ -65,6 +73,7 @@ fun RoomsHeader(
     onEditRoomsToggle: () -> Unit,
     modifier: Modifier = Modifier,
     showEditButton: Boolean = true,
+    showCreateButton: Boolean = true,
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
         val compactActions = maxWidth < 760.dp
@@ -85,6 +94,7 @@ fun RoomsHeader(
                     onCreateRoomClick = onCreateRoomClick,
                     onEditRoomsToggle = onEditRoomsToggle,
                     showEditButton = showEditButton,
+                    showCreateButton = showCreateButton,
                 )
             }
 
@@ -187,6 +197,7 @@ private fun RoomsHeaderActions(
     onEditRoomsToggle: () -> Unit,
     modifier: Modifier = Modifier,
     showEditButton: Boolean = true,
+    showCreateButton: Boolean = true,
 ) {
     Row(
         modifier = modifier,
@@ -230,28 +241,30 @@ private fun RoomsHeaderActions(
                 }
             }
         }
-        Button(
-            onClick = onCreateRoomClick,
-            modifier = Modifier.height(if (compact) 40.dp else 48.dp),
-            shape = RoundedCornerShape(10.dp),
-            contentPadding = ButtonDefaults.compactContentPadding(compact),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = BrandIndigoDark,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-            ),
-        ) {
-            Icon(
-                imageVector = com.grupo4.smarthome.ui.theme.SmartHomeIcons.Add,
-                contentDescription = null,
-                modifier = Modifier.size(if (compact) 18.dp else 20.dp),
-            )
-            Spacer(modifier = Modifier.width(if (compact) 6.dp else 8.dp))
-            Text(
-                text = stringResource(
-                    if (compact) R.string.rooms_create_room_short else R.string.rooms_create_room,
+        if (showCreateButton) {
+            Button(
+                onClick = onCreateRoomClick,
+                modifier = Modifier.height(if (compact) 40.dp else 48.dp),
+                shape = RoundedCornerShape(10.dp),
+                contentPadding = ButtonDefaults.compactContentPadding(compact),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = BrandIndigoDark,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                 ),
-                fontWeight = FontWeight.Bold,
-            )
+            ) {
+                Icon(
+                    imageVector = com.grupo4.smarthome.ui.theme.SmartHomeIcons.Add,
+                    contentDescription = null,
+                    modifier = Modifier.size(if (compact) 18.dp else 20.dp),
+                )
+                Spacer(modifier = Modifier.width(if (compact) 6.dp else 8.dp))
+                Text(
+                    text = stringResource(
+                        if (compact) R.string.rooms_create_room_short else R.string.rooms_create_room,
+                    ),
+                    fontWeight = FontWeight.Bold,
+                )
+            }
         }
     }
 }
@@ -407,120 +420,160 @@ fun RoomCard(
 ) {
     val compact = variant == RoomCardVariant.Compact
     val phone = variant == RoomCardVariant.Phone
+    val corner = if (phone) 18.dp else if (compact) 12.dp else 14.dp
     val cardBorder = when {
         selected -> BorderStroke(1.dp, RoomsSelectedChipBorder)
-        editMode -> BorderStroke(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f))
         compact || phone -> BorderStroke(1.dp, RoomsSoftBorder)
         else -> BorderStroke(1.dp, RoomsSoftBorder)
     }
+    val primary = MaterialTheme.colorScheme.primary
 
     Surface(
         modifier = modifier
             .fillMaxWidth()
             .defaultMinSize(
                 minHeight = when {
-                    phone && editMode -> 146.dp
                     phone -> 96.dp
                     compact -> 118.dp
                     else -> 198.dp
                 },
             )
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(if (phone) 18.dp else if (compact) 12.dp else 14.dp),
+            .then(if (editMode) Modifier.dashedBorder(primary, corner) else Modifier.clickable(onClick = onClick)),
+        shape = RoundedCornerShape(corner),
         color = if (selected) RoomsSelectedChipContainer.copy(alpha = 0.5f)
         else MaterialTheme.colorScheme.surface,
-        border = cardBorder,
+        border = if (editMode) null else cardBorder,
         shadowElevation = when {
+            editMode -> 0.dp
             phone -> 2.dp
             compact -> 0.dp
             else -> 3.dp
         },
     ) {
-        Column(
-            modifier = Modifier.padding(
-                when {
-                    phone -> 16.dp
-                    compact -> 12.dp
-                    else -> 18.dp
-                },
-            ),
-            verticalArrangement = Arrangement.spacedBy(if (compact || phone) 10.dp else 12.dp),
-        ) {
-            if (phone) {
-                RoomCardPhoneContent(
-                    room = room,
-                    onToggleFavorite = onToggleFavorite,
-                )
-            } else if (compact) {
-                RoomCardCompactContent(
-                    room = room,
-                    onToggleFavorite = onToggleFavorite,
-                )
-                RoomCompactMetrics(
-                    totalDevices = room.devicesTotal,
-                    activeDevices = room.devicesActive,
-                )
-            } else {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.Top,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    RoomTypeIconTile(room = room, compact = false)
-                    RoomFavoriteButton(
-                        isFavorite = room.isFavorite,
-                        compact = false,
+        Box {
+            Column(
+                modifier = Modifier
+                    .padding(
+                        when {
+                            phone -> 16.dp
+                            compact -> 12.dp
+                            else -> 18.dp
+                        },
+                    )
+                    .then(if (editMode) Modifier.alpha(0.4f) else Modifier),
+                verticalArrangement = Arrangement.spacedBy(if (compact || phone) 10.dp else 12.dp),
+            ) {
+                if (phone) {
+                    RoomCardPhoneContent(
+                        room = room,
                         onToggleFavorite = onToggleFavorite,
                     )
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    RoomCardCopy(
+                } else if (compact) {
+                    RoomCardCompactContent(
                         room = room,
-                        compact = false,
-                        modifier = Modifier.weight(1f),
+                        onToggleFavorite = onToggleFavorite,
                     )
-                    RoomActiveDonut(
-                        active = room.devicesActive,
-                        total = room.devicesTotal,
-                        modifier = Modifier.size(72.dp),
+                    RoomCompactMetrics(
+                        totalDevices = room.devicesTotal,
+                        activeDevices = room.devicesActive,
                     )
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        RoomTypeIconTile(room = room, compact = false)
+                        RoomFavoriteButton(
+                            isFavorite = room.isFavorite,
+                            compact = false,
+                            onToggleFavorite = onToggleFavorite,
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        RoomCardCopy(
+                            room = room,
+                            compact = false,
+                            modifier = Modifier.weight(1f),
+                        )
+                        RoomActiveDonut(
+                            active = room.devicesActive,
+                            total = room.devicesTotal,
+                            modifier = Modifier.size(72.dp),
+                        )
+                    }
                 }
             }
 
             if (editMode) {
+                // Capa transparente que bloquea tocar el contenido atenuado de atrás
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = {},
+                        ),
+                )
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.align(Alignment.Center),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     OutlinedButton(
                         onClick = onEdit,
-                        modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(10.dp),
-                        contentPadding = ButtonDefaults.compactContentPadding(compact || phone),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            contentColor = primary,
+                        ),
                     ) {
+                        Icon(
+                            imageVector = SmartHomeIcons.Edit,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text(text = stringResource(R.string.rooms_edit_room), fontWeight = FontWeight.Bold)
                     }
                     OutlinedButton(
                         onClick = onDelete,
-                        modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(10.dp),
-                        contentPadding = ButtonDefaults.compactContentPadding(compact || phone),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
                         colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surface,
                             contentColor = MaterialTheme.colorScheme.error,
                         ),
                     ) {
+                        Icon(
+                            imageVector = SmartHomeIcons.Delete,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text(text = stringResource(R.string.rooms_delete_room), fontWeight = FontWeight.Bold)
                     }
                 }
             }
         }
     }
+}
+
+private fun Modifier.dashedBorder(color: Color, cornerRadius: Dp): Modifier = drawBehind {
+    drawRoundRect(
+        color = color,
+        cornerRadius = CornerRadius(cornerRadius.toPx()),
+        style = Stroke(
+            width = 1.5.dp.toPx(),
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 8f), 0f),
+        ),
+    )
 }
 
 @Composable

@@ -4,7 +4,11 @@ data class ApiError(
     val kind: ErrorKind,
     val httpStatus: Int? = null,
     val apiCode: Int? = null,
+    val apiMessage: String? = null,
 )
+
+fun ApiError.isUnverifiedAccount(): Boolean =
+    apiMessage?.contains("verif", ignoreCase = true) == true
 
 enum class ErrorKind {
     Validation,

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.grupo4.smarthome.core.result.AppResult
+import com.grupo4.smarthome.data.local.PreferencesDataStore
 import com.grupo4.smarthome.data.repository.DevicesRepository
 import com.grupo4.smarthome.data.repository.RoomsRepository
 import com.grupo4.smarthome.data.repository.RoutinesRepository
@@ -23,6 +24,7 @@ class HomeViewModel(
     private val roomsRepository: RoomsRepository,
     private val devicesRepository: DevicesRepository,
     private val routinesRepository: RoutinesRepository,
+    private val preferences: PreferencesDataStore,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(
         DashboardUiState(
@@ -37,6 +39,15 @@ class HomeViewModel(
     val uiState: StateFlow<DashboardUiState> = _uiState.asStateFlow()
 
     private var homeId: String? = null
+
+    init {
+        viewModelScope.launch {
+            preferences.recentRoomAccess.collect { map -> _uiState.update { it.copy(recentRoomAccess = map) } }
+        }
+        viewModelScope.launch {
+            preferences.recentRoutineAccess.collect { map -> _uiState.update { it.copy(recentRoutineAccess = map) } }
+        }
+    }
 
     fun onHomeChanged(newHomeId: String?, homeName: String, userName: String) {
         _uiState.update { it.copy(selectedHomeName = homeName, userName = userName) }
@@ -139,11 +150,12 @@ class HomeViewModelFactory(
     private val roomsRepository: RoomsRepository,
     private val devicesRepository: DevicesRepository,
     private val routinesRepository: RoutinesRepository,
+    private val preferences: PreferencesDataStore,
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
-            return HomeViewModel(roomsRepository, devicesRepository, routinesRepository) as T
+            return HomeViewModel(roomsRepository, devicesRepository, routinesRepository, preferences) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

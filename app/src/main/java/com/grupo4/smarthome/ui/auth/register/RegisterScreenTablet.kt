@@ -56,7 +56,7 @@ private val StepCircleSize = 40.dp
 @Composable
 fun RegisterScreenTablet(
     onNavigateToLogin: () -> Unit,
-    onRegisterSuccess: (String) -> Unit,
+    onRegisterSuccess: (String, String) -> Unit,
     viewModel: RegisterViewModel,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -64,8 +64,9 @@ fun RegisterScreenTablet(
     LaunchedEffect(uiState.registrationCompleted, uiState.registeredEmail) {
         val email = uiState.registeredEmail
         if (uiState.registrationCompleted && email != null) {
+            val password = uiState.password
             viewModel.consumeRegistrationCompleted()
-            onRegisterSuccess(email)
+            onRegisterSuccess(email, password)
         }
     }
 
