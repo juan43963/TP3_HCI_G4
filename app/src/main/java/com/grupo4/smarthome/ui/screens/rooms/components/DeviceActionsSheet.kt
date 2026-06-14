@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -68,7 +70,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.grupo4.smarthome.R
+import com.grupo4.smarthome.ui.components.ModalCloseButton
 import com.grupo4.smarthome.data.model.ActionArg
 import com.grupo4.smarthome.data.model.Device
 import com.grupo4.smarthome.data.model.DeviceActionInfo
@@ -87,8 +92,24 @@ fun DeviceActionsSheet(
     device: Device,
     onAction: (actionName: String, args: List<ActionArg>) -> Unit,
     onDismiss: () -> Unit,
-    // En tablet la card no tiene el slider primario, así que el sheet también lo incluye.
+    // En tablet la card no tiene el slider primario, así que el sheet también lo incluye. También es la
+    // señal de que estamos en tablet: ahí el panel se muestra como card flotante centrada (no bottom sheet).
     includePrimaryAction: Boolean = false,
+) {
+    if (includePrimaryAction) {
+        DeviceActionsCenteredCard(device = device, onAction = onAction, onDismiss = onDismiss)
+    } else {
+        DeviceActionsModalSheet(device = device, onAction = onAction, onDismiss = onDismiss)
+    }
+}
+
+// Teléfono: panel como hoja inferior (bottom sheet).
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DeviceActionsModalSheet(
+    device: Device,
+    onAction: (String, List<ActionArg>) -> Unit,
+    onDismiss: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ModalBottomSheet(
@@ -106,50 +127,106 @@ fun DeviceActionsSheet(
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             SheetHeader(device = device)
+            DeviceActionsBody(device = device, onAction = onAction, includePrimaryAction = false)
+        }
+    }
+}
 
-            val pair = onOffPairFor(device)
-            if (pair != null) {
-                SectionCard {
-                    SectionHeader(
-                        title = stringResource(R.string.rooms_device_power),
-                        subtitle = stringResource(R.string.rooms_action_sub_power),
-                    )
-                    PowerPair(device = device, pair = pair, onAction = onAction)
+// Tablet: card flotante centrada en el medio de la pantalla, con X arriba a la derecha y alto acotado + scroll interno.
+@Composable
+private fun DeviceActionsCenteredCard(
+    device: Device,
+    onAction: (String, List<ActionArg>) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(0.7f)
+                .fillMaxHeight(0.8f),
+            shape = RoundedCornerShape(28.dp),
+            color = MaterialTheme.colorScheme.surface,
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp)
+                    .padding(top = 12.dp, bottom = 24.dp),
+            ) {
+                // Header fijo arriba junto a la X: al scrollear el cuerpo, sigue visible de qué dispositivo se trata.
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.Top,
+                ) {
+                    SheetHeader(device = device, showStatus = false, modifier = Modifier.weight(1f))
+                    ModalCloseButton(onDismiss = onDismiss)
                 }
-            }
-
-            // Resto de acciones: menos las del par de arriba y la acción de valor primario (slider de la
-            // card). En tablet (includePrimaryAction) NO se excluye, porque la card no tiene el slider.
-            val canonical = device.type.canonicalName
-            val primary = if (includePrimaryAction) null else DeviceActionNames.primaryValueAction(canonical)
-            val rest = device.type.actions.filter { action ->
-                // getState se resuelve solo como refresco; no lo mostramos como acción.
-                !DeviceActionNames.isStateRefreshAction(action.name) &&
-                    (pair == null || (!action.name.equals(pair.onName, ignoreCase = true) &&
-                        !action.name.equals(pair.offName, ignoreCase = true))) &&
-                    (primary == null || !action.name.equals(primary, ignoreCase = true))
-            }
-            // Acciones sin parámetros (start/pause/dock/stop/next/...) van como botones circulares en grupo.
-            val triggers = rest.filter { DeviceActionRegistry.controlFor(it, canonical) is DeviceActionControl.Trigger }
-            val others = rest.filter { DeviceActionRegistry.controlFor(it, canonical) !is DeviceActionControl.Trigger }
-            if (triggers.isNotEmpty()) {
-                SectionCard { TriggerGroup(actions = triggers, onAction = onAction) }
-            }
-            others.forEach { action ->
-                SectionCard {
-                    ActionSection(action = action, device = device, onAction = onAction)
+                Spacer(modifier = Modifier.height(14.dp))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
+                ) {
+                    DeviceActionsBody(device = device, onAction = onAction, includePrimaryAction = true)
                 }
             }
         }
     }
 }
 
+// Cuerpo compartido: header + una tarjeta por sección. Igual en tablet y teléfono.
 @Composable
-private fun SheetHeader(device: Device) {
+private fun ColumnScope.DeviceActionsBody(
+    device: Device,
+    onAction: (String, List<ActionArg>) -> Unit,
+    includePrimaryAction: Boolean,
+) {
+    val pair = onOffPairFor(device)
+    if (pair != null) {
+        SectionCard {
+            SectionHeader(
+                title = stringResource(R.string.rooms_device_power),
+                subtitle = stringResource(R.string.rooms_action_sub_power),
+            )
+            PowerPair(device = device, pair = pair, onAction = onAction)
+        }
+    }
+
+    // Resto de acciones: menos las del par de arriba y la acción de valor primario (slider de la
+    // card). En tablet (includePrimaryAction) NO se excluye, porque la card no tiene el slider.
+    val canonical = device.type.canonicalName
+    val primary = if (includePrimaryAction) null else DeviceActionNames.primaryValueAction(canonical)
+    val rest = device.type.actions.filter { action ->
+        // getState se resuelve solo como refresco; no lo mostramos como acción.
+        !DeviceActionNames.isStateRefreshAction(action.name) &&
+            (pair == null || (!action.name.equals(pair.onName, ignoreCase = true) &&
+                !action.name.equals(pair.offName, ignoreCase = true))) &&
+            (primary == null || !action.name.equals(primary, ignoreCase = true))
+    }
+    // Acciones sin parámetros (start/pause/dock/stop/next/...) van como botones circulares en grupo.
+    val triggers = rest.filter { DeviceActionRegistry.controlFor(it, canonical) is DeviceActionControl.Trigger }
+    val others = rest.filter { DeviceActionRegistry.controlFor(it, canonical) !is DeviceActionControl.Trigger }
+    if (triggers.isNotEmpty()) {
+        SectionCard { TriggerGroup(actions = triggers, onAction = onAction) }
+    }
+    others.forEach { action ->
+        SectionCard {
+            ActionSection(action = action, device = device, onAction = onAction)
+        }
+    }
+}
+
+@Composable
+private fun SheetHeader(device: Device, showStatus: Boolean = true, modifier: Modifier = Modifier) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp),
-        modifier = Modifier.padding(top = 8.dp),
+        modifier = modifier.padding(top = 8.dp),
     ) {
         Box(
             modifier = Modifier
@@ -178,8 +255,10 @@ private fun SheetHeader(device: Device) {
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Spacer(modifier = Modifier.height(6.dp))
-            DeviceStatusRow(device = device)
+            if (showStatus) {
+                Spacer(modifier = Modifier.height(6.dp))
+                DeviceStatusRow(device = device)
+            }
         }
     }
 }
