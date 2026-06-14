@@ -435,7 +435,7 @@ private fun TriggerGroup(
     )
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         actions.forEach { action ->
