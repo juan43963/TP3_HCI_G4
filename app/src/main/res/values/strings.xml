@@ -260,7 +260,8 @@
     <string name="search_section_rooms">Rooms</string>
     <string name="search_section_devices">Devices</string>
     <string name="search_section_routines">Routines</string>
-    <string name="search_empty_hint">Type to search your home.</string>
+    <string name="search_empty_hint">Search your home</string>
+    <string name="search_empty_subtitle">Find rooms, devices and routines in one place.</string>
     <string name="search_no_results">No results found. Try another name or device type.</string>
     <string name="search_back_content_description">Go back</string>
     <string name="search_clear_content_description">Clear search</string>

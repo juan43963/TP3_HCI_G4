@@ -31,6 +31,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -599,7 +600,16 @@ internal fun RoutineCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                DaysRow(days = routine.days, modifier = Modifier.weight(1f))
+                DaysRow(
+                    days = routine.days,
+                    modifier = Modifier.weight(1f),
+                )
+                VerticalDivider(
+                    modifier = Modifier
+                        .padding(horizontal = 14.dp)
+                        .height(28.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant,
+                )
                 PlayButton(onClick = onExecute)
             }
         }
@@ -627,7 +637,7 @@ private fun DaysRow(days: List<Boolean>, modifier: Modifier = Modifier) {
     val initials = stringArrayResource(R.array.routines_day_initials)
     Row(
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
     ) {
         days.forEachIndexed { index, active ->
             DayCircle(
@@ -641,7 +651,7 @@ private fun DaysRow(days: List<Boolean>, modifier: Modifier = Modifier) {
 @Composable
 private fun DayCircle(letter: String, active: Boolean) {
     val baseModifier = Modifier
-        .size(30.dp)
+        .size(26.dp)
         .clip(CircleShape)
     val styledModifier = if (active) {
         baseModifier.background(DayActiveColor)
@@ -653,7 +663,7 @@ private fun DayCircle(letter: String, active: Boolean) {
     Box(modifier = styledModifier, contentAlignment = Alignment.Center) {
         Text(
             text = letter,
-            style = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Bold,
             color = if (active) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
         )

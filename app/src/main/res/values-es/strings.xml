@@ -259,7 +259,8 @@
     <string name="search_section_rooms">Habitaciones</string>
     <string name="search_section_devices">Dispositivos</string>
     <string name="search_section_routines">Rutinas</string>
-    <string name="search_empty_hint">Escribí para buscar en tu hogar.</string>
+    <string name="search_empty_hint">Buscá en tu hogar</string>
+    <string name="search_empty_subtitle">Encontrá habitaciones, dispositivos y rutinas en un solo lugar.</string>
     <string name="search_no_results">No encontramos resultados. Probá con otro nombre o tipo de dispositivo.</string>
     <string name="search_back_content_description">Volver</string>
     <string name="search_clear_content_description">Limpiar búsqueda</string>

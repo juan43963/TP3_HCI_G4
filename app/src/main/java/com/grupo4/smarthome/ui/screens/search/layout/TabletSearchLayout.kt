@@ -31,14 +31,15 @@ fun TabletSearchLayout(
 ) {
     if (!presentation.hasQuery) {
         SearchEmptyState(
-            message = stringResource(R.string.search_empty_hint),
+            title = stringResource(R.string.search_empty_hint),
+            subtitle = stringResource(R.string.search_empty_subtitle),
             modifier = modifier,
         )
         return
     }
     if (!presentation.hasResults) {
         SearchEmptyState(
-            message = stringResource(R.string.search_no_results),
+            title = stringResource(R.string.search_no_results),
             modifier = modifier,
         )
         return
