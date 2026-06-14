@@ -13,6 +13,7 @@ import com.grupo4.smarthome.data.model.DeviceActionNames
 import com.grupo4.smarthome.data.model.DeviceActionResult
 import com.grupo4.smarthome.data.model.DeviceLog
 import com.grupo4.smarthome.data.model.DeviceTypeInfo
+import com.grupo4.smarthome.data.model.DeviceTypeNames
 import com.grupo4.smarthome.data.model.NotificationKind
 import com.grupo4.smarthome.data.remote.api.DevicesApi
 import com.grupo4.smarthome.data.remote.dto.device.DeviceCreateDto
@@ -309,6 +310,8 @@ class DevicesRepositoryImpl(
             val target = if (device.locked == true) DeviceActionNames.UNLOCK else DeviceActionNames.LOCK
             return type.action(target)?.name
         }
+        // Alarm arm/disarm actions require a security code, so they cannot be resolved as a no-arg toggle.
+        if (type.canonicalName == DeviceTypeNames.ALARM) return null
         val candidates = if (device.isOn) DeviceActionNames.OFF_CANDIDATES else DeviceActionNames.ON_CANDIDATES
         return candidates.firstNotNullOfOrNull { type.action(it)?.name }
     }

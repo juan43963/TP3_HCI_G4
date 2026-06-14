@@ -27,6 +27,9 @@ object DeviceActionNames {
      */
     fun supportsToggle(type: DeviceTypeInfo): Boolean {
         if (type.isDoor) return type.supports(LOCK) || type.supports(UNLOCK)
+        // Las acciones de alarma (armAway/disarm/armStay) requieren código. Un switch no puede pedirlo,
+        // así que se ejecutan desde "More actions", donde la UI muestra el input de código.
+        if (type.canonicalName == DeviceTypeNames.ALARM) return false
         val hasOn = ON_CANDIDATES.any { type.supports(it) }
         val hasOff = OFF_CANDIDATES.any { type.supports(it) }
         return hasOn && hasOff
