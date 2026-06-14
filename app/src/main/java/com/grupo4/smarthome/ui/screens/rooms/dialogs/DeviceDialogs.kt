@@ -565,56 +565,65 @@ private fun CustomizeDeviceRow(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
-        Row(
-            modifier = Modifier.padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            DeviceIconTile(type = device.type)
-            Column(modifier = Modifier.weight(1f)) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                DeviceIconTile(type = device.type)
                 Text(
-                    text = deviceTypeLabel(device.type).uppercase(),
-                    style = MaterialTheme.typography.labelSmall,
+                    text = deviceTypeLabel(device.type),
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
                 )
-                Spacer(modifier = Modifier.height(6.dp))
-                OutlinedTextField(
-                    value = device.name,
-                    onValueChange = onRename,
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text(stringResource(R.string.rooms_device_name_placeholder)) },
-                    singleLine = true,
-                    shape = RoundedCornerShape(10.dp),
-                    trailingIcon = {
-                        if (device.name.isNotEmpty()) {
-                            IconButton(onClick = onClear) {
-                                Icon(
-                                    imageVector = SmartHomeIcons.Close,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
+                DeleteDeviceButton(onClick = onRemove)
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            OutlinedTextField(
+                value = device.name,
+                onValueChange = onRename,
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text(stringResource(R.string.rooms_device_name_placeholder)) },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                trailingIcon = {
+                    if (device.name.isNotEmpty()) {
+                        IconButton(onClick = onClear) {
+                            Icon(
+                                imageVector = SmartHomeIcons.Close,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
-                    },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                    ),
-                )
-            }
-            IconButton(onClick = onRemove) {
-                Icon(
-                    imageVector = SmartHomeIcons.Delete,
-                    contentDescription = stringResource(R.string.rooms_delete),
-                    tint = ErrorRed,
-                )
-            }
+                    }
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                ),
+            )
         }
+    }
+}
+
+@Composable
+private fun DeleteDeviceButton(onClick: () -> Unit) {
+    IconButton(onClick = onClick) {
+        Icon(
+            imageVector = SmartHomeIcons.Delete,
+            contentDescription = stringResource(R.string.rooms_delete),
+            tint = ErrorRed,
+            modifier = Modifier.size(20.dp),
+        )
     }
 }
 
@@ -733,13 +742,7 @@ private fun ReviewDeviceRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            IconButton(onClick = onRemove) {
-                Icon(
-                    imageVector = SmartHomeIcons.Delete,
-                    contentDescription = stringResource(R.string.rooms_delete),
-                    tint = ErrorRed,
-                )
-            }
+            DeleteDeviceButton(onClick = onRemove)
         }
     }
 }
