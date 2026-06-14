@@ -64,6 +64,7 @@ import com.grupo4.smarthome.data.model.Device
 import com.grupo4.smarthome.data.model.DeviceActionInfo
 import com.grupo4.smarthome.data.model.DeviceActionParamInfo
 import com.grupo4.smarthome.data.model.DeviceTypeNames
+import com.grupo4.smarthome.data.model.Routine
 import com.grupo4.smarthome.data.model.RoutineAction
 import com.grupo4.smarthome.data.model.RoutineCategory
 import com.grupo4.smarthome.ui.screens.rooms.components.deviceTypeIcon
@@ -103,6 +104,7 @@ fun BoxScope.AddRoutineTabletOverlay(
     devices: List<Device> = emptyList(),
     deviceRoomNames: Map<String, String> = emptyMap(),
     deviceActions: Map<String, List<DeviceActionInfo>> = emptyMap(),
+    initialRoutine: Routine? = null,
     onCreate: (name: String, category: RoutineCategory, time24h: String, days: List<Boolean>, actions: List<RoutineAction>) -> Unit = { _, _, _, _, _ -> },
 ) {
     if (!visible) return
@@ -122,6 +124,7 @@ fun BoxScope.AddRoutineTabletOverlay(
                 devices = devices,
                 deviceRoomNames = deviceRoomNames,
                 deviceActions = deviceActions,
+                initialRoutine = initialRoutine,
                 onCreate = onCreate,
                 maxSheetHeight = maxHeight,
             )
@@ -135,17 +138,24 @@ private fun AddRoutineTabletDialogContent(
     devices: List<Device>,
     deviceRoomNames: Map<String, String>,
     deviceActions: Map<String, List<DeviceActionInfo>>,
+    initialRoutine: Routine? = null,
     onCreate: (name: String, category: RoutineCategory, time24h: String, days: List<Boolean>, actions: List<RoutineAction>) -> Unit,
     maxSheetHeight: Dp,
 ) {
     var currentStep by rememberSaveable { mutableStateOf(AddRoutineTabletStep.Details) }
-    var routineName by rememberSaveable { mutableStateOf("") }
-    var selectedCategory by rememberSaveable { mutableStateOf(AddRoutineTabletCategory.Morning) }
-    var time by rememberSaveable { mutableStateOf("08:00 AM") }
-    var days by rememberSaveable(stateSaver = TabletDaysSaver) {
-        mutableStateOf(listOf(true, true, true, true, true, false, false))
+    var routineName by rememberSaveable { mutableStateOf(initialRoutine?.name.orEmpty()) }
+    var selectedCategory by rememberSaveable {
+        mutableStateOf(initialRoutine?.category?.toTabletCategory() ?: AddRoutineTabletCategory.Morning)
     }
-    var draftActions by remember { mutableStateOf(listOf<RoutineAction>()) }
+    var time by rememberSaveable {
+        mutableStateOf(initialRoutine?.time?.let(::formatRoutineTime) ?: "08:00 AM")
+    }
+    var days by rememberSaveable(stateSaver = TabletDaysSaver) {
+        mutableStateOf(
+            initialRoutine?.days ?: listOf(true, true, true, true, true, false, false),
+        )
+    }
+    var draftActions by remember { mutableStateOf(initialRoutine?.actions.orEmpty()) }
     var selectedDevice by remember { mutableStateOf<Device?>(null) }
     var selectedActionInfo by remember { mutableStateOf<DeviceActionInfo?>(null) }
     var paramValue by remember { mutableStateOf(0f) }
@@ -196,6 +206,7 @@ private fun AddRoutineTabletDialogContent(
                 currentStep = currentStep,
                 onClose = onDismiss,
                 compact = compactHeight,
+                isEditing = initialRoutine != null,
             )
 
             Column(
@@ -300,6 +311,7 @@ private fun AddRoutineTabletDialogContent(
                     val textLabel = routineTextParamLabel(selectedDevice, info)
                     textLabel == null || paramTextValue.isNotBlank()
                 } ?: true,
+                isEditing = initialRoutine != null,
                 onCreate = {
                     if (canCreate) {
                         onCreate(
@@ -323,12 +335,20 @@ private val TabletDaysSaver = listSaver<List<Boolean>, Boolean>(
     restore = { it.toList() },
 )
 
+private fun RoutineCategory.toTabletCategory(): AddRoutineTabletCategory = when (this) {
+    RoutineCategory.MORNING -> AddRoutineTabletCategory.Morning
+    RoutineCategory.NIGHT -> AddRoutineTabletCategory.Night
+    RoutineCategory.COMFORT -> AddRoutineTabletCategory.Comfort
+    RoutineCategory.SECURITY -> AddRoutineTabletCategory.Security
+    RoutineCategory.CUSTOM -> AddRoutineTabletCategory.Custom
+}
 
 @Composable
 private fun AddRoutineTabletHeader(
     currentStep: AddRoutineTabletStep,
     onClose: () -> Unit,
     compact: Boolean = false,
+    isEditing: Boolean = false,
 ) {
     val inDetails = currentStep == AddRoutineTabletStep.Details
 
@@ -367,11 +387,14 @@ private fun AddRoutineTabletHeader(
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.primary,
                 )
-                Text(
-                    text = stringResource(
-                        if (inDetails) R.string.create_routine_details_title
-                        else R.string.create_routine_actions_title,
-                    ),
+            Text(
+                text = stringResource(
+                    when {
+                        isEditing && inDetails -> R.string.routine_detail_edit
+                        inDetails -> R.string.create_routine_details_title
+                        else -> R.string.create_routine_actions_title
+                    },
+                ),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -1242,6 +1265,7 @@ private fun AddRoutineTabletFooter(
     onNext: () -> Unit,
     onConfirmParameter: () -> Unit,
     canConfirmParameter: Boolean,
+    isEditing: Boolean,
     onCreate: () -> Unit,
 ) {
     Surface(
@@ -1273,8 +1297,11 @@ private fun AddRoutineTabletFooter(
                 )
 
                 AddRoutineTabletStep.ActionsSummary -> AddRoutineTabletPrimaryButton(
-                    text = stringResource(R.string.create_routine_create),
-                    icon = SmartHomeIcons.Add,
+                    text = stringResource(
+                        if (isEditing) R.string.routine_detail_save
+                        else R.string.create_routine_create,
+                    ),
+                    icon = if (isEditing) SmartHomeIcons.Check else SmartHomeIcons.Add,
                     onClick = onCreate,
                     enabled = canCreate,
                 )

@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -376,6 +377,7 @@ internal fun DetailTopBar(
     onRename: () -> Unit,
     onDelete: () -> Unit,
     onAddAction: (() -> Unit)? = null,
+    onEditRoutine: (() -> Unit)? = null,
     showTitle: Boolean = true,
     showBackButton: Boolean = true,
     showOverflowMenu: Boolean = true,
@@ -409,6 +411,29 @@ internal fun DetailTopBar(
             )
         } else {
             Spacer(modifier = Modifier.weight(1f))
+        }
+        if (onEditRoutine != null) {
+            Button(
+                onClick = onEditRoutine,
+                modifier = Modifier.height(40.dp),
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                    contentColor = MaterialTheme.colorScheme.primary,
+                ),
+                contentPadding = PaddingValues(horizontal = 14.dp),
+            ) {
+                Icon(
+                    imageVector = SmartHomeIcons.Edit,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.routine_detail_edit),
+                    fontWeight = FontWeight.Bold,
+                )
+            }
         }
         if (showOverflowMenu) Box {
             IconButton(onClick = { menuExpanded = true }) {
@@ -485,6 +510,7 @@ internal fun HeroCard(
     daysSummary: String,
     enabled: Boolean,
     onEnabledChange: (Boolean) -> Unit,
+    editable: Boolean = true,
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -527,6 +553,7 @@ internal fun HeroCard(
                 Switch(
                     checked = enabled,
                     onCheckedChange = onEnabledChange,
+                    enabled = editable,
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = Color.White,
                         checkedTrackColor = MaterialTheme.colorScheme.primary,
@@ -630,12 +657,13 @@ internal fun NavigationRowCard(
     title: String,
     subtitle: String,
     onClick: () -> Unit,
+    editable: Boolean = true,
 ) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .clickable(onClick = onClick),
+            .clickable(enabled = editable, onClick = onClick),
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 1.dp,
@@ -659,22 +687,28 @@ internal fun NavigationRowCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            Icon(
-                imageVector = SmartHomeIcons.ChevronRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            if (editable) {
+                Icon(
+                    imageVector = SmartHomeIcons.ChevronRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }
 
 @Composable
-internal fun DaysCard(days: List<Boolean>, onClick: () -> Unit) {
+internal fun DaysCard(
+    days: List<Boolean>,
+    onClick: () -> Unit,
+    editable: Boolean = true,
+) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .clickable(onClick = onClick),
+            .clickable(enabled = editable, onClick = onClick),
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 1.dp,
@@ -695,11 +729,13 @@ internal fun DaysCard(days: List<Boolean>, onClick: () -> Unit) {
                 Spacer(modifier = Modifier.height(8.dp))
                 DayChipsRow(days = days)
             }
-            Icon(
-                imageVector = SmartHomeIcons.ChevronRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            if (editable) {
+                Icon(
+                    imageVector = SmartHomeIcons.ChevronRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }

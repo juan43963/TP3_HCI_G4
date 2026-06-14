@@ -608,6 +608,7 @@
     <string name="routine_detail_title">Detalle de rutina</string>
     <string name="routine_detail_back">Volver</string>
     <string name="routine_detail_more_options">Más opciones</string>
+    <string name="routine_detail_edit">Editar rutina</string>
     <string name="routine_detail_rename">Renombrar rutina</string>
     <string name="routine_detail_delete">Eliminar rutina</string>
     <string name="routine_detail_automated">Rutina automatizada</string>

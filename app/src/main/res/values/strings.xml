@@ -609,6 +609,7 @@
     <string name="routine_detail_title">Routine details</string>
     <string name="routine_detail_back">Back</string>
     <string name="routine_detail_more_options">More options</string>
+    <string name="routine_detail_edit">Edit routine</string>
     <string name="routine_detail_rename">Rename routine</string>
     <string name="routine_detail_delete">Delete routine</string>
     <string name="routine_detail_automated">Automated routine</string>

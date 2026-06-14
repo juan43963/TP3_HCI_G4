@@ -87,6 +87,7 @@ fun TabletRoutinesScreen(
     onRoutineClick: (String) -> Unit = {},
     onExecuteRoutine: (String) -> Unit = {},
     onToggleRoutineFavorite: (String) -> Unit = {},
+    onEditRoutine: (String) -> Unit = {},
     onSaveRoutine: (id: String, name: String, time24h: String, days: List<Boolean>, enabled: Boolean) -> Unit = { _, _, _, _, _ -> },
     onDeleteRoutine: (String) -> Unit = {},
     detailFor: (String) -> RoutineDetailUi? = { null },
@@ -251,8 +252,8 @@ fun TabletRoutinesScreen(
                         forceSinglePane = phoneLandscape,
                         onExecuteRoutine = onExecuteRoutine,
                         onToggleRoutineFavorite = onToggleRoutineFavorite,
+                        onEditRoutine = onEditRoutine,
                         onSaveRoutine = onSaveRoutine,
-                        onDeleteRoutine = onDeleteRoutine,
                         detailFor = detailFor,
                     )
                 }
@@ -535,8 +536,8 @@ private fun TabletRoutinesTwoPane(
     forceSinglePane: Boolean = false,
     onExecuteRoutine: (String) -> Unit = {},
     onToggleRoutineFavorite: (String) -> Unit = {},
+    onEditRoutine: (String) -> Unit = {},
     onSaveRoutine: (id: String, name: String, time24h: String, days: List<Boolean>, enabled: Boolean) -> Unit = { _, _, _, _, _ -> },
-    onDeleteRoutine: (String) -> Unit = {},
     detailFor: (String) -> RoutineDetailUi? = { null },
 ) {
     val navigator = rememberListDetailPaneScaffoldNavigator<String>()
@@ -613,9 +614,18 @@ private fun TabletRoutinesTwoPane(
                     TabletRoutineDetailPane(
                         routine = selectedRoutine,
                         detail = detailFor(selectedRoutine.id),
-                        onAddAction = onAddRoutine,
-                        onSaveRoutine = onSaveRoutine,
-                        onDeleteRoutine = { onDeleteRoutine(selectedRoutine.id) },
+                        onEditRoutine = { onEditRoutine(selectedRoutine.id) },
+                        onEnabledChange = { enabled ->
+                            val selectedDetail = detailFor(selectedRoutine.id)
+                                ?: selectedRoutine.toDetailUi()
+                            onSaveRoutine(
+                                selectedRoutine.id,
+                                selectedDetail.name,
+                                parseDisplayTimeTo24h(selectedDetail.time),
+                                selectedDetail.days,
+                                enabled,
+                            )
+                        },
                         contentPadding = 20.dp,
                         modifier = Modifier.fillMaxSize(),
                     )
@@ -670,29 +680,25 @@ private fun TabletRoutinesHeader(
 private fun TabletRoutineDetailPane(
     routine: RoutineUi,
     detail: RoutineDetailUi?,
-    onAddAction: () -> Unit,
-    onSaveRoutine: (id: String, name: String, time24h: String, days: List<Boolean>, enabled: Boolean) -> Unit,
-    onDeleteRoutine: () -> Unit,
+    onEditRoutine: () -> Unit,
+    onEnabledChange: (Boolean) -> Unit,
     contentPadding: androidx.compose.ui.unit.Dp,
     modifier: Modifier = Modifier,
     onBack: (() -> Unit)? = null,
 ) {
     val detail = detail ?: remember(routine.id) { routine.toDetailUi() }
-    var enabled by remember(routine.id) { mutableStateOf(detail.enabled) }
-    var name by remember(routine.id) { mutableStateOf(detail.name) }
-    var time by remember(routine.id) { mutableStateOf(detail.time) }
-    var days by remember(routine.id) { mutableStateOf(detail.days) }
-    var showRenameDialog by remember { mutableStateOf(false) }
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    var showScheduleDialog by remember { mutableStateOf(false) }
-    var showDaysDialog by remember { mutableStateOf(false) }
+    val enabled = detail.enabled
+    val name = detail.name
+    val time = detail.time
+    val days = detail.days
     val daysSummary = daysSummaryText(days)
 
     Column(modifier = modifier) {
         DetailTopBar(
             onBack = { onBack?.invoke() },
-            onRename = { showRenameDialog = true },
-            onDelete = { showDeleteDialog = true },
+            onRename = {},
+            onDelete = {},
+            onEditRoutine = onEditRoutine,
             showTitle = false,
             showBackButton = onBack != null,
             showOverflowMenu = false,
@@ -717,7 +723,7 @@ private fun TabletRoutineDetailPane(
                     time = time,
                     daysSummary = daysSummary,
                     enabled = enabled,
-                    onEnabledChange = { enabled = it },
+                    onEnabledChange = onEnabledChange,
                 )
             }
             item {
@@ -725,70 +731,25 @@ private fun TabletRoutineDetailPane(
                     icon = SmartHomeIcons.Schedule,
                     title = stringResource(R.string.routine_detail_schedule_title),
                     subtitle = time,
-                    onClick = { showScheduleDialog = true },
+                    onClick = {},
+                    editable = false,
                 )
             }
             item {
                 DaysCard(
                     days = days,
-                    onClick = { showDaysDialog = true },
+                    onClick = {},
+                    editable = false,
                 )
             }
             item {
                 ActionsCard(
                     actions = detail.actions,
-                    onAddAction = onAddAction,
+                    onAddAction = {},
+                    showAddActionButton = false,
                 )
             }
         }
-
-        DetailActionBar(
-            onDelete = { showDeleteDialog = true },
-            onSave = { onSaveRoutine(detail.id, name, parseDisplayTimeTo24h(time), days, enabled) },
-            contentPadding = contentPadding,
-            showDelete = false,
-        )
-    }
-
-    if (showRenameDialog) {
-        RenameRoutineDialog(
-            currentName = name,
-            onDismiss = { showRenameDialog = false },
-            onConfirm = { newName ->
-                name = newName
-                showRenameDialog = false
-            },
-        )
-    }
-    if (showDeleteDialog) {
-        DeleteRoutineDialog(
-            routineName = name,
-            onDismiss = { showDeleteDialog = false },
-            onConfirm = {
-                showDeleteDialog = false
-                onDeleteRoutine()
-            },
-        )
-    }
-    if (showScheduleDialog) {
-        EditScheduleDialog(
-            currentTime = time,
-            onDismiss = { showScheduleDialog = false },
-            onConfirm = { newTime ->
-                time = newTime
-                showScheduleDialog = false
-            },
-        )
-    }
-    if (showDaysDialog) {
-        EditDaysDialog(
-            currentDays = days,
-            onDismiss = { showDaysDialog = false },
-            onConfirm = { newDays ->
-                days = newDays
-                showDaysDialog = false
-            },
-        )
     }
 }
 

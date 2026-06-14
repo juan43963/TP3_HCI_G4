@@ -341,6 +341,7 @@ fun SmartHomeApp(
     var showCreateDevice by rememberSaveable { mutableStateOf(false) }
     var showCreateRoutine by rememberSaveable { mutableStateOf(false) }
     var routineActionTargetId by rememberSaveable { mutableStateOf<String?>(null) }
+    var routineEditTargetId by rememberSaveable { mutableStateOf<String?>(null) }
     // Dispositivo escaneado pendiente de alta; rememberSaveable para sobrevivir rotación (igual que
     // el resto de overlays de creación). Abre AddScannedDeviceDialog.
     var scannedPayload by rememberSaveable(stateSaver = QrDevicePayloadSaver) {
@@ -896,6 +897,7 @@ fun SmartHomeApp(
                     infoMessage = routinesUiState.infoMessage,
                     onExecuteRoutine = routinesViewModel::executeRoutine,
                     onToggleRoutineFavorite = routinesViewModel::toggleFavorite,
+                    onEditRoutine = { routineEditTargetId = it },
                     onSaveRoutine = { id, name, time24h, days, enabled ->
                         routinesViewModel.saveRoutine(id, name, time24h, days, enabled)
                     },
@@ -1366,6 +1368,9 @@ fun SmartHomeApp(
             }
 
             val routineIsTablet = windowSize.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
+            val routineEditTarget = routinesUiState.routines.firstOrNull {
+                it.id == routineEditTargetId
+            }
             if (routineIsTablet) {
                 AddRoutineTabletOverlay(
                     visible = showCreateRoutine,
@@ -1375,6 +1380,28 @@ fun SmartHomeApp(
                     deviceActions = routinesUiState.deviceActions,
                     onCreate = { name, category, time24h, days, actions ->
                         routinesViewModel.createRoutine(name, category, time24h, days, actions)
+                    },
+                )
+                AddRoutineTabletOverlay(
+                    visible = routineEditTarget != null,
+                    onDismiss = { routineEditTargetId = null },
+                    devices = routinesUiState.devices,
+                    deviceRoomNames = routinesUiState.deviceRoomNames,
+                    deviceActions = routinesUiState.deviceActions,
+                    initialRoutine = routineEditTarget,
+                    onCreate = { name, category, time24h, days, actions ->
+                        routineEditTarget?.let { original ->
+                            routinesViewModel.updateRoutine(
+                                original.copy(
+                                    name = name,
+                                    category = category,
+                                    time = time24h,
+                                    days = days,
+                                    actions = actions,
+                                ),
+                            )
+                        }
+                        routineEditTargetId = null
                     },
                 )
             } else {
