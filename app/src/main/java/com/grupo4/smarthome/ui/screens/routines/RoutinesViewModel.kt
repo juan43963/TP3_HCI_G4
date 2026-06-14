@@ -122,6 +122,11 @@ class RoutinesViewModel(
         updateRoutine(original.copy(name = name, time = time24h, days = days, enabled = enabled))
     }
 
+    fun addActionToRoutine(routineId: String, action: RoutineAction) {
+        val original = _uiState.value.routines.firstOrNull { it.id == routineId } ?: return
+        updateRoutine(original.copy(actions = original.actions + action))
+    }
+
     fun deleteRoutine(routineId: String) {
         viewModelScope.launch {
             when (val result = routinesRepository.deleteRoutine(routineId)) {

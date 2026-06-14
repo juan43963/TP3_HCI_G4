@@ -75,8 +75,7 @@ import com.grupo4.smarthome.ui.theme.StarActive
 /** Fila de acción dentro de una rutina. Modelo temporal de interfaz. */
 data class RoutineActionUi(
     val icon: ImageVector,
-    val name: String,
-    val description: String,
+    val action: RoutineActionItemUi,
 )
 
 /** Modelo temporal para la pantalla de detalle. */
@@ -123,6 +122,7 @@ fun RoutineDetailScreen(
             onBack = onBack,
             onRename = { showRenameDialog = true },
             onDelete = { showDeleteDialog = true },
+            onAddAction = onAddAction,
         )
 
         LazyColumn(
@@ -165,6 +165,7 @@ fun RoutineDetailScreen(
                 ActionsCard(
                     actions = routine.actions,
                     onAddAction = onAddAction,
+                    showAddActionButton = false,
                 )
             }
         }
@@ -374,6 +375,7 @@ internal fun DetailTopBar(
     onBack: () -> Unit,
     onRename: () -> Unit,
     onDelete: () -> Unit,
+    onAddAction: (() -> Unit)? = null,
     showTitle: Boolean = true,
     showBackButton: Boolean = true,
     showOverflowMenu: Boolean = true,
@@ -421,6 +423,22 @@ internal fun DetailTopBar(
                 onDismissRequest = { menuExpanded = false },
                 containerColor = MaterialTheme.colorScheme.surface,
             ) {
+                if (onAddAction != null) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.routine_detail_add_action)) },
+                        onClick = {
+                            menuExpanded = false
+                            onAddAction()
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = SmartHomeIcons.Add,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurface,
+                            )
+                        },
+                    )
+                }
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.routine_detail_rename)) },
                     onClick = {
@@ -722,6 +740,7 @@ private fun DayChip(label: String, active: Boolean) {
 internal fun ActionsCard(
     actions: List<RoutineActionUi>,
     onAddAction: () -> Unit,
+    showAddActionButton: Boolean = true,
 ) {
     DetailCard {
         Column {
@@ -751,14 +770,23 @@ internal fun ActionsCard(
             Spacer(modifier = Modifier.height(14.dp))
 
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                actions.forEachIndexed { index, action ->
-                    ActionRow(index = index + 1, action = action)
+                if (actions.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.routine_detail_no_actions_configured),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                } else {
+                    actions.forEachIndexed { index, action ->
+                        ActionRow(index = index + 1, action = action)
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            AddActionButton(onClick = onAddAction)
+            if (showAddActionButton) {
+                Spacer(modifier = Modifier.height(12.dp))
+                AddActionButton(onClick = onAddAction)
+            }
         }
     }
 }
@@ -810,13 +838,18 @@ private fun ActionRow(index: Int, action: RoutineActionUi) {
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = action.name,
+                        text = action.action.deviceName.ifBlank {
+                            stringResource(R.string.create_routine_device_generic)
+                        },
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
                     )
                     Text(
-                        text = action.description,
+                        text = routineActionDescription(
+                            action.action.actionName,
+                            action.action.params,
+                        ),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -1167,30 +1200,36 @@ private val sampleRoutineDetail = RoutineDetailUi(
     actions = listOf(
         RoutineActionUi(
             icon = SmartHomeIcons.Speaker,
-            name = "Parlante",
-            description = "Reproducir Jazz",
+            action = RoutineActionItemUi(
+                actionName = "play",
+                deviceName = "Parlante",
+                params = listOf("Jazz"),
+            ),
         ),
         RoutineActionUi(
             icon = SmartHomeIcons.Lightbulb,
-            name = "Luces cocina",
-            description = "Encender • 80%",
+            action = RoutineActionItemUi(
+                actionName = "turnOn",
+                deviceName = "Luces cocina",
+                params = listOf("80%"),
+            ),
         ),
         RoutineActionUi(
             icon = SmartHomeIcons.Thermostat,
-            name = "Termostato",
-            description = "Ajustar • 22°",
+            action = RoutineActionItemUi(
+                actionName = "setTemperature",
+                deviceName = "Termostato",
+                params = listOf("22°"),
+            ),
         ),
     ),
 )
 
 internal fun RoutineUi.toDetailUi(): RoutineDetailUi {
-    val detailActions = actions.map { it.toRoutineActionUi() }.ifEmpty {
-        listOf(
-            RoutineActionUi(
-                icon = SmartHomeIcons.Routines,
-                name = name,
-                description = "Sin acciones configuradas",
-            )
+    val detailActions = actions.map { action ->
+        RoutineActionUi(
+            icon = SmartHomeIcons.Routines,
+            action = action,
         )
     }
 
@@ -1204,32 +1243,6 @@ internal fun RoutineUi.toDetailUi(): RoutineDetailUi {
         days = days,
         actions = detailActions,
         favorite = favorite,
-    )
-}
-
-private fun String.toRoutineActionUi(): RoutineActionUi {
-    val normalized = lowercase()
-    val icon = when {
-        "luz" in normalized || "luces" in normalized -> SmartHomeIcons.Lightbulb
-        "música" in normalized || "musica" in normalized || "parlante" in normalized ->
-            SmartHomeIcons.Speaker
-        "termostato" in normalized || "temperatura" in normalized -> SmartHomeIcons.Thermostat
-        else -> SmartHomeIcons.Routines
-    }
-    val readable = trim()
-        .replace("turnOn", "Encender")
-        .replace("turnOff", "Apagar")
-        .replace("set", "Ajustar")
-    val parts = readable.split(" ", limit = 2)
-    val description = parts.firstOrNull().orEmpty()
-    val actionName = parts.getOrNull(1)?.replaceFirstChar { char ->
-        if (char.isLowerCase()) char.titlecase() else char.toString()
-    } ?: readable
-
-    return RoutineActionUi(
-        icon = icon,
-        name = actionName,
-        description = description,
     )
 }
 
@@ -1603,7 +1616,7 @@ private fun RoutinesSearchBar(
                 modifier = Modifier.size(22.dp),
             )
             Text(
-                text = "Buscar rutinas...",
+                text = stringResource(R.string.routines_search_placeholder),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -1768,7 +1781,9 @@ internal fun MasterRoutineCard(
                         .background(MaterialTheme.colorScheme.primary),
                 )
                 Text(
-                    text = routine.actions.firstOrNull().orEmpty(),
+                    text = routine.actions.firstOrNull()?.let { action ->
+                        routineActionCardLabel(action)
+                    } ?: stringResource(R.string.routine_detail_no_actions_configured),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                 )

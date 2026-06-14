@@ -125,6 +125,165 @@ fun BoxScope.CreateRoutineOverlay(
 }
 
 @Composable
+fun BoxScope.AddRoutineActionOverlay(
+    visible: Boolean,
+    onDismiss: () -> Unit,
+    devices: List<Device> = emptyList(),
+    deviceRoomNames: Map<String, String> = emptyMap(),
+    deviceActions: Map<String, List<DeviceActionInfo>> = emptyMap(),
+    onAddAction: (RoutineAction) -> Unit,
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = slideInVertically(animationSpec = tween(300)) { it } + fadeIn(tween(220)),
+        exit = slideOutVertically(animationSpec = tween(250)) { it } + fadeOut(tween(180)),
+        modifier = Modifier.matchParentSize(),
+    ) {
+        AddRoutineActionScreen(
+            onDismiss = onDismiss,
+            devices = devices,
+            deviceRoomNames = deviceRoomNames,
+            deviceActions = deviceActions,
+            onAddAction = onAddAction,
+        )
+    }
+}
+
+@Composable
+private fun AddRoutineActionScreen(
+    onDismiss: () -> Unit,
+    devices: List<Device>,
+    deviceRoomNames: Map<String, String>,
+    deviceActions: Map<String, List<DeviceActionInfo>>,
+    onAddAction: (RoutineAction) -> Unit,
+) {
+    var currentStep by rememberSaveable { mutableStateOf(CreateRoutineStep.SelectDevice) }
+    var selectedDevice by remember { mutableStateOf<Device?>(null) }
+    var selectedActionInfo by remember { mutableStateOf<DeviceActionInfo?>(null) }
+    var paramValue by remember { mutableStateOf(0f) }
+    var paramTextValue by rememberSaveable { mutableStateOf("") }
+
+    val currentActions = remember(selectedDevice, deviceActions) {
+        selectedDevice?.let { deviceActions[it.type.id] }.orEmpty()
+    }
+
+    val commitAction: (List<String>) -> Unit = { params ->
+        val device = selectedDevice
+        val info = selectedActionInfo
+        if (device != null && info != null) {
+            onAddAction(
+                RoutineAction(
+                    deviceId = device.id,
+                    deviceName = device.name,
+                    actionName = info.name,
+                    params = params,
+                ),
+            )
+            onDismiss()
+        }
+    }
+
+    val goBack: () -> Unit = {
+        when (currentStep) {
+            CreateRoutineStep.SelectDevice -> onDismiss()
+            CreateRoutineStep.SelectAction -> currentStep = CreateRoutineStep.SelectDevice
+            CreateRoutineStep.ConfigureParameter -> currentStep = CreateRoutineStep.SelectAction
+            else -> onDismiss()
+        }
+    }
+
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background,
+    ) {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            containerColor = MaterialTheme.colorScheme.background,
+            topBar = {
+                CreateRoutineHeader(
+                    currentStep = currentStep,
+                    onBack = goBack,
+                )
+            },
+            bottomBar = {
+                CreateRoutineBottomBar(
+                    currentStep = currentStep,
+                    canCreate = false,
+                    onNext = {},
+                    onConfirmParameter = {
+                        if (selectedActionInfo?.let { routineTextParamLabel(selectedDevice, it) } != null) {
+                            commitAction(listOf(paramTextValue.trim()))
+                        } else {
+                            commitAction(listOf(paramValue.toInt().toString()))
+                        }
+                    },
+                    canConfirmParameter = selectedActionInfo?.let { info ->
+                        val textLabel = routineTextParamLabel(selectedDevice, info)
+                        textLabel == null || paramTextValue.isNotBlank()
+                    } ?: true,
+                    onCreate = {},
+                )
+            },
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(horizontal = 20.dp, vertical = 18.dp),
+            ) {
+                when (currentStep) {
+                    CreateRoutineStep.SelectDevice -> SelectDeviceStep(
+                        devices = devices,
+                        deviceRoomNames = deviceRoomNames,
+                        selectedDeviceId = selectedDevice?.id,
+                        onSelected = {
+                            selectedDevice = it
+                            currentStep = CreateRoutineStep.SelectAction
+                        },
+                    )
+
+                    CreateRoutineStep.SelectAction -> SelectActionStep(
+                        deviceName = selectedDevice?.name.orEmpty(),
+                        actions = currentActions,
+                        onSelected = { info ->
+                            selectedActionInfo = info
+                            paramTextValue = ""
+                            val numericParam = routineNumericParam(info)
+                            when {
+                                numericParam != null -> {
+                                    paramValue = (numericParam.min ?: 0).toFloat()
+                                    currentStep = CreateRoutineStep.ConfigureParameter
+                                }
+                                routineTextParamLabel(selectedDevice, info) != null -> {
+                                    currentStep = CreateRoutineStep.ConfigureParameter
+                                }
+                                else -> commitAction(emptyList())
+                            }
+                        },
+                    )
+
+                    CreateRoutineStep.ConfigureParameter -> ConfigureParameterStep(
+                        actionName = routineActionLabel(selectedActionInfo?.name.orEmpty()),
+                        param = selectedActionInfo?.let(::routineNumericParam),
+                        value = paramValue,
+                        onValueChange = { paramValue = it },
+                        textParamLabel = selectedActionInfo?.let {
+                            routineTextParamLabel(selectedDevice, it)
+                        },
+                        textValue = paramTextValue,
+                        onTextValueChange = { paramTextValue = it },
+                    )
+
+                    else -> Unit
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun CreateRoutineScreen(
     onDismiss: () -> Unit,
     devices: List<Device>,
@@ -253,6 +412,11 @@ private fun CreateRoutineScreen(
                     CreateRoutineStep.ActionsSummary -> ActionsSummaryStep(
                         actions = draftActions,
                         onAddAction = { currentStep = CreateRoutineStep.SelectDevice },
+                        onRemoveAction = { index ->
+                            draftActions = draftActions.filterIndexed { actionIndex, _ ->
+                                actionIndex != index
+                            }
+                        },
                     )
 
                     CreateRoutineStep.SelectDevice -> SelectDeviceStep(
@@ -289,7 +453,7 @@ private fun CreateRoutineScreen(
                     )
 
                     CreateRoutineStep.ConfigureParameter -> ConfigureParameterStep(
-                        actionName = selectedActionInfo?.name.orEmpty().toReadableAction(),
+                        actionName = routineActionLabel(selectedActionInfo?.name.orEmpty()),
                         param = selectedActionInfo?.let(::routineNumericParam),
                         value = paramValue,
                         onValueChange = { paramValue = it },
@@ -770,6 +934,7 @@ private fun CardSectionTitle(icon: ImageVector, text: String) {
 private fun ActionsSummaryStep(
     actions: List<RoutineAction>,
     onAddAction: () -> Unit,
+    onRemoveAction: (Int) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -778,16 +943,23 @@ private fun ActionsSummaryStep(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         actions.forEachIndexed { index, action ->
-            RoutineActionSummaryCard(position = index + 1, action = action)
+            RoutineActionSummaryCard(
+                position = index + 1,
+                action = action,
+                onRemove = { onRemoveAction(index) },
+            )
         }
         AddActionCard(onClick = onAddAction)
     }
 }
 
 @Composable
-private fun RoutineActionSummaryCard(position: Int, action: RoutineAction) {
-    val params = action.params.joinToString(", ")
-    val description = action.actionName.toReadableAction() + if (params.isNotBlank()) " • $params" else ""
+private fun RoutineActionSummaryCard(
+    position: Int,
+    action: RoutineAction,
+    onRemove: () -> Unit,
+) {
+    val description = routineActionDescription(action.actionName, action.params)
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -826,6 +998,13 @@ private fun RoutineActionSummaryCard(position: Int, action: RoutineAction) {
                     text = description,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            IconButton(onClick = onRemove) {
+                Icon(
+                    imageVector = SmartHomeIcons.Delete,
+                    contentDescription = stringResource(R.string.create_routine_remove_action),
+                    tint = MaterialTheme.colorScheme.error,
                 )
             }
         }
@@ -1082,7 +1261,7 @@ private fun SelectActionStep(
     ) {
         actions.forEach { action ->
             ActionOptionCard(
-                label = action.name.toReadableAction(),
+                label = routineActionLabel(action.name),
                 onClick = { onSelected(action) },
             )
         }

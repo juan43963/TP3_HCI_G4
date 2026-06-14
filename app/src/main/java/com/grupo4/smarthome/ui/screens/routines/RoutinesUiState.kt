@@ -34,14 +34,14 @@ val RoutinesUiState.deviceTypesById: Map<String, DeviceTypeInfo>
 // --- Mapeo dominio -> modelos de UI existentes (RoutineUi / RoutineDetailUi) ---
 
 fun Routine.toRoutineUi(deviceNamesById: Map<String, String>): RoutineUi {
-    val labels = actions.map { it.toReadableLabel(deviceNamesById) }
+    val actionItems = actions.map { it.toActionItemUi(deviceNamesById) }
     return RoutineUi(
         id = id,
         name = name,
         category = category.toUiCategory(),
         time = formatRoutineTime(time),
-        actions = labels.take(2),
-        extraActions = (labels.size - 2).coerceAtLeast(0),
+        actions = actionItems.take(2),
+        extraActions = (actionItems.size - 2).coerceAtLeast(0),
         days = days,
         favorite = favorite,
     )
@@ -65,11 +65,11 @@ fun RoutineCategory.toDomainCategory(): DomainCategory = when (this) {
 
 fun Routine.toDetailUi(deviceNamesById: Map<String, String>, deviceTypesById: Map<String, DeviceTypeInfo>): RoutineDetailUi {
     val detailActions = actions.map { action ->
-        val device = action.deviceName.ifBlank { deviceNamesById[action.deviceId] ?: "dispositivo" }
         val icon = deviceTypesById[action.deviceId]?.let { deviceTypeIcon(it) } ?: SmartHomeIcons.Routines
-        val params = action.params.joinToString(", ")
-        val description = action.actionName.toReadableAction() + if (params.isNotBlank()) " • $params" else ""
-        RoutineActionUi(icon = icon, name = device, description = description)
+        RoutineActionUi(
+            icon = icon,
+            action = action.toActionItemUi(deviceNamesById),
+        )
     }
     return RoutineDetailUi(
         id = id,
@@ -111,26 +111,9 @@ fun formatRoutineTime(time: String): String = runCatching {
     "%02d:%02d %s".format(displayHour, minute, if (isAm) "AM" else "PM")
 }.getOrDefault(time)
 
-private fun RoutineAction.toReadableLabel(deviceNamesById: Map<String, String>): String {
-    val device = deviceName.ifBlank { deviceNamesById[deviceId] ?: "dispositivo" }
-    return "${actionName.toReadableAction()} $device"
-}
-
-internal fun String.toReadableAction(): String = when (this) {
-    "turnOn" -> "Encender"
-    "turnOff" -> "Apagar"
-    "open" -> "Abrir"
-    "close" -> "Cerrar"
-    "lock" -> "Trabar"
-    "unlock" -> "Destrabar"
-    "play" -> "Reproducir"
-    "pause" -> "Pausar"
-    "stop" -> "Detener"
-    "start" -> "Iniciar"
-    "setBrightness" -> "Cambiar brillo"
-    "setColor" -> "Cambiar color"
-    "setTemperature" -> "Cambiar temperatura"
-    "setVolume" -> "Cambiar volumen"
-    "setMode" -> "Cambiar modo"
-    else -> this
-}
+private fun RoutineAction.toActionItemUi(deviceNamesById: Map<String, String>) =
+    RoutineActionItemUi(
+        actionName = actionName,
+        deviceName = deviceName.ifBlank { deviceNamesById[deviceId].orEmpty() },
+        params = params,
+    )

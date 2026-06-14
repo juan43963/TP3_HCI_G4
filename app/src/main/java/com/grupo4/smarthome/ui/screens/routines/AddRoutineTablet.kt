@@ -224,6 +224,11 @@ private fun AddRoutineTabletDialogContent(
                     AddRoutineTabletStep.ActionsSummary -> AddRoutineTabletActionsSummaryStep(
                         actions = draftActions,
                         onAddAction = { currentStep = AddRoutineTabletStep.SelectDevice },
+                        onRemoveAction = { index ->
+                            draftActions = draftActions.filterIndexed { actionIndex, _ ->
+                                actionIndex != index
+                            }
+                        },
                     )
 
                     AddRoutineTabletStep.SelectDevice -> AddRoutineTabletSelectDeviceStep(
@@ -259,7 +264,7 @@ private fun AddRoutineTabletDialogContent(
                     )
 
                     AddRoutineTabletStep.ConfigureParameter -> AddRoutineTabletConfigureParameterStep(
-                        actionName = selectedActionInfo?.name.orEmpty().toReadableAction(),
+                        actionName = routineActionLabel(selectedActionInfo?.name.orEmpty()),
                         param = selectedActionInfo?.let(::routineNumericParam),
                         value = paramValue,
                         onValueChange = { paramValue = it },
@@ -790,13 +795,14 @@ private fun AddRoutineTabletCardTitle(icon: ImageVector, text: String) {
 private fun AddRoutineTabletActionsSummaryStep(
     actions: List<RoutineAction>,
     onAddAction: () -> Unit,
+    onRemoveAction: (Int) -> Unit,
 ) {
     actions.forEachIndexed { index, action ->
-        val params = action.params.joinToString(", ")
         AddRoutineTabletActionSummaryRow(
             number = (index + 1).toString(),
             title = action.deviceName.ifBlank { stringResource(R.string.create_routine_device_generic) },
-            subtitle = action.actionName.toReadableAction() + if (params.isNotBlank()) " • $params" else "",
+            subtitle = routineActionDescription(action.actionName, action.params),
+            onRemove = { onRemoveAction(index) },
         )
     }
     AddRoutineTabletAddActionCard(onClick = onAddAction)
@@ -807,6 +813,7 @@ private fun AddRoutineTabletActionSummaryRow(
     number: String,
     title: String,
     subtitle: String,
+    onRemove: () -> Unit,
 ) {
     Surface(
         modifier = Modifier
@@ -846,6 +853,13 @@ private fun AddRoutineTabletActionSummaryRow(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            IconButton(onClick = onRemove) {
+                Icon(
+                    imageVector = SmartHomeIcons.Delete,
+                    contentDescription = stringResource(R.string.create_routine_remove_action),
+                    tint = MaterialTheme.colorScheme.error,
                 )
             }
         }
@@ -1081,7 +1095,7 @@ private fun AddRoutineTabletSelectActionStep(
     )
     actions.forEach { action ->
         AddRoutineTabletActionRow(
-            label = action.name.toReadableAction(),
+            label = routineActionLabel(action.name),
             selected = false,
             onClick = { onSelected(action) },
         )

@@ -118,6 +118,7 @@ import com.grupo4.smarthome.ui.screens.scan.ScanViewModelFactory
 import com.grupo4.smarthome.ui.screens.search.SearchCallbacks
 import com.grupo4.smarthome.ui.screens.search.SearchScreen
 import com.grupo4.smarthome.ui.screens.search.SearchViewModel
+import com.grupo4.smarthome.ui.screens.routines.AddRoutineActionOverlay
 import com.grupo4.smarthome.ui.screens.routines.AddRoutineTabletOverlay
 import com.grupo4.smarthome.ui.screens.routines.CreateRoutineOverlay
 import com.grupo4.smarthome.ui.screens.routines.RoutineDetailScreen
@@ -164,7 +165,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private const val LOADING_HOME_ID = " __loading_home__"
+private const val LOADING_HOME_ID = "\u0000__loading_home__"
 
 // Permite que el dispositivo escaneado pendiente de alta sobreviva a la rotación / muerte de proceso
 // vía rememberSaveable, sin volver Parcelable el modelo de dominio (se guarda como lista de strings).
@@ -339,6 +340,7 @@ fun SmartHomeApp(
     var showCreateRoom by rememberSaveable { mutableStateOf(false) }
     var showCreateDevice by rememberSaveable { mutableStateOf(false) }
     var showCreateRoutine by rememberSaveable { mutableStateOf(false) }
+    var routineActionTargetId by rememberSaveable { mutableStateOf<String?>(null) }
     // Dispositivo escaneado pendiente de alta; rememberSaveable para sobrevivir rotación (igual que
     // el resto de overlays de creación). Abre AddScannedDeviceDialog.
     var scannedPayload by rememberSaveable(stateSaver = QrDevicePayloadSaver) {
@@ -925,6 +927,7 @@ fun SmartHomeApp(
                             routinesViewModel.deleteRoutine(routineId)
                             navController.popBackStack()
                         },
+                        onAddAction = { routineActionTargetId = routineId },
                         onSave = { name, time24h, days, enabled ->
                             routinesViewModel.saveRoutine(routineId, name, time24h, days, enabled)
                             navController.popBackStack()
@@ -1387,6 +1390,19 @@ fun SmartHomeApp(
                     },
                 )
             }
+
+            AddRoutineActionOverlay(
+                visible = routineActionTargetId != null && !routineIsTablet,
+                onDismiss = { routineActionTargetId = null },
+                devices = routinesUiState.devices,
+                deviceRoomNames = routinesUiState.deviceRoomNames,
+                deviceActions = routinesUiState.deviceActions,
+                onAddAction = { action ->
+                    routineActionTargetId?.let { routineId ->
+                        routinesViewModel.addActionToRoutine(routineId, action)
+                    }
+                },
+            )
         }
     }
 }

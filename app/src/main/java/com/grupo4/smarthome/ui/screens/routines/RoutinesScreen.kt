@@ -77,10 +77,16 @@ data class RoutineUi(
     val name: String,
     val category: RoutineCategory,
     val time: String,
-    val actions: List<String>,
+    val actions: List<RoutineActionItemUi>,
     val extraActions: Int,
     val days: List<Boolean>,
     val favorite: Boolean,
+)
+
+data class RoutineActionItemUi(
+    val actionName: String,
+    val deviceName: String,
+    val params: List<String> = emptyList(),
 )
 
 @Composable
@@ -578,7 +584,7 @@ internal fun RoutineCard(
                             modifier = Modifier.size(16.dp),
                         )
                         Text(
-                            text = action,
+                            text = routineActionCardLabel(action),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface,
                         )
@@ -694,7 +700,10 @@ internal val sampleRoutines = listOf(
         name = "Buenas noches",
         category = RoutineCategory.NIGHT,
         time = "11:00 PM",
-        actions = listOf("turnOff luces sala", "turnOff parlante sala"),
+        actions = listOf(
+            RoutineActionItemUi(actionName = "turnOff", deviceName = "luces sala"),
+            RoutineActionItemUi(actionName = "turnOff", deviceName = "parlante sala"),
+        ),
         extraActions = 2,
         days = listOf(true, true, true, true, true, false, false),
         favorite = true,
@@ -704,7 +713,10 @@ internal val sampleRoutines = listOf(
         name = "Buenos días",
         category = RoutineCategory.MORNING,
         time = "07:00 AM",
-        actions = listOf("turnOn luces cocina", "set persianas 80%"),
+        actions = listOf(
+            RoutineActionItemUi(actionName = "turnOn", deviceName = "luces cocina"),
+            RoutineActionItemUi(actionName = "setMode", deviceName = "persianas", params = listOf("80%")),
+        ),
         extraActions = 2,
         days = listOf(true, true, true, true, true, false, false),
         favorite = true,
@@ -714,7 +726,10 @@ internal val sampleRoutines = listOf(
         name = "Relax",
         category = RoutineCategory.COMFORT,
         time = "08:30 PM",
-        actions = listOf("set luces cálidas", "turnOn música"),
+        actions = listOf(
+            RoutineActionItemUi(actionName = "setColor", deviceName = "luces", params = listOf("cálidas")),
+            RoutineActionItemUi(actionName = "turnOn", deviceName = "música"),
+        ),
         extraActions = 1,
         days = listOf(false, false, false, false, true, true, true),
         favorite = false,
