@@ -822,7 +822,6 @@
     <string name="routines_no_active_home">Select a home to see its routines.</string>
     <string name="rooms_no_active_home">Select a home to see its rooms.</string>
 
-    <!-- QR scan -->
     <string name="quick_add_scan">Scan QR</string>
     <string name="scan_title">Scan QR</string>
     <string name="scan_instruction">Scan the device\'s QR code</string>
@@ -838,13 +837,11 @@
     <string name="scan_camera_unavailable_title">Camera unavailable</string>
     <string name="scan_camera_unavailable_description">We couldn\'t start the camera on this device.</string>
 
-    <!-- Device detail -->
     <string name="device_detail_title">Device</string>
     <string name="device_detail_room_label">Room</string>
     <string name="device_detail_no_room">Unassigned</string>
     <string name="device_detail_not_found">We couldn\'t find this device.</string>
 
-    <!-- Scanned device flow -->
     <string name="scanned_device_title">Add device</string>
     <string name="scanned_device_step_room_label">Step 1 of 2 · Room</string>
     <string name="scanned_device_step_device_label">Step 2 of 2 · Device</string>

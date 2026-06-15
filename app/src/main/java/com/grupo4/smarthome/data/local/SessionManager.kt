@@ -14,20 +14,17 @@ class SessionManager(
     val session: StateFlow<SessionData?> =
         sessionDataStore.session.stateIn(scope, SharingStarted.Eagerly, null)
 
-    // Arranca en Loading hasta la primera emisión real de DataStore: define la pantalla inicial
     val sessionState: StateFlow<SessionState> =
         sessionDataStore.session
             .map { if (it != null) SessionState.Authenticated(it) else SessionState.Unauthenticated }
             .stateIn(scope, SharingStarted.Eagerly, SessionState.Loading)
 
-    // Token actual leído de forma síncrona para el header Authorization: Bearer
     fun currentToken(): String? = session.value?.token
 
     suspend fun saveSession(token: String, user: User) {
         sessionDataStore.saveSession(token, user)
     }
 
-    // Reescribe el usuario cacheado conservando el token actual; sin sesión activa no hace nada
     suspend fun updateUser(user: User) {
         val token = session.value?.token ?: return
         sessionDataStore.saveSession(token, user)
@@ -37,6 +34,5 @@ class SessionManager(
         sessionDataStore.clearSession()
     }
 
-    // Sesión rechazada por el servidor (401). Hoy equivale a clearSession().
     suspend fun expireSession() = clearSession()
 }

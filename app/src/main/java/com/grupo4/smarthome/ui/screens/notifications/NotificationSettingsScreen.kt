@@ -32,7 +32,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
@@ -286,28 +285,3 @@ private fun NotificationToggleRow(
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun NotificationSettingsLightPreview() {
-    SmartHomeTheme(darkTheme = false) {
-        NotificationSettingsContent(
-            preferences = NotificationPreferences(),
-            onPreferencesChange = {},
-            horizontalPadding = 16.dp,
-            showHeader = false,
-        )
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun NotificationSettingsDarkPreview() {
-    SmartHomeTheme(darkTheme = true) {
-        NotificationSettingsContent(
-            preferences = NotificationPreferences(enabled = true, devices = false),
-            onPreferencesChange = {},
-            horizontalPadding = 16.dp,
-            showHeader = false,
-        )
-    }
-}

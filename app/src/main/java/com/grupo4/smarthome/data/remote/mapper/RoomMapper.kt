@@ -9,7 +9,6 @@ import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
-// La API no modela RoomType ni isFavorite: los persistimos en metadata (mismo criterio que HomeMapper)
 private const val KEY_ROOM_TYPE = "roomType"
 private const val KEY_FAVORITE = "favorite"
 
@@ -19,11 +18,9 @@ fun RoomDto.toDomain(): Room =
         name = name,
         type = metadata.readRoomType(),
         isFavorite = metadata.readFavorite(),
-        // v1: los dispositivos se traen aparte; por ahora la habitación llega sin dispositivos
         devices = emptyList(),
     )
 
-// Reconstruye metadata preservando claves ajenas (igual que buildHomeMetadata)
 fun buildRoomMetadata(
     type: RoomType,
     isFavorite: Boolean,

@@ -16,7 +16,6 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 
-// La API solo modela name + actions: categoría/horario/días/favorito/enabled/homeId van en metadata
 private const val KEY_CATEGORY = "category"
 private const val KEY_TIME = "time"
 private const val KEY_DAYS = "days"
@@ -49,7 +48,6 @@ private fun RoutineActionDto.toDomain(): RoutineAction? {
     )
 }
 
-// Serializa las acciones del dominio a DTOs; params posicionales (número si parsea, si no string)
 fun Routine.toActionDtos(): List<RoutineActionDto> =
     actions.map { action ->
         RoutineActionDto(
@@ -61,7 +59,6 @@ fun Routine.toActionDtos(): List<RoutineActionDto> =
         )
     }
 
-// Reconstruye metadata preservando claves ajenas (igual que buildRoomMetadata)
 fun buildRoutineMetadata(
     category: RoutineCategory,
     time: String,
@@ -81,7 +78,6 @@ fun buildRoutineMetadata(
     put(KEY_HOME_ID, homeId)
 }
 
-// Lee el hogar dueño de la rutina; vacío = visible en cualquier hogar
 fun JsonObject?.readRoutineHomeId(): String =
     (this?.get(KEY_HOME_ID) as? JsonPrimitive)?.content.orEmpty()
 

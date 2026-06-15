@@ -50,7 +50,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.components.MainShellScaffold
@@ -558,32 +557,3 @@ private fun ThemeOption(
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun ProfileScreenLightPreview() {
-    SmartHomeTheme(darkTheme = false) {
-        PhoneProfileLayout(
-            userName = "Juan Perez",
-            userEmail = "juanperez@itba.edu.ar",
-            themePreference = ThemePreference.LIGHT,
-            onThemePreferenceChange = {},
-            onChangePassword = {},
-            onProfileAvatarClick = {},
-        )
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun ProfileScreenDarkPreview() {
-    SmartHomeTheme(darkTheme = true) {
-        PhoneProfileLayout(
-            userName = "Juan Perez",
-            userEmail = "juanperez@itba.edu.ar",
-            themePreference = ThemePreference.DARK,
-            onThemePreferenceChange = {},
-            onChangePassword = {},
-            onProfileAvatarClick = {},
-        )
-    }
-}

@@ -42,7 +42,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.auth.components.AuthBrandLogo
@@ -249,32 +248,3 @@ private fun RegisterLink(onClick: () -> Unit) {
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun LoginLightPreview() {
-    SmartHomeTheme(darkTheme = false) {
-        LoginContent(
-            uiState = LoginUiState(),
-            onEmailChange = {},
-            onPasswordChange = {},
-            onLogin = {},
-            onNavigateToRegister = {},
-            onNavigateToForgotPassword = {},
-        )
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun LoginDarkPreview() {
-    SmartHomeTheme(darkTheme = true) {
-        LoginContent(
-            uiState = LoginUiState(),
-            onEmailChange = {},
-            onPasswordChange = {},
-            onLogin = {},
-            onNavigateToRegister = {},
-            onNavigateToForgotPassword = {},
-        )
-    }
-}

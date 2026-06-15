@@ -39,7 +39,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.auth.components.AuthBrandLogo
@@ -265,32 +264,3 @@ private fun PasswordField(
     )
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun AuthChangePasswordLightPreview() {
-    SmartHomeTheme(darkTheme = false) {
-        AuthChangePasswordContent(
-            uiState = AuthChangePasswordUiState(),
-            onCurrentPasswordChange = {},
-            onNewPasswordChange = {},
-            onConfirmChange = {},
-            onSubmit = {},
-            onBack = {},
-        )
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun AuthChangePasswordDarkPreview() {
-    SmartHomeTheme(darkTheme = true) {
-        AuthChangePasswordContent(
-            uiState = AuthChangePasswordUiState(),
-            onCurrentPasswordChange = {},
-            onNewPasswordChange = {},
-            onConfirmChange = {},
-            onSubmit = {},
-            onBack = {},
-        )
-    }
-}

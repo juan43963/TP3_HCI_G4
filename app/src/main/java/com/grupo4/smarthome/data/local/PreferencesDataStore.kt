@@ -16,7 +16,6 @@ import kotlinx.serialization.encodeToString
 
 private val Context.appPreferences by preferencesDataStore(name = "preferences")
 
-// Preferencias del usuario que no son datos remotos: casa activa y tema
 class PreferencesDataStore(
     private val context: Context,
 ) {

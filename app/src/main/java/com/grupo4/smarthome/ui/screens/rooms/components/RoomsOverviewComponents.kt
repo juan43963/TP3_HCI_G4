@@ -511,7 +511,6 @@ fun RoomCard(
             }
 
             if (editMode) {
-                // Capa transparente que bloquea tocar el contenido atenuado de atrás
                 Box(
                     modifier = Modifier
                         .matchParentSize()

@@ -36,7 +36,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
@@ -353,27 +352,3 @@ private fun Modifier.dashedCircle(color: Color): Modifier = drawBehind {
     )
 }
 
-@Preview(name = "Routines Empty - Phone", showBackground = true, widthDp = 393, heightDp = 520)
-@Composable
-private fun RoutinesEmptyPhonePreview() {
-    SmartHomeTheme(darkTheme = false) {
-        Box(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.background)
-                .padding(20.dp),
-        ) {
-            RoutinesEmptyStateCard(
-                onCreateRoutineClick = {},
-                compact = true,
-            )
-        }
-    }
-}
-
-@Preview(name = "Routines Empty Detail - Tablet", showBackground = true, widthDp = 520, heightDp = 520)
-@Composable
-private fun RoutinesEmptyDetailPreview() {
-    SmartHomeTheme(darkTheme = false) {
-        RoutinesEmptyDetailPane()
-    }
-}

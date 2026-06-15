@@ -69,9 +69,6 @@ import com.grupo4.smarthome.ui.theme.ErrorRed
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 import java.util.concurrent.Executors
 
-// Pantalla de escaneo. Stateless respecto del ScanViewModel: recibe el uiState, la lista de devices
-// del hogar para el match y los callbacks de detección/navegación. El permiso de cámara se maneja
-// acá (concierne a Android/Compose) con el contrato RequestPermission.
 @Composable
 fun ScanScreen(
     uiState: ScanUiState,
@@ -150,7 +147,6 @@ private fun ScanCameraContent(
     onClose: () -> Unit,
     onRetry: () -> Unit,
 ) {
-    // rememberUpdatedState para que el analizador (creado una vez) lea siempre la última lista/callback.
     val latestDevices by rememberUpdatedState(homeDevices)
     val latestOnDetected by rememberUpdatedState(onCodeDetected)
 
@@ -163,7 +159,6 @@ private fun ScanCameraContent(
 
         ScanOverlay()
 
-        // Scrim superior para legibilidad del header sobre el preview.
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -216,13 +211,11 @@ private fun ScanCameraContent(
 
 @Composable
 private fun ScanOverlay() {
-    // Marco de escaneo centrado: cuadrado acotado (en tablet no ocupa toda la pantalla).
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
         val frameSize = minOf(maxWidth, maxHeight) * 0.66f
-        // Borde del visor centrado, sobre el preview vivo (el centro queda limpio para enfocar el QR).
         Surface(
             modifier = Modifier.size(frameSize),
             shape = RoundedCornerShape(28.dp),

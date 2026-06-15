@@ -43,7 +43,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.auth.components.AuthBrandLogo
@@ -388,46 +387,3 @@ private fun LoginFooterTablet(onLoginClick: () -> Unit) {
     }
 }
 
-@Preview(
-    name = "Register Tablet Landscape",
-    showBackground = true,
-    device = "spec:width=1280dp,height=800dp,dpi=240",
-)
-@Composable
-private fun RegisterScreenTabletPreview() {
-    SmartHomeTheme(darkTheme = false) {
-        RegisterScreenTabletContent(
-            uiState = RegisterUiState(),
-            onNavigateToLogin = {},
-            onFullNameChange = {},
-            onEmailChange = {},
-            onPasswordChange = {},
-            onConfirmPasswordChange = {},
-            onNextStep = {},
-            onPreviousStep = {},
-            onRegister = {},
-        )
-    }
-}
-
-@Preview(
-    name = "Register Tablet Landscape Dark",
-    showBackground = true,
-    device = "spec:width=1280dp,height=800dp,dpi=240",
-)
-@Composable
-private fun RegisterScreenTabletDarkPreview() {
-    SmartHomeTheme(darkTheme = true) {
-        RegisterScreenTabletContent(
-            uiState = RegisterUiState(),
-            onNavigateToLogin = {},
-            onFullNameChange = {},
-            onEmailChange = {},
-            onPasswordChange = {},
-            onConfirmPasswordChange = {},
-            onNextStep = {},
-            onPreviousStep = {},
-            onRegister = {},
-        )
-    }
-}

@@ -7,11 +7,9 @@ import kotlinx.serialization.json.JsonArray
 data class RoutineActionDto(
     val device: RoutineDeviceRefDto? = null,
     val actionName: String? = null,
-    // Params posicionales y heterogéneos ([], [80], ["cool"]): los dejamos crudos como JsonArray
     val params: JsonArray? = null,
 )
 
-// Ref propio (no EntityRefDto) porque GET /routines devuelve el device expandido con su nombre
 @Serializable
 data class RoutineDeviceRefDto(
     val id: String? = null,

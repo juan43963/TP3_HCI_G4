@@ -36,7 +36,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.auth.components.AuthBrandLogo
@@ -311,40 +310,3 @@ private fun ResendFooterTablet(onResendClick: () -> Unit) {
     }
 }
 
-@Preview(
-    name = "Recover Tablet Landscape",
-    showBackground = true,
-    device = "spec:width=1280dp,height=800dp,dpi=240",
-)
-@Composable
-private fun RecoverPasswordScreenTabletPreview() {
-    SmartHomeTheme(darkTheme = false) {
-        RecoverPasswordTabletContent(
-            uiState = RecoverPasswordUiState(),
-            onEmailChange = {},
-            onSendCode = {},
-            onResend = {},
-            onLinkSent = {},
-            onBackToLogin = {},
-        )
-    }
-}
-
-@Preview(
-    name = "Recover Tablet Landscape Dark",
-    showBackground = true,
-    device = "spec:width=1280dp,height=800dp,dpi=240",
-)
-@Composable
-private fun RecoverPasswordScreenTabletDarkPreview() {
-    SmartHomeTheme(darkTheme = true) {
-        RecoverPasswordTabletContent(
-            uiState = RecoverPasswordUiState(codeSent = true, email = "juanperez@gmail.com"),
-            onEmailChange = {},
-            onSendCode = {},
-            onResend = {},
-            onLinkSent = {},
-            onBackToLogin = {},
-        )
-    }
-}

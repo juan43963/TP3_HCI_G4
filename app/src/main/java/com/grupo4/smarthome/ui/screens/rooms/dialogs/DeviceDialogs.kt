@@ -73,7 +73,6 @@ import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
 private const val PENDING_FIELD_SEP = ""
 
-// La API rechaza nombres demasiado cortos; validamos del lado cliente para dar un error claro.
 internal const val MIN_DEVICE_NAME_LENGTH = 3
 
 internal fun isDeviceNameValid(name: String): Boolean = name.trim().length >= MIN_DEVICE_NAME_LENGTH

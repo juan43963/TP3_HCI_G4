@@ -17,13 +17,6 @@ import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
 private const val BADGE_MAX_COUNT = 9
 
-/**
- * Campana de notificaciones para la barra superior de la app.
- *
- * Muestra un badge con la cantidad de no leídas. El badge vive dentro de la app
- * (nunca en la barra del sistema operativo), tal como pide la devolución: ante un
- * cambio que el usuario no está viendo, se avisa mediante este ícono en la barra superior.
- */
 @Composable
 fun NotificationsBellButton(
     unreadCount: Int,

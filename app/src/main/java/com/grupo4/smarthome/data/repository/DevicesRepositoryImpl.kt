@@ -37,42 +37,23 @@ class DevicesRepositoryImpl(
     private val sessionManager: SessionManager,
     private val localActionTracker: LocalActionTracker = LocalActionTracker(),
 ) : DevicesRepository {
-    // Catálogo de tipos cacheado en memoria (ya mapeado al dominio): resuelve type.id -> DeviceTypeInfo
-    // al mapear dispositivos y sirve de fuente para crear y para la UI.
     private var deviceTypesCache: List<DeviceTypeInfo>? = null
 
     override suspend fun getLogs(limit: Int, offset: Int): AppResult<List<DeviceLog>> =
-        runCatching {
-            val response = devicesApi.getLogs(limit, offset)
-            val body = response.bodyAsText()
-            if (response.status.isSuccess()) {
-                val dtos = ApiJson.Instance.decodeFromString(ListSerializer(DeviceLogDto.serializer()), body)
-                AppResult.Success(dtos.mapNotNull { it.toDomain() })
-            } else {
-                AppResult.Error(ErrorMapper.fromHttp(response.status, body))
-            }
-        }.getOrElse { throwable ->
-            AppResult.Error(ErrorMapper.fromThrowable(throwable))
-        }.expireSessionOnUnauthorized(sessionManager)
+        apiCall(sessionManager, { devicesApi.getLogs(limit, offset) }) { body ->
+            ApiJson.Instance.decodeFromString(ListSerializer(DeviceLogDto.serializer()), body)
+                .mapNotNull { it.toDomain() }
+        }
 
     override suspend fun getDeviceTypes(): AppResult<List<DeviceTypeInfo>> =
-        runCatching {
-            ensureDeviceTypes()?.let { AppResult.Success(it) } ?: catalogError()
-        }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
-            .expireSessionOnUnauthorized(sessionManager)
+        ensureDeviceTypes()?.let { AppResult.Success(it) } ?: catalogError()
 
-    override suspend fun getRoomDevices(roomId: String): AppResult<List<Device>> =
-        runCatching {
-            val catalog = ensureDeviceTypes() ?: return@runCatching catalogError()
-            val response = devicesApi.getRoomDevices(roomId)
-            val body = response.bodyAsText()
-            if (response.status.isSuccess()) {
-                AppResult.Success(parseDevices(body, roomId, catalog))
-            } else {
-                AppResult.Error(ErrorMapper.fromHttp(response.status, body))
-            }
-        }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
-            .expireSessionOnUnauthorized(sessionManager)
+    override suspend fun getRoomDevices(roomId: String): AppResult<List<Device>> {
+        val catalog = ensureDeviceTypes() ?: return catalogError()
+        return apiCall(sessionManager, { devicesApi.getRoomDevices(roomId) }) { body ->
+            parseDevices(body, roomId, catalog)
+        }
+    }
 
     override suspend fun createDevice(
         roomId: String,
@@ -82,7 +63,6 @@ class DevicesRepositoryImpl(
     ): AppResult<Device> =
         runCatching {
             val catalog = ensureDeviceTypes() ?: return@runCatching catalogError()
-            // El id del tipo ya viene validado (no-blank) desde el catálogo: lo usamos directo.
             val response = devicesApi.createDevice(
                 DeviceCreateDto(
                     name = name.trim(),
@@ -105,12 +85,10 @@ class DevicesRepositoryImpl(
                 localActionTracker.record(created.id, NotificationKind.DEVICE_ACTION)
             }
 
-            // Sin id no se puede confirmar nada más: devolvemos lo creado tal como vino
             if (created.id.isBlank()) {
                 return@runCatching AppResult.Success(created)
             }
 
-            // Refetch para confirmar que quedó asociado a la habitación (mismo criterio que rooms, ADR-0008)
             val devicesInRoom = fetchRoomDevicesOrNull(roomId, catalog)
             if (devicesInRoom == null) {
                 return@runCatching AppResult.Success(created.copy(roomId = roomId))
@@ -119,7 +97,6 @@ class DevicesRepositoryImpl(
                 return@runCatching AppResult.Success(it)
             }
 
-            // Refetch exitoso pero no aparece: recién ahí usamos el fallback de asociación
             val associateResponse = devicesApi.addDeviceToRoom(roomId, created.id)
             if (!associateResponse.status.isSuccess()) {
                 return@runCatching AppResult.Error(
@@ -136,7 +113,6 @@ class DevicesRepositoryImpl(
     override suspend fun renameDevice(deviceId: String, name: String): AppResult<Device> =
         runCatching {
             val catalog = ensureDeviceTypes() ?: return@runCatching catalogError()
-            // Traemos el dispositivo actual para preservar metadata y roomId al editar el nombre.
             val current = fetchDeviceDto(deviceId)
                 ?: return@runCatching AppResult.Error(ApiError(ErrorKind.NotFound))
             localActionTracker.record(deviceId, NotificationKind.DEVICE_UPDATED)
@@ -151,17 +127,10 @@ class DevicesRepositoryImpl(
         }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
             .expireSessionOnUnauthorized(sessionManager)
 
-    override suspend fun deleteDevice(deviceId: String): AppResult<Unit> =
-        runCatching {
-            localActionTracker.record(deviceId, NotificationKind.DEVICE_DELETED)
-            val response = devicesApi.deleteDevice(deviceId)
-            if (response.status.isSuccess()) {
-                AppResult.Success(Unit)
-            } else {
-                AppResult.Error(ErrorMapper.fromHttp(response.status, response.bodyAsText()))
-            }
-        }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
-            .expireSessionOnUnauthorized(sessionManager)
+    override suspend fun deleteDevice(deviceId: String): AppResult<Unit> {
+        localActionTracker.record(deviceId, NotificationKind.DEVICE_DELETED)
+        return apiCallUnit(sessionManager, { devicesApi.deleteDevice(deviceId) })
+    }
 
     override suspend fun toggleDevice(device: Device): AppResult<Device> {
         val actionName = resolveToggleActionName(device)
@@ -181,15 +150,12 @@ class DevicesRepositoryImpl(
         args: List<ActionArg>,
     ): AppResult<DeviceActionResult> =
         runCatching {
-            // "Obtener estado" no se ejecuta como PATCH: se resuelve como refresco (consulta GET).
             if (DeviceActionNames.isStateRefreshAction(actionName)) {
                 return@runCatching refreshDevice(device).map { DeviceActionResult(it) }
             }
             val catalog = ensureDeviceTypes() ?: return@runCatching catalogError()
-            // Validamos que la acción exista en el catálogo del tipo y tomamos su casing EXACTO.
             val resolved = device.type.action(actionName)
                 ?: return@runCatching AppResult.Error(ApiError(ErrorKind.Unknown))
-            // Las acciones de solo lectura (getPlaylist, ...) no mutan estado: no las registramos como acción.
             val readOnly = DeviceActionNames.isReadOnlyAction(resolved.name)
             if (!readOnly) {
                 localActionTracker.record(device.id, NotificationKind.DEVICE_ACTION)
@@ -209,12 +175,9 @@ class DevicesRepositoryImpl(
             if (!response.status.isSuccess()) {
                 return@runCatching AppResult.Error(ErrorMapper.fromHttp(response.status, responseBody))
             }
-            // Para read-only capturamos el cuerpo (resultado a mostrar); las mutaciones no exponen texto.
             val resultText = if (readOnly) responseBody.takeIf { it.isNotBlank() } else null
             when (val refreshed = refetchDevice(device.id, device.roomId, catalog)) {
                 is AppResult.Success -> AppResult.Success(DeviceActionResult(refreshed.data, resultText))
-                // La acción ya se ejecutó OK; si el refetch falla pero había resultado, igual lo devolvemos
-                // (sobre el device previo) para no perderlo. Si no, propagamos el error del refetch.
                 is AppResult.Error ->
                     if (resultText != null) AppResult.Success(DeviceActionResult(device, resultText)) else refreshed
             }
@@ -224,21 +187,16 @@ class DevicesRepositoryImpl(
     override suspend fun refreshDevice(device: Device): AppResult<Device> =
         runCatching {
             val catalog = ensureDeviceTypes() ?: return@runCatching catalogError()
-            // Refrescamos vía GET /devices/{id} (devuelve el device completo con su state). Es un GET,
-            // nunca un PATCH: cubre el requisito de "obtener estado" sin depender de la forma de /state.
             refetchDevice(device.id, device.roomId, catalog)
         }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
             .expireSessionOnUnauthorized(sessionManager)
 
-    override suspend fun getActionsFor(type: DeviceTypeInfo): AppResult<List<DeviceActionInfo>> =
-        runCatching {
-            if (type.actions.isNotEmpty()) return@runCatching AppResult.Success(type.actions)
-            val catalog = ensureDeviceTypes() ?: return@runCatching catalogError()
-            AppResult.Success(catalog.byId(type.id)?.actions.orEmpty())
-        }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
-            .expireSessionOnUnauthorized(sessionManager)
+    override suspend fun getActionsFor(type: DeviceTypeInfo): AppResult<List<DeviceActionInfo>> {
+        if (type.actions.isNotEmpty()) return AppResult.Success(type.actions)
+        val catalog = ensureDeviceTypes() ?: return catalogError()
+        return AppResult.Success(catalog.byId(type.id)?.actions.orEmpty())
+    }
 
-    // --- Helpers de red ---
 
     private suspend fun refetchDevice(
         deviceId: String,
@@ -266,48 +224,27 @@ class DevicesRepositoryImpl(
     }
 
     private suspend fun fetchDeviceDto(deviceId: String): DeviceDto? =
-        runCatching {
-            val response = devicesApi.getDevice(deviceId)
-            if (response.status.isSuccess()) {
-                ApiJson.Instance.decodeFromString(DeviceDto.serializer(), response.bodyAsText())
-            } else {
-                sessionManager.expireSessionIfUnauthorized(response.status)
-                null
-            }
-        }.getOrNull()
+        apiFetchOrNull(sessionManager, { devicesApi.getDevice(deviceId) }) { body ->
+            ApiJson.Instance.decodeFromString(DeviceDto.serializer(), body)
+        }
 
     private suspend fun fetchRoomDevicesOrNull(roomId: String, catalog: List<DeviceTypeInfo>): List<Device>? =
-        runCatching {
-            val response = devicesApi.getRoomDevices(roomId)
-            if (response.status.isSuccess()) {
-                parseDevices(response.bodyAsText(), roomId, catalog)
-            } else {
-                sessionManager.expireSessionIfUnauthorized(response.status)
-                null
-            }
-        }.getOrNull()
+        apiFetchOrNull(sessionManager, { devicesApi.getRoomDevices(roomId) }) { body ->
+            parseDevices(body, roomId, catalog)
+        }
 
     private fun parseDevices(body: String, roomId: String, catalog: List<DeviceTypeInfo>): List<Device> =
         ApiJson.Instance
             .decodeFromString(ListSerializer(DeviceDto.serializer()), body)
-            // mapNotNull: descartamos dispositivos cuyo tipo no se pudo resolver, sin crashear
             .mapNotNull { it.toDomain({ catalog.byId(it) }, roomId) }
 
-    // Carga el catálogo una vez y lo cachea; devuelve null si falla (lo traducimos a catalogError())
     private suspend fun ensureDeviceTypes(): List<DeviceTypeInfo>? {
         deviceTypesCache?.let { return it }
-        return runCatching {
-            val response = devicesApi.getDeviceTypes()
-            if (response.status.isSuccess()) {
-                ApiJson.Instance
-                    .decodeFromString(ListSerializer(DeviceTypeDto.serializer()), response.bodyAsText())
-                    .mapNotNull { it.toDomain() }
-                    .also { deviceTypesCache = it }
-            } else {
-                sessionManager.expireSessionIfUnauthorized(response.status)
-                null
-            }
-        }.getOrNull()
+        return apiFetchOrNull(sessionManager, { devicesApi.getDeviceTypes() }) { body ->
+            ApiJson.Instance
+                .decodeFromString(ListSerializer(DeviceTypeDto.serializer()), body)
+                .mapNotNull { it.toDomain() }
+        }?.also { deviceTypesCache = it }
     }
 
     private fun catalogError(): AppResult<Nothing> =
@@ -316,28 +253,23 @@ class DevicesRepositoryImpl(
     private fun List<DeviceTypeInfo>.byId(typeId: String?): DeviceTypeInfo? =
         firstOrNull { it.id == typeId }
 
-    // Elige la acción de toggle existente en el catálogo del tipo (no hardcodeamos sin verificar);
-    // devuelve el nombre con el casing exacto del catálogo o null si el tipo no expone un toggle.
     private fun resolveToggleActionName(device: Device): String? {
         val type = device.type
         if (type.isDoor) {
             val target = if (device.locked == true) DeviceActionNames.UNLOCK else DeviceActionNames.LOCK
             return type.action(target)?.name
         }
-        // Alarm arm/disarm actions require a security code, so they cannot be resolved as a no-arg toggle.
         if (type.canonicalName == DeviceTypeNames.ALARM) return null
         val candidates = if (device.isOn) DeviceActionNames.OFF_CANDIDATES else DeviceActionNames.ON_CANDIDATES
         return candidates.firstNotNullOfOrNull { type.action(it)?.name }
     }
 }
 
-// Transforma el dato de un Success preservando el Error tal cual (Error es AppResult<Nothing>).
 private inline fun <T, R> AppResult<T>.map(transform: (T) -> R): AppResult<R> = when (this) {
     is AppResult.Success -> AppResult.Success(transform(data))
     is AppResult.Error -> this
 }
 
-// Colapsa el resultado de una acción a solo el device, para toggle/setDeviceValue.
 private fun AppResult<DeviceActionResult>.toDevice(): AppResult<Device> = when (this) {
     is AppResult.Success -> AppResult.Success(data.device)
     is AppResult.Error -> this

@@ -99,8 +99,6 @@ fun DeviceCard(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            // Alto mínimo uniforme: las cards sin línea de estado (heladera/persiana) quedan igual de
-            // altas que las de 3 líneas. Como en tablet no hay controles inline, todas entran parejas.
             .defaultMinSize(minHeight = 176.dp),
         shape = cardShape,
         color = MaterialTheme.colorScheme.surface,
@@ -116,8 +114,6 @@ fun DeviceCard(
                     .fillMaxSize()
                     .padding(22.dp),
             ) {
-                // Tablet: la card NO tiene controles inline (toggle/slider). Todo va por "More actions",
-                // así todas las cards mantienen el mismo tamaño. El sheet incluye la acción primaria.
                 DeviceCardHeader(
                     device = device,
                     onToggle = onToggle,
@@ -258,7 +254,6 @@ private fun PhoneDeviceCard(
     }
 }
 
-// Botón "Más acciones" + panel: lista TODAS las acciones del catálogo del dispositivo para ejecutarlas.
 @Composable
 private fun DeviceMoreActions(
     device: Device,
@@ -297,31 +292,6 @@ private fun DeviceMoreActions(
             onDismiss = { showSheet = false },
             includePrimaryAction = includePrimary,
             roomOptions = roomOptions,
-        )
-    }
-}
-
-@Composable
-private fun DeviceCardEditActions(
-    onEdit: () -> Unit,
-    onDelete: () -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        DeviceEditActionButton(
-            label = stringResource(R.string.rooms_edit_short),
-            icon = SmartHomeIcons.Edit,
-            onClick = onEdit,
-            modifier = Modifier.weight(1f),
-        )
-        DeviceEditActionButton(
-            label = stringResource(R.string.rooms_delete),
-            icon = SmartHomeIcons.Delete,
-            onClick = onDelete,
-            destructive = true,
-            modifier = Modifier.weight(1f),
         )
     }
 }
@@ -426,7 +396,6 @@ private fun DeviceCardHeader(
                 }
             }
         }
-        // En tablet (showControl=false) no hay control inline: todo se hace desde "More actions".
         if (showControl) {
             HeaderControl(
                 device = device,
@@ -458,7 +427,6 @@ private fun FridgeStatusSummary(device: Device) {
     )
 }
 
-// Línea de estado real: punto de color + texto (On/Off, Locked/Unlocked, Open/Closed) según el device.
 @Composable
 internal fun DeviceStatusRow(device: Device) {
     val statuses = deviceStatuses(device)
@@ -502,10 +470,8 @@ private fun HeaderControl(
             onCheckedChange = onToggle,
         )
     }
-    // Tipos sin on/off real (p. ej. heladera) no muestran control de toggle.
 }
 
-// Botón Lock/Unlock del header (puertas). El label refleja la ACCIÓN real (si está trabada -> "Unlock").
 @Composable
 private fun DoorLockButton(
     device: Device,

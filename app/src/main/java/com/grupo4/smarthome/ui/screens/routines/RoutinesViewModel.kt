@@ -33,7 +33,6 @@ class RoutinesViewModel(
     private val _uiState = MutableStateFlow(RoutinesUiState())
     val uiState: StateFlow<RoutinesUiState> = _uiState.asStateFlow()
 
-    // Hogar activo actual; lo setea la UI vía onHomeChanged
     private var homeId: String? = null
 
     fun onHomeChanged(newHomeId: String?) {
@@ -116,7 +115,6 @@ class RoutinesViewModel(
         }
     }
 
-    // Guarda los cambios del detalle reconstruyendo la rutina de dominio (conserva acciones/categoría/homeId)
     fun saveRoutine(routineId: String, name: String, time24h: String, days: List<Boolean>, enabled: Boolean) {
         val original = _uiState.value.routines.firstOrNull { it.id == routineId } ?: return
         updateRoutine(original.copy(name = name, time = time24h, days = days, enabled = enabled))
@@ -180,7 +178,6 @@ class RoutinesViewModel(
 
     fun dismissInfo() = _uiState.update { it.copy(infoMessage = null) }
 
-    // --- Helpers ---
 
     private suspend fun refreshRoutines() {
         val currentHome = homeId ?: return
@@ -192,7 +189,6 @@ class RoutinesViewModel(
         }
     }
 
-    // Carga los dispositivos del hogar (rooms -> devices) y las acciones de cada tipo presente
     private fun loadDevices(homeId: String) {
         viewModelScope.launch {
             val rooms = when (val result = roomsRepository.getRooms(homeId)) {
@@ -217,7 +213,6 @@ class RoutinesViewModel(
     }
 
     private suspend fun loadDeviceActions(devices: List<Device>) {
-        // Un tipo por id (DeviceTypeInfo.id) para no repetir consultas de tipos iguales.
         val types = devices.map { it.type }.distinctBy { it.id }
         val actions = mutableMapOf<String, List<DeviceActionInfo>>()
         for (type in types) {

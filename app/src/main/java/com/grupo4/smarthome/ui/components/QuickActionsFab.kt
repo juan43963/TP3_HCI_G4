@@ -40,18 +40,6 @@ import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.theme.BrandIndigoDark
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
-/**
- * Speed-dial overlay. Must be called inside a [BoxScope] that fills the screen
- * (e.g. Box(Modifier.fillMaxSize())), so the scrim covers the full viewport.
- *
- * Usage:
- * ```
- * Box(Modifier.fillMaxSize()) {
- *     // ... screen content ...
- *     QuickActionsOverlay(visible = isOpen, onDismiss = { isOpen = false })
- * }
- * ```
- */
 @Composable
 fun BoxScope.QuickActionsOverlay(
     visible: Boolean,
@@ -62,7 +50,6 @@ fun BoxScope.QuickActionsOverlay(
     onScanQr: () -> Unit = onDismiss,
     bottomBarPadding: Dp = 0.dp,
 ) {
-    // Full-screen scrim
     AnimatedVisibility(
         visible = visible,
         enter = fadeIn(tween(200)),

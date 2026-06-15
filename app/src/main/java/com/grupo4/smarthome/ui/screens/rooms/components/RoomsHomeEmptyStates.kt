@@ -36,7 +36,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
@@ -449,40 +448,3 @@ private fun Modifier.dashedBorder(
     )
 }
 
-@Preview(
-    name = "Rooms Empty State - Phone",
-    showBackground = true,
-    widthDp = 393,
-    heightDp = 520,
-)
-@Composable
-private fun RoomsHomeEmptyStatePhonePreview() {
-    SmartHomeTheme(darkTheme = false) {
-        Box(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.background)
-                .padding(24.dp),
-        ) {
-            RoomsHomeEmptyState(
-                buttonLabel = stringResource(R.string.rooms_empty_cta),
-                onCreateRoomClick = {},
-                compact = true,
-            )
-        }
-    }
-}
-
-@Preview(
-    name = "Rooms Empty Detail - Tablet",
-    showBackground = true,
-    widthDp = 480,
-    heightDp = 520,
-)
-@Composable
-private fun RoomsEmptyDetailPlaceholderPreview() {
-    SmartHomeTheme(darkTheme = false) {
-        RoomsEmptyDetailPlaceholder(
-            modifier = Modifier.background(MaterialTheme.colorScheme.background),
-        )
-    }
-}

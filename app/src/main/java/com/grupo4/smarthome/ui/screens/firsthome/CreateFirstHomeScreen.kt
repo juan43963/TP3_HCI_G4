@@ -25,7 +25,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
 import com.grupo4.smarthome.R
@@ -123,18 +122,3 @@ private fun CreateHomeButton(
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun CreateFirstHomePhonePreview() {
-    SmartHomeTheme(darkTheme = false) {
-        CreateFirstHomeContent(isTablet = false, onCreateHome = {})
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true, widthDp = 1024, heightDp = 768)
-@Composable
-private fun CreateFirstHomeTabletPreview() {
-    SmartHomeTheme(darkTheme = false) {
-        CreateFirstHomeContent(isTablet = true, onCreateHome = {})
-    }
-}

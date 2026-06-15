@@ -32,11 +32,6 @@ import com.grupo4.smarthome.ui.screens.dashboard.components.DashboardAvatarButto
 import com.grupo4.smarthome.ui.screens.dashboard.components.QuickAddButton
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
-/**
- * Sidebar used by the pre-home flows (select home, settings reached from there).
- * Only exposes the "Configuración" entry plus the quick-add button — there is no
- * home-scoped navigation yet because no home has been entered.
- */
 @Composable
 fun SelectHomeSidebar(
     compact: Boolean,
@@ -139,10 +134,6 @@ private fun SidebarNavItem(
     }
 }
 
-/**
- * Top bar used by the pre-home flows: a centered search field with the profile
- * avatar pinned to the right.
- */
 @Composable
 fun SelectHomeTopBar(
     onProfileClick: () -> Unit,

@@ -30,12 +30,10 @@ class SelectHomeViewModel(
     private val _uiState = MutableStateFlow(SelectHomeUiState())
     val uiState: StateFlow<SelectHomeUiState> = _uiState.asStateFlow()
 
-    // Casa activa persistida; al cambiar reconciliamos contra la lista cargada
     private val selectedHomeId: StateFlow<String?> =
         preferencesDataStore.selectedHomeId.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     init {
-        // Reaccionamos a la sesión: al loguearse (aparece el token) recargamos las casas solas
         viewModelScope.launch {
             sessionManager.session
                 .distinctUntilChanged { old, new -> old?.token == new?.token }
@@ -79,7 +77,6 @@ class SelectHomeViewModel(
         viewModelScope.launch { preferencesDataStore.setSelectedHomeId(homeId) }
     }
 
-    // Si la casa guardada ya no existe (o no hay), caemos a la primera y la persistimos
     private fun reconcileActiveHome() {
         val homes = _uiState.value.homes
         if (homes.isEmpty()) return
@@ -93,7 +90,6 @@ class SelectHomeViewModel(
         }
     }
 
-    // Mueve el id al frente de la lista de recientes (sin duplicados)
     private fun List<String>.moveToFront(id: String): List<String> =
         listOf(id) + this.filter { it != id }
 
@@ -105,13 +101,11 @@ class SelectHomeViewModel(
             val type = HomeType.entries.getOrElse(typeIndex) { HomeType.OTRO }
             when (val result = homesRepository.createHome(name, type)) {
                 is AppResult.Success -> {
-                    // Compartimos la casa recién creada con cada invitado (opcional)
                     if (result.data.id.isNotBlank()) {
                         shareEmails.filter { it.isNotBlank() }.forEach { email ->
                             homesRepository.shareHome(result.data.id, email)
                         }
                     }
-                    // Refetch para reflejar el estado real del back-end (ADR-0008)
                     val refreshed = (homesRepository.getHomes() as? AppResult.Success)?.data
                     _uiState.update {
                         it.copy(
@@ -137,7 +131,6 @@ class SelectHomeViewModel(
         _uiState.update { it.copy(createError = null) }
     }
 
-    // --- Menú por casa: renombrar / eliminar / compartir ---
 
     fun openRenameDialog(home: SelectableHome) {
         _uiState.update { it.copy(dialog = HomeDialog.Rename(home), actionError = null) }

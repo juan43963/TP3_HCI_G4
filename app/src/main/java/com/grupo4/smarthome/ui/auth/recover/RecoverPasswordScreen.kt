@@ -37,7 +37,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.auth.components.AuthBrandLogo
@@ -301,32 +300,3 @@ private fun ResendFooter(onResendClick: () -> Unit) {
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun RecoverPasswordLightPreview() {
-    SmartHomeTheme(darkTheme = false) {
-        RecoverPasswordContent(
-            uiState = RecoverPasswordUiState(),
-            onEmailChange = {},
-            onSendCode = {},
-            onResend = {},
-            onLinkSent = {},
-            onBackToLogin = {},
-        )
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun RecoverPasswordDarkPreview() {
-    SmartHomeTheme(darkTheme = true) {
-        RecoverPasswordContent(
-            uiState = RecoverPasswordUiState(codeSent = true, email = "juanperez@gmail.com"),
-            onEmailChange = {},
-            onSendCode = {},
-            onResend = {},
-            onLinkSent = {},
-            onBackToLogin = {},
-        )
-    }
-}

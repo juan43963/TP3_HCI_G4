@@ -34,7 +34,6 @@ class NotificationsViewModel(
     private data class Status(val isLoading: Boolean = false, val errorMessage: Int? = null)
 
     private val _events = MutableStateFlow<List<NotificationEvent>>(emptyList())
-    // deviceId -> nombre canónico del tipo, que es lo que categoriza la notificación (categoryFor).
     private val _deviceTypeNames = MutableStateFlow<Map<String, String>>(emptyMap())
     private val _status = MutableStateFlow(Status(isLoading = true))
 

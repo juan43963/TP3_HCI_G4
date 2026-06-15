@@ -830,7 +830,6 @@
     <string name="routines_no_active_home">Seleccioná un hogar para ver sus rutinas.</string>
     <string name="rooms_no_active_home">Seleccioná un hogar para ver sus habitaciones.</string>
 
-    <!-- QR scan -->
     <string name="quick_add_scan">Escanear QR</string>
     <string name="scan_title">Escanear QR</string>
     <string name="scan_instruction">Escaneá el código QR del dispositivo</string>
@@ -846,13 +845,11 @@
     <string name="scan_camera_unavailable_title">Cámara no disponible</string>
     <string name="scan_camera_unavailable_description">No pudimos iniciar la cámara en este dispositivo.</string>
 
-    <!-- Device detail -->
     <string name="device_detail_title">Dispositivo</string>
     <string name="device_detail_room_label">Habitación</string>
     <string name="device_detail_no_room">Sin asignar</string>
     <string name="device_detail_not_found">No encontramos este dispositivo.</string>
 
-    <!-- Scanned device flow -->
     <string name="scanned_device_title">Agregar dispositivo</string>
     <string name="scanned_device_step_room_label">Paso 1 de 2 · Habitación</string>
     <string name="scanned_device_step_device_label">Paso 2 de 2 · Dispositivo</string>

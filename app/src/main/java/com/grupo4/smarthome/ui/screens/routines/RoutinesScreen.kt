@@ -47,7 +47,6 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.components.MainShellScaffold
@@ -290,28 +289,6 @@ private fun RoutinesErrorState(message: String, onRetry: () -> Unit) {
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
             )
         }
-    }
-}
-
-@Preview(name = "Routines Phone - Sin rutinas", showBackground = true, showSystemUi = true)
-@Composable
-private fun RoutinesScreenEmptyPreview() {
-    SmartHomeTheme(darkTheme = false) {
-        RoutinesScreen(
-            routines = emptyList(),
-            showQuickAddFab = true,
-        )
-    }
-}
-
-@Preview(name = "Routines Tablet - Sin rutinas", showBackground = true, widthDp = 1280, heightDp = 800)
-@Composable
-private fun RoutinesScreenTabletEmptyPreview() {
-    SmartHomeTheme(darkTheme = false) {
-        RoutinesScreen(
-            routines = emptyList(),
-            isTablet = true,
-        )
     }
 }
 
@@ -744,34 +721,3 @@ internal val sampleRoutines = listOf(
     ),
 )
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun RoutinesScreenLightPreview() {
-    SmartHomeTheme(darkTheme = false) {
-        RoutinesScreen()
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun RoutinesScreenDarkPreview() {
-    SmartHomeTheme(darkTheme = true) {
-        RoutinesScreen()
-    }
-}
-
-@Preview(name = "Tablet landscape", showBackground = true, widthDp = 1280, heightDp = 800)
-@Composable
-private fun RoutinesScreenTabletPreview() {
-    SmartHomeTheme(darkTheme = false) {
-        RoutinesScreen(isTablet = true)
-    }
-}
-
-@Preview(name = "Tablet portrait", showBackground = true, widthDp = 834, heightDp = 1194)
-@Composable
-private fun RoutinesScreenTabletPortraitPreview() {
-    SmartHomeTheme(darkTheme = false) {
-        RoutinesScreen(isTablet = true)
-    }
-}

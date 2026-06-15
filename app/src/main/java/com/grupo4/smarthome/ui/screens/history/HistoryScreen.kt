@@ -46,7 +46,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.components.MainShellScaffold
@@ -646,22 +645,6 @@ private val sampleHistory = listOf(
     HistoryEntryUi("9", "Reproduciendo", "Parlante", "Living", HistoryDeviceType.SPEAKER, "hace 30 min"),
     HistoryEntryUi("10", "Bloqueada", "Puerta", "Entrada", HistoryDeviceType.DOOR, "hace 31 min"),
 )
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun HistoryScreenLightPreview() {
-    SmartHomeTheme(darkTheme = false) {
-        HistoryListPreviewContent()
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun HistoryScreenDarkPreview() {
-    SmartHomeTheme(darkTheme = true) {
-        HistoryListPreviewContent()
-    }
-}
 
 @Composable
 private fun HistoryListPreviewContent() {

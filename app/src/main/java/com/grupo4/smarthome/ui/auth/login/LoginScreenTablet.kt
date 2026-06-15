@@ -44,7 +44,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.auth.components.AuthBrandLogo
@@ -262,40 +261,3 @@ private fun RegisterLinkTablet(onClick: () -> Unit) {
     }
 }
 
-@Preview(
-    name = "Login Tablet Landscape",
-    showBackground = true,
-    device = "spec:width=1280dp,height=800dp,dpi=240",
-)
-@Composable
-private fun LoginScreenTabletPreview() {
-    SmartHomeTheme(darkTheme = false) {
-        LoginTabletContent(
-            uiState = LoginUiState(),
-            onEmailChange = {},
-            onPasswordChange = {},
-            onLogin = {},
-            onNavigateToRegister = {},
-            onNavigateToForgotPassword = {},
-        )
-    }
-}
-
-@Preview(
-    name = "Login Tablet Landscape Dark",
-    showBackground = true,
-    device = "spec:width=1280dp,height=800dp,dpi=240",
-)
-@Composable
-private fun LoginScreenTabletDarkPreview() {
-    SmartHomeTheme(darkTheme = true) {
-        LoginTabletContent(
-            uiState = LoginUiState(),
-            onEmailChange = {},
-            onPasswordChange = {},
-            onLogin = {},
-            onNavigateToRegister = {},
-            onNavigateToForgotPassword = {},
-        )
-    }
-}

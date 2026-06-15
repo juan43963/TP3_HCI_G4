@@ -108,8 +108,6 @@ fun PhoneRoomsLayout(
             }
         },
         floatingActionButton = {
-            // En el detalle de habitación no hay bottom bar, así que compensamos su alto
-            // para que el FAB no se mueva respecto a la lista de habitaciones.
             PhoneRoomsFab(
                 onClick = {
                     val room = selectedRoom

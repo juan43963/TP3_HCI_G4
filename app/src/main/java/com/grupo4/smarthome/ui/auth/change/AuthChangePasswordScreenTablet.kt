@@ -40,7 +40,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.auth.components.AuthBrandLogo
@@ -281,40 +280,3 @@ private fun PasswordFieldTablet(
     )
 }
 
-@Preview(
-    name = "Auth Change Password Tablet Landscape",
-    showBackground = true,
-    device = "spec:width=1280dp,height=800dp,dpi=240",
-)
-@Composable
-private fun AuthChangePasswordScreenTabletPreview() {
-    SmartHomeTheme(darkTheme = false) {
-        AuthChangePasswordTabletContent(
-            uiState = AuthChangePasswordUiState(),
-            onCurrentPasswordChange = {},
-            onNewPasswordChange = {},
-            onConfirmChange = {},
-            onSubmit = {},
-            onBack = {},
-        )
-    }
-}
-
-@Preview(
-    name = "Auth Change Password Tablet Landscape Dark",
-    showBackground = true,
-    device = "spec:width=1280dp,height=800dp,dpi=240",
-)
-@Composable
-private fun AuthChangePasswordScreenTabletDarkPreview() {
-    SmartHomeTheme(darkTheme = true) {
-        AuthChangePasswordTabletContent(
-            uiState = AuthChangePasswordUiState(),
-            onCurrentPasswordChange = {},
-            onNewPasswordChange = {},
-            onConfirmChange = {},
-            onSubmit = {},
-            onBack = {},
-        )
-    }
-}

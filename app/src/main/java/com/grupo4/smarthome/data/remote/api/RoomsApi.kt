@@ -33,7 +33,6 @@ class RoomsApi(
     suspend fun deleteRoom(roomId: String): HttpResponse =
         client.delete(ApiRoutes.resolve(ApiRoutes.roomById(roomId)))
 
-    // Asocia una habitación ya creada a un hogar (fallback si POST /rooms no la asoció)
     suspend fun addRoomToHome(homeId: String, roomId: String): HttpResponse =
         client.post(ApiRoutes.resolve(ApiRoutes.homeRoomAssociation(homeId, roomId)))
 }

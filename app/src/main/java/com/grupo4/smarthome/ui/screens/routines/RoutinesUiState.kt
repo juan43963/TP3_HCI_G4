@@ -12,10 +12,8 @@ import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
 data class RoutinesUiState(
     val routines: List<Routine> = emptyList(),
-    // Dispositivos del hogar activo: para crear acciones y resolver nombres legibles
     val devices: List<Device> = emptyList(),
     val deviceRoomNames: Map<String, String> = emptyMap(),
-    // Acciones por id de tipo (DeviceTypeInfo.id). Tomadas del catálogo que ya trae cada device.type.
     val deviceActions: Map<String, List<DeviceActionInfo>> = emptyMap(),
     val isLoading: Boolean = false,
     @StringRes val errorMessage: Int? = null,
@@ -23,15 +21,12 @@ data class RoutinesUiState(
     val executingRoutineId: String? = null,
 )
 
-// Nombres de dispositivos por id, para mostrar acciones legibles en las cards
 val RoutinesUiState.deviceNamesById: Map<String, String>
     get() = devices.associate { it.id to it.name }
 
-// Tipos de dispositivo por id de device, para resolver el ícono de cada acción
 val RoutinesUiState.deviceTypesById: Map<String, DeviceTypeInfo>
     get() = devices.associate { it.id to it.type }
 
-// --- Mapeo dominio -> modelos de UI existentes (RoutineUi / RoutineDetailUi) ---
 
 fun Routine.toRoutineUi(deviceNamesById: Map<String, String>): RoutineUi {
     val actionItems = actions.map { it.toActionItemUi(deviceNamesById) }
@@ -84,7 +79,6 @@ fun Routine.toDetailUi(deviceNamesById: Map<String, String>, deviceTypesById: Ma
     )
 }
 
-// "hh:mm AM/PM" -> "HH:mm" 24h
 fun parseDisplayTimeTo24h(display: String): String = runCatching {
     val parts = display.trim().split(" ")
     val hm = parts[0].split(":")
@@ -97,7 +91,6 @@ fun parseDisplayTimeTo24h(display: String): String = runCatching {
     "%02d:%02d".format(hour, minute)
 }.getOrDefault(display)
 
-// "HH:mm" 24h -> "hh:mm AM/PM"
 fun formatRoutineTime(time: String): String = runCatching {
     val parts = time.trim().split(":")
     val hour = parts[0].toInt()

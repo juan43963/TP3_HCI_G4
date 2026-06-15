@@ -25,46 +25,32 @@ object ApiRoutes {
 
     fun homeShare(homeId: String): String = "$Homes/$homeId/share"
 
-    // GET de las habitaciones de un hogar
     fun homeRooms(homeId: String): String = "$Homes/$homeId/rooms"
 
-    // GET/PUT/DELETE de una habitación puntual
     fun roomById(roomId: String): String = "$Rooms/$roomId"
 
-    // POST para asociar una habitación existente a un hogar
     fun homeRoomAssociation(homeId: String, roomId: String): String = "$Homes/$homeId/rooms/$roomId"
 
-    // DELETE para desasociar una habitación de su hogar
     fun homeRoomRemoval(roomId: String): String = "$Homes/rooms/$roomId"
 
-    // GET de los dispositivos de una habitación
     fun roomDevices(roomId: String): String = "$Rooms/$roomId/devices"
 
-    // GET/PUT/DELETE de un dispositivo puntual
     fun deviceById(deviceId: String): String = "$Devices/$deviceId"
 
-    // GET del estado actual de un dispositivo
     fun deviceState(deviceId: String): String = "$Devices/$deviceId/state"
 
-    // GET del historial de acciones de todos los dispositivos (paginado)
     fun deviceLogs(limit: Int, offset: Int): String = "$Devices/logs/limit/$limit/offset/$offset"
 
-    // PATCH para ejecutar una acción (turnOn, setBrightness, etc.) sobre un dispositivo
     fun deviceAction(deviceId: String, actionName: String): String = "$Devices/$deviceId/$actionName"
 
-    // GET de un tipo de dispositivo puntual del catálogo
     fun deviceTypeById(deviceTypeId: String): String = "$DeviceTypes/$deviceTypeId"
 
-    // POST para asociar un dispositivo existente a una habitación (fallback de POST /devices)
     fun roomDeviceAssociation(roomId: String, deviceId: String): String = "$Rooms/$roomId/devices/$deviceId"
 
-    // DELETE para desvincular un dispositivo de su habitación
     fun roomDeviceRemoval(deviceId: String): String = "$Rooms/devices/$deviceId"
 
-    // GET/PUT/DELETE de una rutina puntual
     fun routineById(routineId: String): String = "$Routines/$routineId"
 
-    // PATCH para ejecutar todas las acciones de una rutina
     fun routineExecute(routineId: String): String = "$Routines/$routineId/execute"
 
     fun resolve(path: String): String =

@@ -23,7 +23,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.auth.components.AuthBrandLogo
@@ -146,24 +145,3 @@ fun WelcomeContent(
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun WelcomeContentPreview() {
-    SmartHomeTheme(darkTheme = true) {
-        WelcomeContent(
-            onRegisterClick = {},
-            onLoginClick = {},
-        )
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun WelcomeContentLightPreview() {
-    SmartHomeTheme(darkTheme = false) {
-        WelcomeContent(
-            onRegisterClick = {},
-            onLoginClick = {},
-        )
-    }
-}

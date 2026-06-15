@@ -35,7 +35,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.auth.components.AuthBrandLogo
@@ -268,34 +267,3 @@ private fun ResendFooter(onResendClick: () -> Unit, cooldownSeconds: Int, hasSen
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun VerifyAccountPreview() {
-    SmartHomeTheme(darkTheme = false) {
-        VerifyAccountContent(
-            uiState = VerifyAccountUiState(),
-            email = "juanperez@gmail.com",
-            onCodeChange = {},
-            onVerify = {},
-            onResend = {},
-            onChangeEmail = {},
-            onBackToLogin = {},
-        )
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun VerifyAccountDarkPreview() {
-    SmartHomeTheme(darkTheme = true) {
-        VerifyAccountContent(
-            uiState = VerifyAccountUiState(),
-            email = "juanperez@gmail.com",
-            onCodeChange = {},
-            onVerify = {},
-            onResend = {},
-            onChangeEmail = {},
-            onBackToLogin = {},
-        )
-    }
-}

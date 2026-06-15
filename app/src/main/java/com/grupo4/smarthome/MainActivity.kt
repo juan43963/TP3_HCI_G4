@@ -167,8 +167,6 @@ class MainActivity : ComponentActivity() {
 
 private const val LOADING_HOME_ID = "\u0000__loading_home__"
 
-// Permite que el dispositivo escaneado pendiente de alta sobreviva a la rotación / muerte de proceso
-// vía rememberSaveable, sin volver Parcelable el modelo de dominio (se guarda como lista de strings).
 private val QrDevicePayloadSaver = listSaver<QrDevicePayload?, String?>(
     save = { payload ->
         if (payload == null) emptyList()
@@ -342,8 +340,6 @@ fun SmartHomeApp(
     var showCreateRoutine by rememberSaveable { mutableStateOf(false) }
     var routineActionTargetId by rememberSaveable { mutableStateOf<String?>(null) }
     var routineEditTargetId by rememberSaveable { mutableStateOf<String?>(null) }
-    // Dispositivo escaneado pendiente de alta; rememberSaveable para sobrevivir rotación (igual que
-    // el resto de overlays de creación). Abre AddScannedDeviceDialog.
     var scannedPayload by rememberSaveable(stateSaver = QrDevicePayloadSaver) {
         mutableStateOf<QrDevicePayload?>(null)
     }
@@ -968,14 +964,10 @@ fun SmartHomeApp(
                     roomsUiState.rooms.flatMap { it.devices }
                 }
                 val devicesLoaded = roomsUiState.devicesLoaded
-                // El match exige los devices del hogar cargados; si todavía no se cargaron, los pedimos al
-                // entrar. También aseguramos el catálogo de tipos (lo usa el alta de un QR nuevo).
                 LaunchedEffect(Unit) {
                     if (!roomsUiState.devicesLoaded && !roomsUiState.isLoading) roomsViewModel.loadRooms()
                     if (roomsUiState.availableDeviceTypes.isEmpty()) roomsViewModel.refreshDeviceTypes()
                 }
-                // Cuando los devices llegan (o termina la carga), reintentamos resolver un QR que haya
-                // quedado pendiente por haberse leído durante la carga inicial.
                 LaunchedEffect(homeDevices, devicesLoaded) {
                     scanViewModel.onDevicesUpdated(homeDevices, devicesLoaded)
                 }
@@ -1377,8 +1369,6 @@ fun SmartHomeApp(
 
             val scanned = scannedPayload
             if (scanned != null) {
-                // El alta de un QR nuevo necesita el catálogo de tipos; si quedó vacío (p. ej. falló el
-                // GET inicial), lo reintentamos al abrir el diálogo para no dejar al usuario sin opciones.
                 LaunchedEffect(Unit) {
                     if (roomsUiState.availableDeviceTypes.isEmpty()) roomsViewModel.refreshDeviceTypes()
                 }

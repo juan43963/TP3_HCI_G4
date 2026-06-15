@@ -25,7 +25,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.auth.components.AuthBrandLogo
@@ -152,32 +151,3 @@ fun WelcomeContentTablet(
     }
 }
 
-@Preview(
-    name = "Welcome Tablet Landscape",
-    showBackground = true,
-    device = "spec:width=1280dp,height=800dp,dpi=240",
-)
-@Composable
-private fun WelcomeContentTabletPreview() {
-    SmartHomeTheme(darkTheme = true) {
-        WelcomeContentTablet(
-            onRegisterClick = {},
-            onLoginClick = {},
-        )
-    }
-}
-
-@Preview(
-    name = "Welcome Tablet Landscape Light",
-    showBackground = true,
-    device = "spec:width=1280dp,height=800dp,dpi=240",
-)
-@Composable
-private fun WelcomeContentTabletLightPreview() {
-    SmartHomeTheme(darkTheme = false) {
-        WelcomeContentTablet(
-            onRegisterClick = {},
-            onLoginClick = {},
-        )
-    }
-}

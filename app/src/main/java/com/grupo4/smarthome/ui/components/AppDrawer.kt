@@ -17,10 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
-/**
- * Opens the global app drawer. Provided by `SmartHomeApp` and consumed by main screens
- * via [LocalOpenDrawer]. Default is a no-op so previews and auth screens won't break.
- */
 val LocalOpenDrawer = compositionLocalOf<() -> Unit> { {} }
 
 @Composable

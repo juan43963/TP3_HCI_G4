@@ -81,22 +81,13 @@ import com.grupo4.smarthome.data.model.DeviceActionNames
 import com.grupo4.smarthome.data.model.DeviceActionParamInfo
 import com.grupo4.smarthome.data.model.DeviceTypeNames
 
-/**
- * Panel "Más acciones": header (nombre/categoría/estado) + una tarjeta por sección. La primera es el
- * par encender/apagar (turnOn/turnOff u open/close); el resto, una tarjeta por acción del catálogo con
- * su control. Excluye la acción de valor primario (slider que ya está en la card: setBrightness/
- * setTemperature/setVolume) para los tipos que la muestran en la card.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeviceActionsSheet(
     device: Device,
     onAction: (actionName: String, args: List<ActionArg>) -> Unit,
     onDismiss: () -> Unit,
-    // En tablet la card no tiene el slider primario, así que el sheet también lo incluye. También es la
-    // señal de que estamos en tablet: ahí el panel se muestra como card flotante centrada (no bottom sheet).
     includePrimaryAction: Boolean = false,
-    // Habitaciones del hogar para el selector de `setLocation` (aspiradora). Vacío = cae a texto libre.
     roomOptions: List<RoomOption> = emptyList(),
 ) {
     if (includePrimaryAction) {
@@ -106,7 +97,6 @@ fun DeviceActionsSheet(
     }
 }
 
-// Teléfono: panel como hoja inferior (bottom sheet).
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DeviceActionsModalSheet(
@@ -136,7 +126,6 @@ private fun DeviceActionsModalSheet(
     }
 }
 
-// Tablet: card flotante centrada en el medio de la pantalla, con X arriba a la derecha y alto acotado + scroll interno.
 @Composable
 private fun DeviceActionsCenteredCard(
     device: Device,
@@ -161,7 +150,6 @@ private fun DeviceActionsCenteredCard(
                     .padding(horizontal = 24.dp)
                     .padding(top = 12.dp, bottom = 24.dp),
             ) {
-                // Header fijo arriba junto a la X: al scrollear el cuerpo, sigue visible de qué dispositivo se trata.
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.Top,
@@ -184,7 +172,6 @@ private fun DeviceActionsCenteredCard(
     }
 }
 
-// Cuerpo compartido: header + una tarjeta por sección. Igual en tablet y teléfono.
 @Composable
 private fun ColumnScope.DeviceActionsBody(
     device: Device,
@@ -203,8 +190,6 @@ private fun ColumnScope.DeviceActionsBody(
         }
     }
 
-    // Resto de acciones: menos las del par de arriba y la acción de valor primario (slider de la
-    // card). En tablet (includePrimaryAction) NO se excluye, porque la card no tiene el slider.
     val canonical = device.type.canonicalName
     val primary = if (includePrimaryAction) null else DeviceActionNames.primaryValueAction(canonical)
     val rest = device.type.actions.filter { action ->
@@ -212,14 +197,11 @@ private fun ColumnScope.DeviceActionsBody(
                 !action.name.equals(pair.offName, ignoreCase = true))) &&
             (primary == null || !action.name.equals(primary, ignoreCase = true))
     }
-    // Acciones sin parámetros (start/pause/dock/stop/next/...) van como botones circulares en grupo.
     val triggers = rest.filter { DeviceActionRegistry.controlFor(it, canonical) is DeviceActionControl.Trigger }
     val others = rest.filter { DeviceActionRegistry.controlFor(it, canonical) !is DeviceActionControl.Trigger }
     if (triggers.isNotEmpty()) {
         SectionCard { TriggerGroup(actions = triggers, onAction = onAction) }
     }
-    // Luz/AC/horno apagados y grifo cerrado no se configuran (hay que encenderlos/abrirlos primero).
-    // Parlante pausado, aspiradora en base y persiana cerrada SÍ se configuran (ver gatesConfigurationWhenOff).
     val configurable = !DeviceActionNames.gatesConfigurationWhenOff(device.type) || device.isOn
     if (configurable) {
         others.forEach { action ->
@@ -279,7 +261,6 @@ private fun SheetHeader(device: Device, showStatus: Boolean = true, modifier: Mo
     }
 }
 
-// Tarjeta de sección: superficie redondeada con borde suave; el contenido se apila con espaciado parejo.
 @Composable
 private fun SectionCard(content: @Composable ColumnScope.() -> Unit) {
     Surface(
@@ -339,7 +320,6 @@ private fun SectionIconTile(icon: ImageVector) {
     }
 }
 
-// Ícono por acción para el header de sección (alarma). null = sin ícono (resto de los tipos).
 private fun sectionActionIcon(actionName: String): ImageVector? = when {
     actionName.lowercase().contains("securitycode") -> Icons.Outlined.Lock
     actionName.equals("armStay", ignoreCase = true) ||
@@ -376,7 +356,6 @@ private fun ColumnScope.ActionSection(
                 label = label,
                 subtitle = subtitle,
                 control = control,
-                // Arranca en el valor actual del dispositivo (no en el mínimo), leído del estado.
                 currentValue = numericCurrentValue(device, action.name),
             ) { value ->
                 onAction(action.name, listOf(ActionArg.IntArg(value)))
@@ -414,7 +393,6 @@ private fun ColumnScope.ActionSection(
                     currentId = device.state.string(stateKeyFor(action.name)),
                 ) { roomId -> onAction(action.name, listOf(ActionArg.StringArg(roomId))) }
             } else {
-                // Sin lista de rooms a mano (búsqueda/detalle): fallback a texto libre del id.
                 GenericBody(params = action.params) { args -> onAction(action.name, args) }
             }
         }
@@ -422,12 +400,10 @@ private fun ColumnScope.ActionSection(
         is DeviceActionControl.Code -> {
             val icon = sectionActionIcon(action.name)
             if (control.fields <= 1) {
-                // Armar/desarmar: input de código + Apply inline a la derecha del título.
                 InlineCodeSection(label = label, subtitle = subtitle, icon = icon, length = control.length) { code ->
                     onAction(action.name, listOf(ActionArg.StringArg(code)))
                 }
             } else {
-                // Cambiar código de seguridad: inputs apilados (actual/nuevo) + Apply full-width.
                 SectionHeader(label, subtitle, icon)
                 MultiCodeBody(fields = control.fields, length = control.length) { codes ->
                     onAction(action.name, codes.map { ActionArg.StringArg(it) })
@@ -442,12 +418,9 @@ private fun ColumnScope.ActionSection(
     }
 }
 
-// Clave del estado para resaltar el valor actual: "setMode" -> "mode", "setVerticalSwing" -> "verticalSwing".
 private fun stateKeyFor(actionName: String): String =
     actionName.removePrefix("set").removePrefix("Set").replaceFirstChar { it.lowercase() }
 
-// Valor actual para un control numérico. Para persianas, la acción (setPosition/setLevel) y la clave de
-// estado ("position"/"level") pueden no coincidir según el back-end, así que probamos ambas.
 private fun numericCurrentValue(device: Device, actionName: String): Int? {
     val key = stateKeyFor(actionName)
     device.state.int(key)?.let { return it }
@@ -458,7 +431,6 @@ private fun numericCurrentValue(device: Device, actionName: String): Int? {
     }
 }
 
-// --- Par on/off (power / open-close) ---
 
 private data class OnOffPair(
     val onName: String,
@@ -479,7 +451,6 @@ private fun onOffPairFor(device: Device): OnOffPair? {
     if (open != null && close != null) {
         return OnOffPair(open, close, Icons.Outlined.ArrowCircleUp, Icons.Outlined.ArrowCircleDown)
     }
-    // Persiana/cortina/toldo: el abrir/cerrar completo se expone como up/down (flechas ↑/↓, no play).
     if (type.canonicalName == DeviceTypeNames.BLINDS) {
         val up = type.action("up")?.name
         val down = type.action("down")?.name
@@ -544,7 +515,6 @@ private fun PowerButton(
     }
 }
 
-// --- Controles (cuerpos sin label: el título lo pone la tarjeta) ---
 
 @Composable
 private fun TriggerControl(label: String, onRun: () -> Unit) {
@@ -559,8 +529,6 @@ private fun TriggerControl(label: String, onRun: () -> Unit) {
     }
 }
 
-// Grupo "Quick controls": acciones sin parámetros como botones circulares en grilla que envuelve
-// (play/pause/stop/resume/next/previous/dock/getPlaylist...).
 @Composable
 private fun TriggerGroup(
     actions: List<DeviceActionInfo>,
@@ -640,8 +608,6 @@ private fun ColumnScope.NumericSection(
 ) {
     val min = control.fallbackMin
     val max = control.fallbackMax.coerceAtLeast(min + 1)
-    // Valor = estado actual del dispositivo acotado al rango; si no hay estado, el mínimo. Se re-sincroniza
-    // cuando el estado cambia por otra acción (p. ej. up/down llevan el nivel a 100/0), no solo al abrir.
     var value by remember(label, currentValue) { mutableStateOf((currentValue?.coerceIn(min, max) ?: min).toFloat()) }
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -875,7 +841,6 @@ private fun DispenseBody(onApply: (List<ActionArg>) -> Unit) {
     }
 }
 
-// Cambiar código de seguridad: inputs apilados (actual/nuevo) + Apply full-width.
 @Composable
 private fun MultiCodeBody(
     fields: Int,
@@ -893,7 +858,6 @@ private fun MultiCodeBody(
                 },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                // Código sensible: teclado numérico y enmascarado; nunca se loguea.
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                 placeholder = {
@@ -917,7 +881,6 @@ private fun MultiCodeBody(
     }
 }
 
-// Armar/desarmar: ícono + título/subtítulo (izquierda) + input de código + Apply (inline a la derecha).
 @Composable
 private fun InlineCodeSection(
     label: String,
@@ -1006,16 +969,11 @@ private fun ApplyButton(
     }
 }
 
-// Cantidades/unidades sugeridas del prototipo. Editable/seleccionable; si la API espera otras, no bloquea.
-// Cantidad 0–100 y unidades métricas según la spec de la cátedra (mililitro/centilitro/decilitro/litro).
 private val DispenseQuickAmounts = listOf("25", "50", "75", "100")
 private val DispenseUnits = listOf("ml", "cl", "dl", "l")
 
-// Presets pastel del prototipo (hex). Editable: el campo manda lo que el usuario tenga, así que si la
-// API espera otro formato, no lo bloquea (mismo criterio que los chips de Choice).
 private val ColorPresets = listOf("#F8BBD0", "#D1C4E9", "#BBDEFB", "#C8E6C9", "#FFF59D", "#FFCCBC")
 
-// Parsea un hex (#RRGGBB o RRGGBB) a Color para la preview/círculos; null si no es válido.
 private fun parseHexColor(value: String): Color? {
     val hex = value.trim().removePrefix("#")
     if (hex.length != 6 || hex.any { it.digitToIntOrNull(16) == null }) return null

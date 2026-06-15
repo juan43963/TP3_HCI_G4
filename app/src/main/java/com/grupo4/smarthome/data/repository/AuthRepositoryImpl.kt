@@ -43,7 +43,6 @@ class AuthRepositoryImpl(
             val body = response.bodyAsText()
 
             if (response.status.isSuccess()) {
-                // register no devuelve token: la sesión se crea recién en login
                 AppResult.Success(parseRegisterSuccess(body))
             } else {
                 AppResult.Error(ErrorMapper.fromHttp(response.status, body))
@@ -84,13 +83,11 @@ class AuthRepositoryImpl(
     override suspend fun changePassword(oldPassword: String, newPassword: String): AppResult<Unit> =
         requestUnit { authApi.changePassword(ChangePasswordRequestDto(oldPassword, newPassword)) }
 
-    // Best-effort: avisamos al backend pero siempre limpiamos la sesión local
     override suspend fun logout() {
         runCatching { authApi.logout() }
         sessionManager.clearSession()
     }
 
-    // Llamadas que no necesitan parsear cuerpo: solo importa éxito o el error mapeado
     private suspend fun requestUnit(call: suspend () -> HttpResponse): AppResult<Unit> =
         runCatching {
             val response = call()

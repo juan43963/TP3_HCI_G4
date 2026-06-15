@@ -58,7 +58,6 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
@@ -74,13 +73,11 @@ import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 import com.grupo4.smarthome.ui.theme.StarActive
 
-/** Fila de acción dentro de una rutina. Modelo temporal de interfaz. */
 data class RoutineActionUi(
     val icon: ImageVector,
     val action: RoutineActionItemUi,
 )
 
-/** Modelo temporal para la pantalla de detalle. */
 data class RoutineDetailUi(
     val id: String = "",
     val name: String,
@@ -88,7 +85,6 @@ data class RoutineDetailUi(
     val enabled: Boolean,
     val time: String,
     val daysSummary: String,
-    /** 7 valores, empezando por lunes (L M M J V S D). */
     val days: List<Boolean>,
     val actions: List<RoutineActionUi>,
     val favorite: Boolean = false,
@@ -1971,26 +1967,3 @@ internal fun DetailActionBar(
     }
 }
 
-@Preview(name = "Detalle tablet horizontal", showBackground = true, widthDp = 1280, heightDp = 800)
-@Composable
-private fun TabletRoutinesDetailPreview() {
-    SmartHomeTheme(darkTheme = false) {
-        TabletRoutinesDetailLayout()
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun RoutineDetailScreenLightPreview() {
-    SmartHomeTheme(darkTheme = false) {
-        RoutineDetailScreen()
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun RoutineDetailScreenDarkPreview() {
-    SmartHomeTheme(darkTheme = true) {
-        RoutineDetailScreen()
-    }
-}

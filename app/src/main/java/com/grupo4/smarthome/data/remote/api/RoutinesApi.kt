@@ -34,7 +34,6 @@ class RoutinesApi(
     suspend fun deleteRoutine(routineId: String): HttpResponse =
         client.delete(ApiRoutes.resolve(ApiRoutes.routineById(routineId)))
 
-    // Ejecuta todas las acciones de la rutina en el back-end
     suspend fun executeRoutine(routineId: String): HttpResponse =
         client.patch(ApiRoutes.resolve(ApiRoutes.routineExecute(routineId)))
 }

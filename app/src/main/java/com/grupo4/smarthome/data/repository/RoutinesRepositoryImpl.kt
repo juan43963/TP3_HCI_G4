@@ -18,7 +18,6 @@ import com.grupo4.smarthome.data.remote.mapper.buildRoutineMetadata
 import com.grupo4.smarthome.data.remote.mapper.readRoutineHomeId
 import com.grupo4.smarthome.data.remote.mapper.toActionDtos
 import com.grupo4.smarthome.data.remote.mapper.toDomain
-import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
 import kotlinx.serialization.builtins.ListSerializer
@@ -28,29 +27,15 @@ class RoutinesRepositoryImpl(
     private val sessionManager: SessionManager,
     private val localActionTracker: LocalActionTracker = LocalActionTracker(),
 ) : RoutinesRepository {
-    // Caché en memoria (ADR-0005): preserva category/time/days/favorite para reconstruir el PUT completo
     private var cachedRoutines: List<Routine> = emptyList()
 
     override suspend fun getRoutines(homeId: String): AppResult<List<Routine>> =
-        runCatching {
-            val response = routinesApi.getRoutines()
-            val body = response.bodyAsText()
-            if (response.status.isSuccess()) {
-                val routines = parseRoutines(body, homeId)
-                cachedRoutines = routines
-                AppResult.Success(routines)
-            } else {
-                AppResult.Error(ErrorMapper.fromHttp(response.status, body))
-            }
-        }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
-            .expireSessionOnUnauthorized(sessionManager)
+        apiCall(sessionManager, { routinesApi.getRoutines() }) { body ->
+            parseRoutines(body, homeId).also { cachedRoutines = it }
+        }
 
     override suspend fun getRoutine(routineId: String): AppResult<Routine> =
-        runCatching {
-            val response = routinesApi.getRoutine(routineId)
-            parseRoutineResponse(response)
-        }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
-            .expireSessionOnUnauthorized(sessionManager)
+        apiCall(sessionManager, { routinesApi.getRoutine(routineId) }, ::parseRoutineAndCache)
 
     override suspend fun createRoutine(
         homeId: String,
@@ -83,133 +68,88 @@ class RoutinesRepositoryImpl(
                 return@runCatching AppResult.Error(ErrorMapper.fromHttp(response.status, body))
             }
             val created = ApiJson.Instance.decodeFromString(RoutineDto.serializer(), body).toDomain()
-            // Refetch para reflejar el estado real del back-end (ADR-0008)
             fetchRoutinesOrNull(homeId)?.let { cachedRoutines = it }
             AppResult.Success(cachedRoutines.firstOrNull { it.id == created.id } ?: created)
-        }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
-            .expireSessionOnUnauthorized(sessionManager)
+        }.getOrElse { throwable ->
+            AppResult.Error(ErrorMapper.fromThrowable(throwable))
+        }.expireSessionOnUnauthorized(sessionManager)
 
     override suspend fun updateRoutine(routine: Routine): AppResult<Routine> =
-        runCatching {
-            val response = routinesApi.updateRoutine(
-                routine.id,
-                RoutineUpdateDto(
-                    name = routine.name.trim(),
-                    actions = routine.toActionDtos(),
-                    metadata = buildRoutineMetadata(
-                        routine.category,
-                        routine.time,
-                        routine.days,
-                        routine.favorite,
-                        routine.enabled,
-                        routine.homeId,
+        apiCall(
+            sessionManager,
+            {
+                routinesApi.updateRoutine(
+                    routine.id,
+                    RoutineUpdateDto(
+                        name = routine.name.trim(),
+                        actions = routine.toActionDtos(),
+                        metadata = buildRoutineMetadata(
+                            routine.category,
+                            routine.time,
+                            routine.days,
+                            routine.favorite,
+                            routine.enabled,
+                            routine.homeId,
+                        ),
                     ),
                 )
-            )
-            parseRoutineResponse(response)
-        }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
-            .expireSessionOnUnauthorized(sessionManager)
+            },
+            ::parseRoutineAndCache,
+        )
 
     override suspend fun deleteRoutine(routineId: String): AppResult<Unit> =
-        runCatching {
-            val response = routinesApi.deleteRoutine(routineId)
-            if (response.status.isSuccess()) {
-                cachedRoutines = cachedRoutines.filterNot { it.id == routineId }
-                AppResult.Success(Unit)
-            } else {
-                AppResult.Error(ErrorMapper.fromHttp(response.status, response.bodyAsText()))
-            }
-        }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
-            .expireSessionOnUnauthorized(sessionManager)
+        apiCallUnit(sessionManager, { routinesApi.deleteRoutine(routineId) }) {
+            cachedRoutines = cachedRoutines.filterNot { it.id == routineId }
+        }
 
-    override suspend fun executeRoutine(routineId: String): AppResult<Unit> =
-        runCatching {
-            val affectedDeviceIds = resolveRoutine(routineId)
-                ?.actions
-                ?.map { it.deviceId }
-                ?.filter { it.isNotBlank() }
-                .orEmpty()
-            if (affectedDeviceIds.isNotEmpty()) {
-                localActionTracker.recordAll(
-                    affectedDeviceIds,
-                    NotificationKind.DEVICE_ACTION,
-                    RoutineSuppressionWindowMillis,
-                )
-            }
-            val response = routinesApi.executeRoutine(routineId)
-            if (response.status.isSuccess()) {
-                AppResult.Success(Unit)
-            } else {
-                AppResult.Error(ErrorMapper.fromHttp(response.status, response.bodyAsText()))
-            }
-        }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
-            .expireSessionOnUnauthorized(sessionManager)
+    override suspend fun executeRoutine(routineId: String): AppResult<Unit> {
+        val affectedDeviceIds = resolveRoutine(routineId)
+            ?.actions
+            ?.map { it.deviceId }
+            ?.filter { it.isNotBlank() }
+            .orEmpty()
+        if (affectedDeviceIds.isNotEmpty()) {
+            localActionTracker.recordAll(
+                affectedDeviceIds,
+                NotificationKind.DEVICE_ACTION,
+                RoutineSuppressionWindowMillis,
+            )
+        }
+        return apiCallUnit(sessionManager, { routinesApi.executeRoutine(routineId) })
+    }
 
-    override suspend fun toggleFavorite(routineId: String): AppResult<Routine> =
-        runCatching {
-            val current = resolveRoutine(routineId)
-                ?: return@runCatching AppResult.Error(
-                    ApiError(ErrorKind.NotFound)
-                )
-            updateRoutine(current.copy(favorite = !current.favorite))
-        }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
-            .expireSessionOnUnauthorized(sessionManager)
+    override suspend fun toggleFavorite(routineId: String): AppResult<Routine> {
+        val current = resolveRoutine(routineId) ?: return AppResult.Error(ApiError(ErrorKind.NotFound))
+        return updateRoutine(current.copy(favorite = !current.favorite))
+    }
 
-    override suspend fun toggleEnabled(routineId: String): AppResult<Routine> =
-        runCatching {
-            val current = resolveRoutine(routineId)
-                ?: return@runCatching AppResult.Error(
-                    ApiError(ErrorKind.NotFound)
-                )
-            updateRoutine(current.copy(enabled = !current.enabled))
-        }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
-            .expireSessionOnUnauthorized(sessionManager)
+    override suspend fun toggleEnabled(routineId: String): AppResult<Routine> {
+        val current = resolveRoutine(routineId) ?: return AppResult.Error(ApiError(ErrorKind.NotFound))
+        return updateRoutine(current.copy(enabled = !current.enabled))
+    }
 
-    // --- Helpers ---
-
-    // Parsea la respuesta de una única rutina y actualiza la caché; mapea el error si no fue 2xx
-    private suspend fun parseRoutineResponse(response: HttpResponse): AppResult<Routine> {
-        val body = response.bodyAsText()
-        return if (response.status.isSuccess()) {
-            val routine = ApiJson.Instance.decodeFromString(RoutineDto.serializer(), body).toDomain()
-            cachedRoutines = if (cachedRoutines.any { it.id == routine.id }) {
-                cachedRoutines.map { if (it.id == routine.id) routine else it }
-            } else {
-                cachedRoutines + routine
-            }
-            AppResult.Success(routine)
+    private fun parseRoutineAndCache(body: String): Routine {
+        val routine = ApiJson.Instance.decodeFromString(RoutineDto.serializer(), body).toDomain()
+        cachedRoutines = if (cachedRoutines.any { it.id == routine.id }) {
+            cachedRoutines.map { if (it.id == routine.id) routine else it }
         } else {
-            AppResult.Error(ErrorMapper.fromHttp(response.status, body))
+            cachedRoutines + routine
+        }
+        return routine
+    }
+
+    private suspend fun resolveRoutine(routineId: String): Routine? {
+        cachedRoutines.firstOrNull { it.id == routineId }?.let { return it }
+        return apiFetchOrNull(sessionManager, { routinesApi.getRoutine(routineId) }) { body ->
+            ApiJson.Instance.decodeFromString(RoutineDto.serializer(), body).toDomain()
         }
     }
 
-    // Devuelve la rutina cacheada o, si falta, la trae con GET /routines/{id}
-    private suspend fun resolveRoutine(routineId: String): Routine? {
-        cachedRoutines.firstOrNull { it.id == routineId }?.let { return it }
-        return runCatching {
-            val response = routinesApi.getRoutine(routineId)
-            if (response.status.isSuccess()) {
-                ApiJson.Instance.decodeFromString(RoutineDto.serializer(), response.bodyAsText()).toDomain()
-            } else {
-                sessionManager.expireSessionIfUnauthorized(response.status)
-                null
-            }
-        }.getOrNull()
-    }
-
-    // Refetch silencioso tras crear; devuelve null ante cualquier fallo
     private suspend fun fetchRoutinesOrNull(homeId: String): List<Routine>? =
-        runCatching {
-            val response = routinesApi.getRoutines()
-            if (response.status.isSuccess()) {
-                parseRoutines(response.bodyAsText(), homeId)
-            } else {
-                sessionManager.expireSessionIfUnauthorized(response.status)
-                null
-            }
-        }.getOrNull()
+        apiFetchOrNull(sessionManager, { routinesApi.getRoutines() }) { body ->
+            parseRoutines(body, homeId)
+        }
 
-    // Filtra por hogar: las que no guardan homeId se muestran en cualquier hogar (tolerante)
     private fun parseRoutines(body: String, homeId: String): List<Routine> =
         ApiJson.Instance
             .decodeFromString(ListSerializer(RoutineDto.serializer()), body)

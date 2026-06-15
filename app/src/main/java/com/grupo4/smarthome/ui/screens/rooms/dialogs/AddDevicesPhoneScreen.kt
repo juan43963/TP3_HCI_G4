@@ -168,8 +168,6 @@ fun AddDevicesPhoneScreen(
                     )
                 }
             }
-            // En selección (paso 1) los nombres son los por defecto; al personalizar/confirmar exigimos
-            // que todos sean válidos (la API rechaza nombres muy cortos).
             val allNamesValid = devices.all { isDeviceNameValid(it.name) }
             Button(
                 onClick = {

@@ -295,7 +295,6 @@ private fun LivingRoomScene(
             endY = h * 0.66f,
         )
 
-        // Rug
         drawOval(
             color = lightest,
             topLeft = Offset(w * 0.07f, h * 0.70f),
@@ -307,19 +306,16 @@ private fun LivingRoomScene(
             size = Size(w * 0.64f, h * 0.13f),
         )
 
-        // Wall picture
         roundRect(w * 0.15f, h * 0.11f, w * 0.16f, h * 0.24f, h * 0.035f, fill = onPrimary.copy(alpha = 0.85f))
         roundRect(w * 0.17f, h * 0.13f, w * 0.12f, h * 0.20f, h * 0.025f, fill = light)
         drawCircle(color = tertiary.copy(alpha = 0.45f), radius = h * 0.035f, center = Offset(w * 0.205f, h * 0.19f))
         roundRect(w * 0.17f, h * 0.24f, w * 0.12f, h * 0.09f, h * 0.02f, fill = soft)
 
-        // Contact shadows
         contactShadow(w * 0.49f, h * 0.77f, w * 0.40f, h * 0.07f)
         contactShadow(w * 0.185f, h * 0.79f, w * 0.18f, h * 0.045f)
         contactShadow(w * 0.85f, h * 0.79f, w * 0.12f, h * 0.04f)
         contactShadow(w * 0.725f, h * 0.79f, w * 0.13f, h * 0.035f)
 
-        // Floor lamp (right)
         val lampX = w * 0.85f
         drawCircle(
             brush = Brush.radialGradient(
@@ -348,7 +344,6 @@ private fun LivingRoomScene(
             ),
         )
 
-        // Side table + vase
         val tableX = w * 0.685f
         val tableTop = h * 0.585f
         roundRect(tableX + w * 0.012f, tableTop + h * 0.03f, w * 0.015f, h * 0.16f, w * 0.007f, fill = soft)
@@ -356,7 +351,6 @@ private fun LivingRoomScene(
         roundRect(tableX, tableTop, w * 0.085f, h * 0.05f, h * 0.02f, fill = mid)
         roundRect(tableX + w * 0.026f, tableTop - h * 0.10f, w * 0.034f, h * 0.10f, w * 0.017f, fill = tertiary.copy(alpha = 0.45f))
 
-        // Armchair (center)
         val chairX = w * 0.31f
         val chairW = w * 0.36f
         roundRect(chairX, h * 0.34f, chairW, h * 0.34f, h * 0.11f, brush = chairBrush)
@@ -367,7 +361,6 @@ private fun LivingRoomScene(
         roundRect(chairX + chairW * 0.16f, h * 0.66f, w * 0.03f, h * 0.07f, w * 0.014f, fill = deep)
         roundRect(chairX + chairW * 0.78f, h * 0.66f, w * 0.03f, h * 0.07f, w * 0.014f, fill = deep)
 
-        // Plant (left foreground)
         val potCx = w * 0.185f
         val potTop = h * 0.58f
         roundRect(potCx - w * 0.075f, potTop - h * 0.025f, w * 0.15f, h * 0.05f, h * 0.02f, fill = mid)

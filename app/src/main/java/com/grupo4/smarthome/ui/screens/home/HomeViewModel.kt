@@ -109,7 +109,6 @@ class HomeViewModel(
         when (val result = roomsRepository.getRooms(homeId)) {
             is AppResult.Success -> {
                 val rooms = result.data
-                // Dispositivos por habitación en paralelo para contar los activos
                 val devices = coroutineScope {
                     rooms.map { room ->
                         async {

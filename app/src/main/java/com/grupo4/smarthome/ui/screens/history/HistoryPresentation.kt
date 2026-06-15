@@ -10,7 +10,6 @@ import com.grupo4.smarthome.data.model.DeviceTypeNames
 import com.grupo4.smarthome.data.model.Room
 import java.time.Instant
 
-// Datos de un dispositivo que el historial necesita para mostrar nombre/habitación/icono a partir del deviceId
 private data class DeviceInfo(
     val name: String,
     val roomName: String,
@@ -60,7 +59,6 @@ private fun DeviceTypeInfo.toHistoryType(): HistoryDeviceType =
         else -> HistoryDeviceType.OTHER
     }
 
-// Para acciones desconocidas usamos un genérico localizado (nunca el nombre técnico crudo en inglés)
 fun actionLabel(context: Context, actionName: String): String =
     context.getString(actionLabelRes(actionName) ?: R.string.notification_event_device_changed)
 

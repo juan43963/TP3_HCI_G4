@@ -43,7 +43,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.data.model.HomeType
@@ -422,24 +421,3 @@ private fun MetricRow(
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun SelectHomeScreenPhonePreview() {
-    SmartHomeTheme(darkTheme = false) {
-        PhoneSelectHomeLayout(
-            userName = "Juan",
-            homes = listOf(
-                SelectableHome("1", "Departamento", roomsCount = 8, devicesCount = 22),
-                SelectableHome("2", "Oficina", roomsCount = 0, devicesCount = 0),
-            ),
-            onHomeSelected = {},
-            onAddHome = {},
-            onProfileClick = {},
-            onSearchClick = {},
-            isLoading = false,
-            homesLoaded = true,
-            errorMessage = null,
-            onRetry = {},
-        )
-    }
-}

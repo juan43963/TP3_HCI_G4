@@ -35,11 +35,9 @@ class DevicesApi(
     suspend fun deleteDevice(deviceId: String): HttpResponse =
         client.delete(ApiRoutes.resolve(ApiRoutes.deviceById(deviceId)))
 
-    // Asocia un dispositivo ya creado a una habitación (fallback si POST /devices no lo asoció)
     suspend fun addDeviceToRoom(roomId: String, deviceId: String): HttpResponse =
         client.post(ApiRoutes.resolve(ApiRoutes.roomDeviceAssociation(roomId, deviceId)))
 
-    // Desvincula un dispositivo de su habitación
     suspend fun removeDeviceFromRoom(deviceId: String): HttpResponse =
         client.delete(ApiRoutes.resolve(ApiRoutes.roomDeviceRemoval(deviceId)))
 
@@ -49,7 +47,6 @@ class DevicesApi(
     suspend fun getDeviceType(deviceTypeId: String): HttpResponse =
         client.get(ApiRoutes.resolve(ApiRoutes.deviceTypeById(deviceTypeId)))
 
-    // Ejecuta una acción (turnOn, setBrightness, etc.). Los params van como array posicional: [], [80], [22]
     suspend fun executeAction(deviceId: String, actionName: String, params: JsonArray): HttpResponse =
         client.patch(ApiRoutes.resolve(ApiRoutes.deviceAction(deviceId, actionName))) {
             setBody(params)

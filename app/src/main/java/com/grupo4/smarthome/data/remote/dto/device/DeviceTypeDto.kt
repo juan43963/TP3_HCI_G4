@@ -2,8 +2,6 @@ package com.grupo4.smarthome.data.remote.dto.device
 
 import kotlinx.serialization.Serializable
 
-// Catálogo de tipos soportados por el back-end (GET /devicetypes). Se mapea a DeviceTypeInfo (dominio);
-// `name` se normaliza a un nombre canónico (DeviceTypeNames) y `actions` define qué puede ejecutarse.
 @Serializable
 data class DeviceTypeDto(
     val id: String? = null,

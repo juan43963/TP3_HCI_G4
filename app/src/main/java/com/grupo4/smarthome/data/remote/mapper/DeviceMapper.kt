@@ -15,17 +15,6 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
-/**
- * Convierte un [DeviceDto] al modelo de dominio [Device].
- *
- * @param resolveType mapea el `type.id` (referencia liviana del DTO) al [DeviceTypeInfo] del catálogo
- *   cacheado. Si no se puede resolver, devolvemos null para no renderizar tipos desconocidos; el
- *   repository es responsable de filtrar esos nulls sin crashear.
- * @param fallbackRoomId roomId a usar cuando la respuesta no trae `room.id` (p. ej. acciones/state).
- *
- * El estado heterogéneo (`state`) se guarda tal cual en [DeviceState]; los accessors tipados viven en
- * [DeviceState]/[Device], así que la UI nunca toca el `JsonObject` crudo.
- */
 fun DeviceDto.toDomain(
     resolveType: (String?) -> DeviceTypeInfo?,
     fallbackRoomId: String,
@@ -41,14 +30,6 @@ fun DeviceDto.toDomain(
     )
 }
 
-/**
- * Convierte un tipo del catálogo (`GET /devicetypes`) al dominio [DeviceTypeInfo].
- *
- * Fallback explícito del id: si el back-end no manda `id` (o viene en blanco) devolvemos null y el
- * repository descarta el tipo, porque sin id no se podría crear un dispositivo de ese tipo. Así nunca
- * queda un [DeviceTypeInfo] con `id` vacío circulando por la app. Si falta `name` (pero hay id),
- * usamos el id como name para no perder el tipo ni dejar un name vacío sin decidir.
- */
 fun DeviceTypeDto.toDomain(): DeviceTypeInfo? {
     val typeId = id?.takeIf { it.isNotBlank() } ?: return null
     return DeviceTypeInfo(
@@ -59,11 +40,6 @@ fun DeviceTypeDto.toDomain(): DeviceTypeInfo? {
     )
 }
 
-/**
- * Descartamos acciones sin nombre (no se podrían ejecutar). Los params, en cambio, NO se descartan: la
- * API puede devolverlos posicionales sin `name`, así que generamos un nombre fallback estable por
- * posición (`param1`, `param2`, ...) para preservar el orden y la cantidad de parámetros.
- */
 private fun DeviceTypeActionDto.toDomain(): DeviceActionInfo? {
     val actionName = name?.takeIf { it.isNotBlank() } ?: return null
     return DeviceActionInfo(
@@ -79,8 +55,6 @@ private fun DeviceTypeActionDto.toDomain(): DeviceActionInfo? {
     )
 }
 
-// Construye el metadata para POST/PUT preservando el previo y escribiendo qrId solo si viene.
-// El merge evita pisar otras claves que la API pueda guardar.
 fun buildDeviceMetadata(previous: JsonObject?, qrId: String?): JsonObject = buildJsonObject {
     previous?.forEach { (key, value) -> put(key, value) }
     if (qrId != null) put("qrId", JsonPrimitive(qrId))
@@ -89,7 +63,6 @@ fun buildDeviceMetadata(previous: JsonObject?, qrId: String?): JsonObject = buil
 private fun JsonObject?.readString(key: String): String? =
     (this?.get(key) as? JsonPrimitive)?.content
 
-// Descartamos logs sin id (no se pueden identificar como entrada de la lista)
 fun DeviceLogDto.toDomain(): DeviceLog? {
     val logId = id ?: return null
     return DeviceLog(

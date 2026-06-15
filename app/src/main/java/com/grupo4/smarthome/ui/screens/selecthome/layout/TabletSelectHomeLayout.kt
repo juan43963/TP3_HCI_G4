@@ -18,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.screens.dashboard.layout.DashboardScaffold
@@ -137,40 +136,3 @@ private val previewHomes = listOf(
     SelectableHome("beach", "Casa de playa", roomsCount = 5, devicesCount = 12),
 )
 
-@Preview(
-    name = "Tablet landscape",
-    showBackground = true,
-    widthDp = 1280,
-    heightDp = 800,
-)
-@Composable
-private fun TabletSelectHomeLandscapePreview() {
-    SmartHomeTheme(darkTheme = false) {
-        TabletSelectHomeLayout(
-            userName = "Juan Perez",
-            homes = previewHomes,
-            onHomeSelected = {},
-            onAddHome = {},
-            onProfileClick = {},
-        )
-    }
-}
-
-@Preview(
-    name = "Tablet portrait",
-    showBackground = true,
-    widthDp = 800,
-    heightDp = 1280,
-)
-@Composable
-private fun TabletSelectHomePortraitPreview() {
-    SmartHomeTheme(darkTheme = true) {
-        TabletSelectHomeLayout(
-            userName = "Juan Perez",
-            homes = previewHomes,
-            onHomeSelected = {},
-            onAddHome = {},
-            onProfileClick = {},
-        )
-    }
-}

@@ -63,7 +63,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.data.model.Device
@@ -76,7 +75,6 @@ import com.grupo4.smarthome.ui.screens.rooms.components.deviceTypeIcon
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 
-// Persiste la lista de días (7 booleans) a través de rotación
 private val DaysListSaver = listSaver<List<Boolean>, Boolean>(
     save = { it.toList() },
     restore = { it.toList() },
@@ -294,15 +292,12 @@ private fun CreateRoutineScreen(
     var currentStep by rememberSaveable { mutableStateOf(CreateRoutineStep.Details) }
     var routineName by rememberSaveable { mutableStateOf("") }
     var selectedCategory by rememberSaveable { mutableStateOf(NewRoutineCategory.Morning) }
-    // Horario en formato display ("08:00 AM"); días lunes-primero
     var time by rememberSaveable { mutableStateOf("08:00 AM") }
     var days by rememberSaveable(stateSaver = DaysListSaver) {
         mutableStateOf(listOf(true, true, true, true, true, false, false))
     }
-    // Manual: la rutina se ejecuta a mano, sin horario ni días
     var manual by rememberSaveable { mutableStateOf(false) }
     var draftActions by remember { mutableStateOf(listOf<RoutineAction>()) }
-    // Selección transitoria mientras se arma una acción
     var selectedDevice by remember { mutableStateOf<Device?>(null) }
     var selectedActionInfo by remember { mutableStateOf<DeviceActionInfo?>(null) }
     var paramValue by remember { mutableStateOf(0f) }
@@ -312,7 +307,6 @@ private fun CreateRoutineScreen(
         selectedDevice?.let { deviceActions[it.type.id] }.orEmpty()
     }
 
-    // Agrega la acción en construcción a la lista y vuelve al resumen
     val commitAction: (List<String>) -> Unit = { params ->
         val device = selectedDevice
         val info = selectedActionInfo
@@ -449,7 +443,6 @@ private fun CreateRoutineScreen(
                                     currentStep = CreateRoutineStep.ConfigureParameter
                                 }
                                 else -> {
-                                // Acción sin parámetros: se agrega directo
                                     commitAction(emptyList())
                                 }
                             }
@@ -471,7 +464,6 @@ private fun CreateRoutineScreen(
     }
 }
 
-// Mapea la categoría de la UI de creación al enum de dominio
 private fun NewRoutineCategory.toDomain(): RoutineCategory = when (this) {
     NewRoutineCategory.Morning -> RoutineCategory.MORNING
     NewRoutineCategory.Night -> RoutineCategory.NIGHT
@@ -688,7 +680,6 @@ private fun DetailsStep(
             color = MaterialTheme.colorScheme.onSurface,
         )
         ActivationSelector(manual = manual, onManualChange = onManualChange)
-        // Manual no usa horario ni repetición
         if (!manual) {
             ScheduleCard(time = time, onClick = { showScheduleDialog = true })
             RepeatCard(days = days, onClick = { showDaysDialog = true })
@@ -1435,7 +1426,6 @@ private fun CreateRoutineBottomBar(
     canConfirmParameter: Boolean,
     onCreate: () -> Unit,
 ) {
-    // SelectDevice/SelectAction avanzan al tocar una tarjeta: no llevan barra inferior
     if (currentStep == CreateRoutineStep.SelectDevice || currentStep == CreateRoutineStep.SelectAction) {
         return
     }
@@ -1492,16 +1482,3 @@ private fun CreateRoutineBottomBar(
     }
 }
 
-@Preview(name = "Create Routine - Details", showBackground = true, showSystemUi = true)
-@Composable
-private fun CreateRoutinePreview() {
-    SmartHomeTheme(darkTheme = false) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            CreateRoutineOverlay(
-                visible = true,
-                isTablet = false,
-                onDismiss = {},
-            )
-        }
-    }
-}

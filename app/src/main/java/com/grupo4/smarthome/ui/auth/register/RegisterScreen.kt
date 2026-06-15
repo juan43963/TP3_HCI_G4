@@ -48,7 +48,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.auth.components.AuthBrandLogo
@@ -472,40 +471,3 @@ private fun LoginFooter(onLoginClick: () -> Unit) {
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun RegisterStep1Preview() {
-    SmartHomeTheme(darkTheme = false) {
-        RegisterContent(
-            uiState = RegisterUiState(),
-            onNavigateToLogin = {},
-            onFullNameChange = {},
-            onEmailChange = {},
-            onPasswordChange = {},
-            onConfirmPasswordChange = {},
-            onNextStep = {},
-            onPreviousStep = {},
-            onRegister = {},
-            modifier = Modifier.fillMaxWidth(),
-        )
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun RegisterStep1DarkPreview() {
-    SmartHomeTheme(darkTheme = true) {
-        RegisterContent(
-            uiState = RegisterUiState(),
-            onNavigateToLogin = {},
-            onFullNameChange = {},
-            onEmailChange = {},
-            onPasswordChange = {},
-            onConfirmPasswordChange = {},
-            onNextStep = {},
-            onPreviousStep = {},
-            onRegister = {},
-            modifier = Modifier.fillMaxWidth(),
-        )
-    }
-}

@@ -17,14 +17,9 @@ data class RoomsUiState(
     val editDevicesMode: Boolean = false,
     val openedFromDashboard: Boolean = false,
     val isLoading: Boolean = false,
-    // True una vez que la carga de dispositivos del hogar activo terminó (incluida la fase por
-    // habitación), o cuando el hogar no tiene dispositivos. Lo usa el flujo QR para no clasificar un
-    // dispositivo existente como "nuevo" si se escanea durante la carga inicial. No es `rooms.isNotEmpty()`:
-    // un hogar vacío igual queda "cargado" y no traba la resolución.
     val devicesLoaded: Boolean = false,
     val unreadNotificationCount: Int = 0,
     @StringRes val errorMessage: Int? = null,
-    // Resultado de una acción de solo lectura (p. ej. getPlaylist) para mostrar; transitorio.
     val actionResult: String? = null,
 )
 
@@ -57,7 +52,6 @@ data class PendingDevice(
     val qrId: String? = null,
 )
 
-// Destino de habitación al dar de alta un dispositivo escaneado: una existente o una nueva a crear.
 sealed interface ScannedDeviceRoomTarget {
     data class Existing(val roomId: String) : ScannedDeviceRoomTarget
     data class New(val name: String, val type: RoomType) : ScannedDeviceRoomTarget
@@ -155,8 +149,6 @@ fun List<Room>.withRoomFavoriteToggled(roomId: String): List<Room> = map { room 
     if (room.id == roomId) room.copy(isFavorite = !room.isFavorite) else room
 }
 
-// Optimistic toggle: escribe el estado mínimo (status / lock) para que el switch responda ya; el
-// refetch posterior corrige con el estado real del backend.
 fun List<Room>.withDeviceToggled(deviceId: String): List<Room> = map { room ->
     room.copy(
         devices = room.devices.map { device ->
@@ -175,7 +167,6 @@ fun List<Room>.withDeviceToggled(deviceId: String): List<Room> = map { room ->
     )
 }
 
-// Optimistic value: escribe el valor primario del tipo en el estado para que el slider responda ya.
 fun List<Room>.withDeviceValueChanged(deviceId: String, value: Int): List<Room> = map { room ->
     room.copy(
         devices = room.devices.map { device ->

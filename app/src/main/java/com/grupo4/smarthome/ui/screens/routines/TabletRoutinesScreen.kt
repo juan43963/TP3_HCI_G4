@@ -54,7 +54,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.components.LocalOpenDrawer
@@ -488,7 +487,6 @@ private fun TabletRoutinesEditCreateActions(
     }
 }
 
-
 @Composable
 private fun TabletRoutinesHeaderActions(onAddRoutine: () -> Unit) {
     TabletRoutinesHeader(
@@ -752,10 +750,3 @@ private fun TabletRoutineDetailPane(
     }
 }
 
-@Preview(name = "Tablet routines", showBackground = true, widthDp = 1280, heightDp = 800)
-@Composable
-private fun TabletRoutinesScreenPreview() {
-    SmartHomeTheme(darkTheme = false) {
-        TabletRoutinesScreen()
-    }
-}

@@ -51,7 +51,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.grupo4.smarthome.R
@@ -634,42 +633,3 @@ private fun ThemeOptionRow(
     }
 }
 
-@Preview(name = "Settings · desde casa (landscape)", showBackground = true, widthDp = 1280, heightDp = 800)
-@Composable
-private fun TabletSettingsFromHomePreview() {
-    SmartHomeTheme(darkTheme = false) {
-        TabletSettingsLayout(
-            userName = "Juan Perez",
-            userEmail = "juanperez@itba.edu.ar",
-            themePreference = ThemePreference.SYSTEM,
-            onThemePreferenceChange = {},
-            onChangePassword = {},
-            onProfileAvatarClick = {},
-            enteredFromHome = true,
-            onNavigateHome = {},
-            onNavigateRooms = {},
-            onNavigateRoutines = {},
-            onAddHome = {},
-        )
-    }
-}
-
-@Preview(name = "Settings · desde hogares (landscape)", showBackground = true, widthDp = 1280, heightDp = 800)
-@Composable
-private fun TabletSettingsFromHomesPreview() {
-    SmartHomeTheme(darkTheme = true) {
-        TabletSettingsLayout(
-            userName = "Juan Perez",
-            userEmail = "juanperez@itba.edu.ar",
-            themePreference = ThemePreference.DARK,
-            onThemePreferenceChange = {},
-            onChangePassword = {},
-            onProfileAvatarClick = {},
-            enteredFromHome = false,
-            onNavigateHome = {},
-            onNavigateRooms = {},
-            onNavigateRoutines = {},
-            onAddHome = {},
-        )
-    }
-}

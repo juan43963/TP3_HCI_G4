@@ -59,7 +59,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -69,8 +68,6 @@ import com.grupo4.smarthome.ui.theme.ErrorRed
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 
-// Type options
-
 internal enum class HomeTypeOption(@StringRes val labelRes: Int, val icon: ImageVector) {
     Casa(R.string.add_home_type_casa, SmartHomeIcons.Home),
     Departamento(R.string.add_home_type_departamento, SmartHomeIcons.Apartment),
@@ -78,12 +75,6 @@ internal enum class HomeTypeOption(@StringRes val labelRes: Int, val icon: Image
     Otro(R.string.add_home_type_otro, Icons.Default.MoreHoriz),
 }
 
-// Entry point
-
-/**
- * Drop-in overlay for [BoxScope] (same pattern as [AppDrawerOverlay]).
- * Phone: slides up as full-screen. Tablet: Material Dialog centered on screen.
- */
 @Composable
 fun BoxScope.AddHomeOverlay(
     visible: Boolean,
@@ -129,8 +120,6 @@ fun BoxScope.AddHomeOverlay(
         }
     }
 }
-
-// Phone layout
 
 @Composable
 private fun PhoneAddHomeScreen(
@@ -290,8 +279,6 @@ private fun AddHomeErrorText(message: String?) {
     )
 }
 
-// Tablet layout
-
 @Composable
 private fun TabletAddHomeDialogContent(
     maxHeight: Dp,
@@ -414,8 +401,6 @@ private fun TabletAddHomeDialogContent(
         }
     }
 }
-
-// Shared form components
 
 @Composable
 private fun AddHomeSectionLabel(label: String, modifier: Modifier = Modifier) {
@@ -600,8 +585,6 @@ private fun AddHomeInvitedRow(email: String, onRemove: () -> Unit) {
     }
 }
 
-// Shared form card components
-
 @Composable
 private fun AddHomeFormCard(content: @Composable () -> Unit) {
     Surface(
@@ -715,46 +698,3 @@ private fun collectInvited(invited: List<String>, pending: String): List<String>
     if (isValidShareEmail(email) && none { it.equals(email, ignoreCase = true) }) add(email)
 }
 
-// Previews
-
-@Preview(name = "Phone – Light", showBackground = true, showSystemUi = true)
-@Composable
-private fun AddHomePhoneLightPreview() {
-    SmartHomeTheme(darkTheme = false) {
-        PhoneAddHomeScreen(onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _ -> })
-    }
-}
-
-@Preview(name = "Phone – Dark", showBackground = true, showSystemUi = true)
-@Composable
-private fun AddHomePhoneDarkPreview() {
-    SmartHomeTheme(darkTheme = true) {
-        PhoneAddHomeScreen(onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _ -> })
-    }
-}
-
-@Preview(name = "Tablet landscape", showBackground = true, widthDp = 1280, heightDp = 800)
-@Composable
-private fun AddHomeTabletLandscapePreview() {
-    SmartHomeTheme(darkTheme = false) {
-        BoxWithConstraints(
-            modifier = Modifier.fillMaxSize().padding(vertical = 24.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            TabletAddHomeDialogContent(maxHeight = maxHeight, onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _ -> })
-        }
-    }
-}
-
-@Preview(name = "Tablet portrait", showBackground = true, widthDp = 800, heightDp = 1280)
-@Composable
-private fun AddHomeTabletPortraitPreview() {
-    SmartHomeTheme(darkTheme = true) {
-        BoxWithConstraints(
-            modifier = Modifier.fillMaxSize().padding(vertical = 24.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            TabletAddHomeDialogContent(maxHeight = maxHeight, onDismiss = {}, isCreating = false, errorMessage = null, onCreate = { _, _, _ -> })
-        }
-    }
-}

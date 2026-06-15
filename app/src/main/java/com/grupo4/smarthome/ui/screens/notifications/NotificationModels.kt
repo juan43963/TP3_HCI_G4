@@ -4,10 +4,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
-/**
- * Familias de notificación que el usuario puede activar o desactivar.
- * Cada una tiene su propio ícono y textos para mantener consistencia con el resto del TP.
- */
 enum class NotificationCategory(
     val icon: ImageVector,
     val labelRes: Int,
@@ -17,9 +13,6 @@ enum class NotificationCategory(
     DEVICES(SmartHomeIcons.Devices, R.string.notifications_category_devices, R.string.notifications_category_devices_description),
 }
 
-/**
- * Una notificación in-app mostrada en el centro de notificaciones.
- */
 data class NotificationUi(
     val id: String,
     val category: NotificationCategory,
@@ -29,13 +22,6 @@ data class NotificationUi(
     val read: Boolean = false,
 )
 
-/**
- * Preferencias de notificación controladas por el usuario.
- *
- * Heurística "control y libertad de usuario": es el usuario quien decide qué recibir.
- * [showInAppToast] cubre el caso en que está viendo el dispositivo que cambió (Toast);
- * cuando no lo está viendo, el aviso aparece como badge en la campana.
- */
 data class NotificationPreferences(
     val enabled: Boolean = true,
     val security: Boolean = true,
@@ -53,7 +39,6 @@ data class NotificationPreferences(
     }
 }
 
-/** Datos de ejemplo para previsualizar el centro de notificaciones. */
 val sampleNotifications: List<NotificationUi> = listOf(
     NotificationUi(
         id = "1",

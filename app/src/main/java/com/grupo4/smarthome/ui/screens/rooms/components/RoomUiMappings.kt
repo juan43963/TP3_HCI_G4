@@ -33,28 +33,22 @@ fun roomTypeIcon(type: RoomType): ImageVector = when (type) {
     RoomType.OTHER -> SmartHomeIcons.Rooms
 }
 
-// --- Tipos de dispositivo: mapeo por nombre canónico del catálogo (única fuente, con fallback) ---
 
 @Composable
 fun deviceTypeLabel(type: DeviceTypeInfo): String {
     deviceTypeLabelRes(type.canonicalName)?.let { return stringResource(it) }
-    // Fallback para tipos que el catálogo agregue y aún no tengamos traducidos:
-    // - name en blanco -> genérico localizado ("Device"/"Dispositivo")
-    // - snake_case / camelCase -> texto legible básico ("air_conditioner" -> "Air Conditioner")
     val raw = type.name.trim()
     return if (raw.isBlank()) stringResource(R.string.rooms_device_type_generic) else raw.toReadableLabel()
 }
 
 private fun String.toReadableLabel(): String =
     replace('_', ' ')
-        // separa límites camelCase: "airConditioner" -> "air Conditioner"
         .replace(Regex("(?<=[a-z0-9])(?=[A-Z])"), " ")
         .lowercase()
         .split(' ')
         .filter { it.isNotBlank() }
         .joinToString(" ") { word -> word.replaceFirstChar { it.uppercase() } }
 
-// --- Acciones: título limpio si existe, label de historial conocido, o texto legible si no ---
 
 @Composable
 fun deviceActionLabel(actionName: String): String {
@@ -62,7 +56,6 @@ fun deviceActionLabel(actionName: String): String {
     return knownActionLabelRes(actionName)?.let { stringResource(it) } ?: actionName.toReadableLabel()
 }
 
-// Etiqueta visible de un valor discreto (chip). El valor enviado a la API sigue siendo el original.
 @Composable
 fun deviceActionOptionLabel(value: String): String {
     val res = when (value.lowercase()) {
@@ -93,7 +86,6 @@ fun deviceActionOptionLabel(value: String): String {
     return res?.let { stringResource(it) } ?: value
 }
 
-// Subtítulo descriptivo de cada sección de acción en el sheet (null = sin subtítulo).
 @Composable
 fun deviceActionSubtitle(actionName: String): String? {
     val res = when {
@@ -118,7 +110,6 @@ fun deviceActionSubtitle(actionName: String): String? {
     return res?.let { stringResource(it) }
 }
 
-// Título limpio (sustantivo) por acción; tiene prioridad sobre los strings de historial en pasado.
 @StringRes
 private fun actionTitleRes(actionName: String): Int? = when {
     actionName.equals("open", ignoreCase = true) -> R.string.routine_action_open
@@ -208,11 +199,9 @@ fun deviceTypeIcon(type: DeviceTypeInfo): ImageVector = when (type.canonicalName
     DeviceTypeNames.DOOR -> SmartHomeIcons.Door
     DeviceTypeNames.ALARM -> SmartHomeIcons.Alarm
     DeviceTypeNames.FRIDGE -> SmartHomeIcons.Fridge
-    // fallback genérico para tipos que el catálogo agregue y todavía no mapeemos
     else -> SmartHomeIcons.Devices
 }
 
-// Categoría legible del tipo (subtítulo de la card): Lighting/Security/Access/Window/Water/...
 @Composable
 fun deviceCategoryLabel(type: DeviceTypeInfo): String = stringResource(
     when (type.canonicalName) {
@@ -229,11 +218,8 @@ fun deviceCategoryLabel(type: DeviceTypeInfo): String = stringResource(
     },
 )
 
-// Estado REAL para la línea con punto de color. `active` = verde (encendido/trabado/abierto), si no gris.
-// Door usa locked/unlocked; blinds usa open/closed; el resto on/off. Todo derivado del estado del device.
 data class DeviceStatusUi(@StringRes val labelRes: Int, val active: Boolean)
 
-// Una puerta tiene dos estados independientes (apertura y bloqueo), por eso puede devolver dos items.
 fun deviceStatuses(device: Device): List<DeviceStatusUi> {
     if (device.type.canonicalName == DeviceTypeNames.ALARM) {
         return when (device.state.status) {
@@ -261,7 +247,6 @@ fun deviceStatuses(device: Device): List<DeviceStatusUi> {
             }
         }
         DeviceTypeNames.BLINDS -> when (device.state.status) {
-            // Estados reales de la persiana (getState): cerrada/cerrándose/abriéndose/abierta.
             "closing" -> listOf(DeviceStatusUi(R.string.rooms_status_closing, active = false))
             "opening" -> listOf(DeviceStatusUi(R.string.rooms_status_opening, active = true))
             "closed" -> listOf(DeviceStatusUi(R.string.rooms_status_closed, active = false))
@@ -279,5 +264,4 @@ fun deviceStatuses(device: Device): List<DeviceStatusUi> {
     }
 }
 
-// Compatibilidad para consumidores que solo necesiten un indicador.
 fun deviceStatus(device: Device): DeviceStatusUi? = deviceStatuses(device).firstOrNull()

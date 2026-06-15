@@ -63,17 +63,14 @@ fun RoomsScreen(
     val baseState by viewModel.uiState.collectAsStateWithLifecycle()
     val state = baseState.copy(unreadNotificationCount = unreadNotificationCount)
 
-    // Cargar/recargar cuando cambia el hogar activo (desde SelectHome / Preferences)
     LaunchedEffect(activeHomeId) { viewModel.onHomeChanged(activeHomeId) }
 
-    // Estado de los diálogos: efímero y propio de la UI, vive en la screen
     var dialogKindName by rememberSaveable { mutableStateOf(RoomsDialogKind.None.name) }
     var dialogRoomId by rememberSaveable { mutableStateOf<String?>(null) }
     var dialogDeviceId by rememberSaveable { mutableStateOf<String?>(null) }
 
     val dialogKind = RoomsDialogKind.valueOf(dialogKindName)
 
-    // Estos diálogos abren una pantalla a pantalla completa en teléfono; avisamos para ocultar la bottom bar.
     val fullscreenDialogOpen = dialogKind == RoomsDialogKind.AddRoom ||
         dialogKind == RoomsDialogKind.EditRoom ||
         dialogKind == RoomsDialogKind.AddDevices
@@ -112,7 +109,6 @@ fun RoomsScreen(
         onAddDeviceClick = { roomId ->
             dialogRoomId = roomId
             dialogDeviceId = null
-            // Reintenta el catálogo si no llegó a cargarse (p. ej. falló la red en el arranque).
             if (state.availableDeviceTypes.isEmpty()) viewModel.refreshDeviceTypes()
             dialogKindName = RoomsDialogKind.AddDevices.name
         },
@@ -141,7 +137,6 @@ fun RoomsScreen(
     Box(modifier = modifier.fillMaxSize()) {
         val errorText = state.errorMessage?.let { stringResource(it) }
         when {
-            // Sin contenido + error (incluye "no hay hogar activo"): estado de error accionable
             state.rooms.isEmpty() && errorText != null -> {
                 RoomsErrorState(
                     message = errorText,
@@ -149,7 +144,6 @@ fun RoomsScreen(
                     modifier = Modifier.fillMaxSize(),
                 )
             }
-            // Carga inicial sin contenido todavía: loader simple
             state.rooms.isEmpty() && state.isLoading -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
@@ -162,7 +156,6 @@ fun RoomsScreen(
                     callbacks = callbacks,
                     modifier = Modifier.fillMaxSize(),
                 )
-                // Errores no bloqueantes (fallos en mutaciones con contenido ya visible)
                 val snackbarHostState = remember { SnackbarHostState() }
                 LaunchedEffect(errorText) {
                     if (errorText != null) {
@@ -170,7 +163,6 @@ fun RoomsScreen(
                         viewModel.dismissError()
                     }
                 }
-                // Resultado de acciones de solo lectura (p. ej. getPlaylist): se muestra y se consume.
                 LaunchedEffect(state.actionResult) {
                     state.actionResult?.let { result ->
                         snackbarHostState.showSnackbar(result)
@@ -264,7 +256,6 @@ fun RoomsScreen(
     }
 }
 
-// Estado de error mínimo y accionable, compatible con el resto de la pantalla
 @Composable
 private fun RoomsErrorState(
     message: String,

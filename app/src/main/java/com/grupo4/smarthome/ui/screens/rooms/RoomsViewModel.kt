@@ -40,10 +40,8 @@ class RoomsViewModel(
     )
     val uiState: StateFlow<RoomsUiState> = _uiState.asStateFlow()
 
-    // Hogar activo actual; lo setea la UI vía onHomeChanged según SelectHome/Preferences
     private var homeId: String? = null
 
-    // Evita lanzar dos reintentos del catálogo a la vez (init + reapertura de la pantalla)
     private var loadingDeviceTypes = false
 
     init {
@@ -51,8 +49,6 @@ class RoomsViewModel(
         refreshDeviceTypes()
     }
 
-    // Catálogo real de tipos (GET /devicetypes): pobla las opciones del alta de dispositivos.
-    // Precarga temprano y reintenta hasta lograrlo, así al abrir "agregar dispositivo" ya está.
     fun refreshDeviceTypes() {
         if (loadingDeviceTypes) return
         if (_uiState.value.availableDeviceTypes.isNotEmpty()) return
@@ -65,17 +61,15 @@ class RoomsViewModel(
                         _uiState.update { it.copy(availableDeviceTypes = result.data) }
                         loaded = true
                     }
-                    is AppResult.Error -> delay(2000) // espera y reintenta ante un fallo de red
+                    is AppResult.Error -> delay(2000)
                 }
             }
             loadingDeviceTypes = false
         }
     }
 
-    // La UI llama esto cuando cambia el hogar activo. Recarga solo si cambió el id.
     fun onHomeChanged(newHomeId: String?) {
         if (newHomeId == homeId) {
-            // Primer arranque del mismo hogar: cargar si todavía no hay datos ni error
             val state = _uiState.value
             if (newHomeId != null && state.rooms.isEmpty() && !state.isLoading && state.errorMessage == null) {
                 loadRooms()
@@ -83,7 +77,6 @@ class RoomsViewModel(
             return
         }
         homeId = newHomeId
-        // Al cambiar de hogar reseteamos selección y filtros para no arrastrar contexto
         _uiState.update {
             it.copy(
                 rooms = emptyList(),
@@ -102,7 +95,6 @@ class RoomsViewModel(
     fun loadRooms() {
         val currentHome = homeId
         if (currentHome.isNullOrBlank()) {
-            // Sin hogar activo no hay devices que cargar: "settled" para no trabar el flujo QR.
             _uiState.update {
                 it.copy(
                     isLoading = false,
@@ -117,7 +109,6 @@ class RoomsViewModel(
             _uiState.update { it.copy(isLoading = true, errorMessage = null, devicesLoaded = false) }
             when (val result = roomsRepository.getRooms(currentHome)) {
                 is AppResult.Success -> {
-                    // Preservamos los dispositivos ya cargados para que no desaparezcan si el refetch falla
                     val currentDevicesByRoom = _uiState.value.rooms.associate { it.id to it.devices }
                     val roomsWithCurrentDevices = result.data.map { room ->
                         room.copy(devices = currentDevicesByRoom[room.id].orEmpty())
@@ -127,15 +118,11 @@ class RoomsViewModel(
                             isLoading = false,
                             rooms = roomsWithCurrentDevices,
                             errorMessage = null,
-                            // Hogar sin habitaciones -> no hay fase de devices: ya queda cargado. Con
-                            // habitaciones, lo marca [loadAllRoomDevices] al terminar.
                             devicesLoaded = roomsWithCurrentDevices.isEmpty(),
                         )
                     }
                     loadAllRoomDevices()
                 }
-                // Falló el fetch de habitaciones: damos la carga por "settled" (best-effort) para no dejar
-                // el flujo QR colgado esperando devices que no van a llegar.
                 is AppResult.Error -> _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -147,7 +134,6 @@ class RoomsViewModel(
         }
     }
 
-    // --- Habitaciones (API real) ---
 
     fun createRoom(name: String, type: RoomType) {
         val currentHome = homeId ?: return
@@ -168,7 +154,6 @@ class RoomsViewModel(
                 is AppResult.Success -> _uiState.update { state ->
                     state.copy(
                         rooms = state.rooms.map {
-                            // Conservamos los dispositivos locales (la API aún no los devuelve en v1)
                             if (it.id == result.data.id) result.data.copy(devices = it.devices) else it
                         },
                         errorMessage = null,
@@ -216,12 +201,10 @@ class RoomsViewModel(
         }
     }
 
-    // Refetch silencioso tras crear/borrar: no muestra el loader de pantalla completa
     private suspend fun refreshRooms() {
         val currentHome = homeId ?: return
         when (val result = roomsRepository.getRooms(currentHome)) {
             is AppResult.Success -> {
-                // Preservamos los dispositivos ya cargados para que no desaparezcan si el refetch falla
                 val currentDevicesByRoom = _uiState.value.rooms.associate { it.id to it.devices }
                 val roomsWithCurrentDevices = result.data.map { room ->
                     room.copy(devices = currentDevicesByRoom[room.id].orEmpty())
@@ -235,7 +218,6 @@ class RoomsViewModel(
         }
     }
 
-    // --- Estado de UI (filtros, búsqueda, selección, modos de edición) ---
 
     fun onSearchChange(value: String) = _uiState.update { it.copy(searchQuery = value) }
 
@@ -267,10 +249,7 @@ class RoomsViewModel(
 
     fun dismissError() = _uiState.update { it.copy(errorMessage = null) }
 
-    // --- Dispositivos (API real) ---
 
-    // Carga los dispositivos de cada habitación en paralelo. Si una habitación falla, conserva sus
-    // datos actuales en vez de romper el listado; solo aplica si las habitaciones no cambiaron.
     private fun loadAllRoomDevices() {
         val rooms = _uiState.value.rooms
         if (rooms.isEmpty()) return
@@ -280,14 +259,12 @@ class RoomsViewModel(
                     async {
                         when (val result = devicesRepository.getRoomDevices(room.id)) {
                             is AppResult.Success -> room.copy(devices = result.data)
-                            is AppResult.Error -> room // fallo parcial: mantenemos la room tal cual
+                            is AppResult.Error -> room
                         }
                     }
                 }.awaitAll()
             }
             _uiState.update { state ->
-                // Si el listado de habitaciones cambió mientras cargábamos, descartamos el resultado (hay
-                // una carga más nueva en curso que dejará devicesLoaded en su valor correcto).
                 if (state.rooms.map { it.id } != updated.map { it.id }) state
                 else state.copy(rooms = updated, devicesLoaded = true)
             }
@@ -296,7 +273,6 @@ class RoomsViewModel(
 
     fun onToggleDevice(deviceId: String) {
         val device = findDevice(deviceId) ?: return
-        // Update optimista para no frenar el switch; si la API falla, resincronizamos vía refetch
         _uiState.update { it.copy(rooms = it.rooms.withDeviceToggled(deviceId)) }
         viewModelScope.launch {
             when (val result = devicesRepository.toggleDevice(device)) {
@@ -311,7 +287,6 @@ class RoomsViewModel(
 
     fun onDeviceValueChange(deviceId: String, value: Int) {
         val device = findDevice(deviceId) ?: return
-        // Update optimista para que el slider responda; resincronizamos si la acción falla
         _uiState.update { it.copy(rooms = it.rooms.withDeviceValueChanged(deviceId, value)) }
         viewModelScope.launch {
             when (val result = devicesRepository.setDeviceValue(device, value)) {
@@ -324,8 +299,6 @@ class RoomsViewModel(
         }
     }
 
-    // Ejecuta una acción del catálogo desde "Más acciones". No hace optimistic update (las acciones son
-    // heterogéneas y las read-only no mutan): ejecuta, refresca el estado real y muestra el resultado si lo hay.
     fun runDeviceAction(deviceId: String, actionName: String, args: List<ActionArg>) {
         val device = findDevice(deviceId) ?: return
         viewModelScope.launch {
@@ -353,7 +326,6 @@ class RoomsViewModel(
                 val result = devicesRepository.createDevice(roomId, pending.type, pending.name, pending.qrId)
                 if (result is AppResult.Error) lastError = result.error
             }
-            // Refetch de la habitación para reflejar lo realmente persistido en el backend
             reloadRoomDevices(roomId)
             lastError?.let { err ->
                 _uiState.update { it.copy(errorMessage = err.kind.toMessageRes()) }
@@ -361,8 +333,6 @@ class RoomsViewModel(
         }
     }
 
-    // Alta de un dispositivo escaneado: resuelve la habitación (existente o nueva) y crea el device
-    // con su qrId. Si hay que crear la room, espera su id antes de crear el dispositivo.
     fun addScannedDevice(
         target: ScannedDeviceRoomTarget,
         type: DeviceTypeInfo,
@@ -408,7 +378,6 @@ class RoomsViewModel(
     fun deleteDevice(deviceId: String) {
         viewModelScope.launch {
             when (val result = devicesRepository.deleteDevice(deviceId)) {
-                // Solo removemos del estado si la API confirmó el borrado
                 is AppResult.Success -> _uiState.update { it.copy(rooms = it.rooms.withoutDevice(deviceId)) }
                 is AppResult.Error -> _uiState.update {
                     it.copy(errorMessage = result.error.kind.toMessageRes())
@@ -420,7 +389,6 @@ class RoomsViewModel(
     private fun findDevice(deviceId: String): Device? =
         _uiState.value.rooms.flatMap { it.devices }.firstOrNull { it.id == deviceId }
 
-    // Reemplaza un dispositivo puntual en el estado (tras una acción/edición exitosa)
     private fun updateDeviceInState(device: Device) = _uiState.update { state ->
         state.copy(
             rooms = state.rooms.map { room ->
@@ -433,13 +401,12 @@ class RoomsViewModel(
         )
     }
 
-    // Refetch silencioso de los dispositivos de una sola habitación (tras mutaciones o para resincronizar)
     private suspend fun reloadRoomDevices(roomId: String) {
         when (val result = devicesRepository.getRoomDevices(roomId)) {
             is AppResult.Success -> _uiState.update { state ->
                 state.copy(rooms = state.rooms.map { if (it.id == roomId) it.copy(devices = result.data) else it })
             }
-            is AppResult.Error -> Unit // error silencioso en refetch; el error principal ya se mostró
+            is AppResult.Error -> Unit
         }
     }
 

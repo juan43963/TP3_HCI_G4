@@ -42,7 +42,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.ui.auth.components.AuthBrandLogo
@@ -283,34 +282,3 @@ private fun PasswordField(
     )
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun ChangePasswordLightPreview() {
-    SmartHomeTheme(darkTheme = false) {
-        ChangePasswordContent(
-            uiState = ChangePasswordUiState(),
-            email = "juanperez@itba.edu.ar",
-            onCodeChange = {},
-            onPasswordChange = {},
-            onConfirmChange = {},
-            onSubmit = {},
-            onBackToLogin = {},
-        )
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun ChangePasswordDarkPreview() {
-    SmartHomeTheme(darkTheme = true) {
-        ChangePasswordContent(
-            uiState = ChangePasswordUiState(),
-            email = "juanperez@itba.edu.ar",
-            onCodeChange = {},
-            onPasswordChange = {},
-            onConfirmChange = {},
-            onSubmit = {},
-            onBackToLogin = {},
-        )
-    }
-}

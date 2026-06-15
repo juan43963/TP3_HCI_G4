@@ -39,16 +39,6 @@ import com.grupo4.smarthome.ui.screens.rooms.components.RoomsIconTileGradient
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsSoftBorder
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
-/**
- * Pantalla de detalle de un dispositivo: top bar + [DeviceDetailContent]. Stateless: recibe el device ya
- * cargado (del hogar activo), el nombre de su habitación y delega el control en los callbacks.
- *
- * Es el destino del flujo QR de dispositivo conocido: al escanear un QR que matchea un device del hogar,
- * `ScanViewModel` emite `ScanNavEvent.OpenDevice` y la navegación (ruta `device_detail/{deviceId}` en
- * `MainActivity`) abre esta pantalla. El cuerpo reusable vive en [DeviceDetailContent], pensado además
- * para reutilizarse luego desde búsqueda global (desde su propio scaffold o un bottom sheet) sin
- * duplicar lógica.
- */
 @Composable
 fun DeviceDetailScreen(
     device: Device,
@@ -78,16 +68,6 @@ fun DeviceDetailScreen(
     }
 }
 
-/**
- * Cuerpo reutilizable del detalle de dispositivo (sin scaffold/top bar): la card de control + la fila de
- * habitación. Pensado para usarse tanto en el flujo de QR de dispositivo conocido como, más adelante, en
- * búsqueda global (desde su propio scaffold o un bottom sheet), sin duplicar lógica.
- *
- * Reutiliza [DeviceCard] (núcleo del control: ícono/nombre/tipo/estado + acción primaria + "Más
- * acciones") y los mappings del catálogo (`DeviceTypeInfo`); no agrega lógica de tipos propia. Usa la
- * variante `Phone` en ambas plataformas (controles inline) porque el detalle es una vista enfocada de un
- * solo dispositivo; en tablet se centra con un ancho máximo.
- */
 @Composable
 fun DeviceDetailContent(
     device: Device,
@@ -117,7 +97,6 @@ fun DeviceDetailContent(
                 onEdit = {},
                 onDelete = {},
                 onAction = onAction,
-                // Detalle: siempre la variante con controles inline (también en tablet, centrada).
                 variant = DeviceCardVariant.Phone,
             )
             if (!roomName.isNullOrBlank()) {
@@ -156,7 +135,6 @@ private fun DeviceDetailTopBar(title: String, onBack: () -> Unit) {
     }
 }
 
-// Fila de habitación: ícono de habitación (no el del dispositivo, que ya está en la card) + nombre.
 @Composable
 private fun DeviceRoomRow(roomName: String) {
     Surface(

@@ -21,7 +21,6 @@ data class RoomsCallbacks(
     val onDeleteDevice: (String) -> Unit = {},
     val onToggleDevice: (String) -> Unit = {},
     val onDeviceValueChange: (String, Int) -> Unit = { _, _ -> },
-    // Ejecuta cualquier acción del catálogo desde el panel "Más acciones": (deviceId, actionName, args)
     val onDeviceAction: (String, String, List<ActionArg>) -> Unit = { _, _, _ -> },
     val onAvatarClick: () -> Unit = {},
     val onAddClick: () -> Unit = {},

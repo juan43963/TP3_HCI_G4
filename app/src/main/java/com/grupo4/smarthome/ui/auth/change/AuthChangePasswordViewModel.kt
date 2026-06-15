@@ -53,7 +53,6 @@ class AuthChangePasswordViewModel(
         _uiState.update { it.copy(passwordChanged = false) }
     }
 
-    // Acá un Unauthorized/Validation significa "contraseña actual incorrecta", no sesión vencida.
     @StringRes
     private fun messageFor(kind: ErrorKind): Int =
         when (kind) {

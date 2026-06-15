@@ -118,7 +118,6 @@ object SmartHomeIcons {
     val Locked = Icons.Outlined.Lock
     val Unlocked = Icons.Outlined.LockOpen
 
-    // Routine detail
     val MoreOptions = Icons.Default.MoreVert
     val Rename = Icons.Outlined.DriveFileRenameOutline
     val DragHandle = Icons.Default.DragIndicator
@@ -126,6 +125,5 @@ object SmartHomeIcons {
     val Lightbulb = Icons.Outlined.Lightbulb
     val Thermostat = Icons.Outlined.Thermostat
 
-    // Fallback for future security-specific UI if the checked variant is not desired.
     val Shield = Icons.Outlined.Shield
 }

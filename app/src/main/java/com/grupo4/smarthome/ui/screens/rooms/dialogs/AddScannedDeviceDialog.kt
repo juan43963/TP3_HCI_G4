@@ -57,8 +57,6 @@ import com.grupo4.smarthome.ui.screens.rooms.components.roomTypeLabel
 import com.grupo4.smarthome.ui.theme.BrandIndigoDark
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
-// Alta de un dispositivo escaneado en dos pasos: 1) elegir habitación existente o crear una nueva,
-// 2) confirmar tipo (fijo del QR; si el QR no lo trae se elige) y nombre del dispositivo.
 @Composable
 fun AddScannedDeviceDialog(
     payload: QrDevicePayload,
@@ -73,7 +71,6 @@ fun AddScannedDeviceDialog(
     var newRoomTypeName by rememberSaveable { mutableStateOf<String?>(null) }
     var showCreateRoom by rememberSaveable { mutableStateOf(false) }
     var deviceName by rememberSaveable { mutableStateOf(payload.suggestedName.orEmpty()) }
-    // Guardamos el id del tipo elegido (saveable); el tipo en sí se resuelve del catálogo.
     var selectedTypeId by rememberSaveable { mutableStateOf<String?>(null) }
     var submitted by rememberSaveable { mutableStateOf(false) }
 
@@ -83,12 +80,10 @@ fun AddScannedDeviceDialog(
         selectedRoomId != null -> ScannedDeviceRoomTarget.Existing(selectedRoomId!!)
         else -> null
     }
-    // El QR trae un hint de tipo (un nombre): lo resolvemos contra el catálogo real por nombre canónico.
     val qrType = payload.typeName?.let { name ->
         val canonical = DeviceTypeNames.canonical(name)
         availableDeviceTypes.firstOrNull { it.canonicalName == canonical }
     }
-    // Si el QR resolvió un tipo, queda fijo; si no, vale el que elija el usuario.
     val deviceType = qrType ?: selectedTypeId?.let { id -> availableDeviceTypes.firstOrNull { it.id == id } }
     val headerIcon = qrType?.let { deviceTypeIcon(it) } ?: SmartHomeIcons.Devices
 

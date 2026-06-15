@@ -7,6 +7,5 @@ import kotlinx.serialization.json.buildJsonObject
 @Serializable
 data class RoomUpdateDto(
     val name: String,
-    // No reenviamos `home`: la asociación al hogar se administra con endpoints aparte
     val metadata: JsonObject = buildJsonObject { },
 )

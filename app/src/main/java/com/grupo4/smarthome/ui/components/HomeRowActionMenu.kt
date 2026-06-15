@@ -34,7 +34,6 @@ import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 val HomeActionMenuWidth = 168.dp
 private val HomeActionMenuItemHeight = 42.dp
 
-// Menú de acciones por hogar compartido entre el switcher y el drawer.
 @Composable
 fun HomeActionMenuContent(
     onEdit: () -> Unit,
@@ -70,7 +69,6 @@ fun HomeActionMenuContent(
     }
 }
 
-// Versión anclada a un botón para usar como popup desplegable.
 @Composable
 fun HomeActionMenuPopup(
     expanded: Boolean,

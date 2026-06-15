@@ -54,7 +54,6 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -70,7 +69,6 @@ import com.grupo4.smarthome.data.model.RoutineCategory
 import com.grupo4.smarthome.ui.screens.rooms.components.deviceTypeIcon
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
-
 
 private enum class AddRoutineTabletStep {
     Details,
@@ -95,7 +93,6 @@ private enum class AddRoutineTabletCategory(@StringRes val labelRes: Int, val ic
         Custom -> RoutineCategory.CUSTOM
     }
 }
-
 
 @Composable
 fun BoxScope.AddRoutineTabletOverlay(
@@ -155,7 +152,6 @@ private fun AddRoutineTabletDialogContent(
             initialRoutine?.days ?: listOf(true, true, true, true, true, false, false),
         )
     }
-    // Manual: la rutina se ejecuta a mano, sin horario ni días
     var manual by rememberSaveable {
         mutableStateOf(initialRoutine?.days?.none { it } ?: false)
     }
@@ -335,7 +331,6 @@ private fun AddRoutineTabletDialogContent(
     }
 }
 
-// Persiste la lista de días a través de rotación (dialog tablet)
 private val TabletDaysSaver = listSaver<List<Boolean>, Boolean>(
     save = { it.toList() },
     restore = { it.toList() },
@@ -524,7 +519,6 @@ private fun AddRoutineTabletStepMarker(
     }
 }
 
-
 @Composable
 private fun AddRoutineTabletDetailsStep(
     routineName: String,
@@ -582,7 +576,6 @@ private fun AddRoutineTabletDetailsStep(
             onClick = { onManualChange(true) },
         )
     }
-    // Manual no usa horario ni repetición
     if (!manual) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -849,7 +842,6 @@ private fun AddRoutineTabletCardTitle(icon: ImageVector, text: String) {
     }
 }
 
-
 @Composable
 private fun AddRoutineTabletActionsSummaryStep(
     actions: List<RoutineAction>,
@@ -975,7 +967,6 @@ private fun AddRoutineTabletAddActionCard(onClick: () -> Unit) {
         }
     }
 }
-
 
 @Composable
 private fun AddRoutineTabletSelectDeviceStep(
@@ -1138,7 +1129,6 @@ private fun AddRoutineTabletDeviceTile(
     }
 }
 
-
 @Composable
 private fun AddRoutineTabletSelectActionStep(
     deviceName: String,
@@ -1194,7 +1184,6 @@ private fun AddRoutineTabletActionRow(
         }
     }
 }
-
 
 @Composable
 private fun AddRoutineTabletConfigureParameterStep(
@@ -1291,7 +1280,6 @@ private fun AddRoutineTabletSubstepLabel(text: String) {
     )
 }
 
-
 @Composable
 private fun AddRoutineTabletFooter(
     currentStep: AddRoutineTabletStep,
@@ -1349,7 +1337,6 @@ private fun AddRoutineTabletFooter(
                     enabled = canConfirmParameter,
                 )
 
-                // SelectDevice/SelectAction avanzan al tocar una tarjeta
                 else -> Unit
             }
         }
@@ -1444,20 +1431,3 @@ private fun AddRoutineTabletTextButton(
     }
 }
 
-
-@Preview(name = "Add routine tablet", showBackground = true, widthDp = 1280, heightDp = 800)
-@Composable
-private fun AddRoutineTabletPreview() {
-    SmartHomeTheme(darkTheme = false) {
-        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            AddRoutineTabletDialogContent(
-                onDismiss = {},
-                devices = emptyList(),
-                deviceRoomNames = emptyMap(),
-                deviceActions = emptyMap(),
-                onCreate = { _, _, _, _, _ -> },
-                maxSheetHeight = 600.dp,
-            )
-        }
-    }
-}
