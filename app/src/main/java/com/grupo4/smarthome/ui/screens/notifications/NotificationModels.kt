@@ -26,7 +26,6 @@ data class NotificationPreferences(
     val enabled: Boolean = true,
     val security: Boolean = true,
     val devices: Boolean = true,
-    val showInAppToast: Boolean = true,
 ) {
     fun isEnabled(category: NotificationCategory): Boolean = when (category) {
         NotificationCategory.SECURITY -> security

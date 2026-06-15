@@ -538,21 +538,6 @@
     <string name="rooms_device_category_kitchen">Kitchen</string>
     <string name="rooms_device_category_cleaning">Cleaning</string>
     <string name="rooms_device_category_other">Device</string>
-    <string name="rooms_status_on">On</string>
-    <string name="rooms_status_off">Off</string>
-    <string name="rooms_status_locked">Locked</string>
-    <string name="rooms_status_unlocked">Unlocked</string>
-    <string name="rooms_status_open">Open</string>
-    <string name="rooms_status_closed">Closed</string>
-    <string name="rooms_status_faucet_open">Open</string>
-    <string name="rooms_status_faucet_closed">Closed</string>
-    <string name="rooms_status_opening">Opening</string>
-    <string name="rooms_status_closing">Closing</string>
-    <string name="rooms_status_alarm_home">Armed: home mode</string>
-    <string name="rooms_status_alarm_regular">Armed: regular mode</string>
-    <string name="rooms_status_alarm_disarmed">Disarmed</string>
-    <string name="rooms_fridge_temperature_status">Fridge %1$d°C</string>
-    <string name="rooms_fridge_freezer_status">Freezer %1$d°C</string>
     <string name="rooms_retry">Retry</string>
 
     <string name="routines_edit">Edit</string>

@@ -377,6 +377,7 @@ internal fun CreateRoutineBottomBar(
     onConfirmParameter: () -> Unit,
     canConfirmParameter: Boolean,
     onCreate: () -> Unit,
+    canProceedFromDetails: Boolean = true,
 ) {
     if (currentStep == CreateRoutineStep.SelectDevice || currentStep == CreateRoutineStep.SelectAction) {
         return
@@ -388,7 +389,7 @@ internal fun CreateRoutineBottomBar(
         CreateRoutineStep.Details -> {
             label = stringResource(R.string.create_routine_next)
             onClick = onNext
-            enabled = true
+            enabled = canProceedFromDetails
         }
         CreateRoutineStep.ConfigureParameter -> {
             label = stringResource(R.string.create_routine_add_action_cta)

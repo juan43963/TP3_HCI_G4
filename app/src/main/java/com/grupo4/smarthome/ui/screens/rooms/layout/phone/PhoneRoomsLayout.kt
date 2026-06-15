@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.data.model.Room
 import com.grupo4.smarthome.ui.components.LocalOpenDrawer
+import com.grupo4.smarthome.ui.components.NotificationsBellButton
 import com.grupo4.smarthome.ui.components.SmartHomeTopBar
 import com.grupo4.smarthome.ui.screens.dashboard.components.DashboardAvatarButton
 import com.grupo4.smarthome.ui.screens.rooms.RoomsCallbacks
@@ -102,6 +103,8 @@ fun PhoneRoomsLayout(
                             callbacks.onBackToRooms()
                         },
                         onSearchClick = callbacks.onSearchClick,
+                        onNotificationsClick = callbacks.onNotificationsClick,
+                        notificationCount = state.unreadNotificationCount,
                         onProfileClick = callbacks.onAvatarClick,
                     )
                 }
@@ -398,6 +401,8 @@ private fun PhoneRoomDetailTopBar(
     roomName: String,
     onBack: () -> Unit,
     onSearchClick: () -> Unit,
+    onNotificationsClick: () -> Unit,
+    notificationCount: Int,
     onProfileClick: () -> Unit,
 ) {
     Row(
@@ -430,6 +435,10 @@ private fun PhoneRoomDetailTopBar(
                 tint = MaterialTheme.colorScheme.onSurface,
             )
         }
+        NotificationsBellButton(
+            unreadCount = notificationCount,
+            onClick = onNotificationsClick,
+        )
         DashboardAvatarButton(onClick = onProfileClick)
     }
 }

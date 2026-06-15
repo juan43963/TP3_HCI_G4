@@ -486,9 +486,11 @@ internal fun RoutineCard(
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         shadowElevation = 1.dp,
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            val isManual = routine.days.none { it }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -536,13 +538,17 @@ internal fun RoutineCard(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Icon(
-                    imageVector = SmartHomeIcons.Schedule,
+                    imageVector = if (isManual) SmartHomeIcons.ManualTrigger else SmartHomeIcons.Schedule,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(18.dp),
                 )
                 Text(
-                    text = routine.time,
+                    text = if (isManual) {
+                        stringResource(R.string.create_routine_activation_manual)
+                    } else {
+                        routine.time
+                    },
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -590,16 +596,20 @@ internal fun RoutineCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                DaysRow(
-                    days = routine.days,
-                    modifier = Modifier.weight(1f),
-                )
-                VerticalDivider(
-                    modifier = Modifier
-                        .padding(horizontal = 14.dp)
-                        .height(28.dp),
-                    color = MaterialTheme.colorScheme.outlineVariant,
-                )
+                if (isManual) {
+                    Spacer(modifier = Modifier.weight(1f))
+                } else {
+                    DaysRow(
+                        days = routine.days,
+                        modifier = Modifier.weight(1f),
+                    )
+                    VerticalDivider(
+                        modifier = Modifier
+                            .padding(horizontal = 14.dp)
+                            .height(28.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                    )
+                }
                 PlayButton(onClick = onExecute)
             }
         }

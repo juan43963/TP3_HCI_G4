@@ -341,6 +341,7 @@ private fun CreateRoutineScreen(
                 CreateRoutineBottomBar(
                     currentStep = currentStep,
                     canCreate = canCreate,
+                    canProceedFromDetails = routineName.isNotBlank(),
                     onNext = {
                         currentStep = when (currentStep) {
                             CreateRoutineStep.Details -> CreateRoutineStep.ActionsSummary

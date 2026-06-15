@@ -385,74 +385,12 @@ private fun DeviceCardHeader(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            when (device.type.canonicalName) {
-                DeviceTypeNames.DOOR, DeviceTypeNames.ALARM -> {
-                    Spacer(modifier = Modifier.height(6.dp))
-                    DeviceStatusRow(device = device)
-                }
-                DeviceTypeNames.FRIDGE -> {
-                    Spacer(modifier = Modifier.height(6.dp))
-                    FridgeStatusSummary(device = device)
-                }
-            }
         }
         if (showControl) {
             HeaderControl(
                 device = device,
                 onToggle = onToggle,
             )
-        }
-    }
-}
-
-@Composable
-private fun FridgeStatusSummary(device: Device) {
-    val temperature = device.state.int("temperature")
-    val freezerTemperature = device.state.int("freezerTemperature")
-        ?: device.state.int("freezer")
-    val mode = device.state.string("mode")
-    val values = buildList {
-        temperature?.let { add(stringResource(R.string.rooms_fridge_temperature_status, it)) }
-        freezerTemperature?.let { add(stringResource(R.string.rooms_fridge_freezer_status, it)) }
-        mode?.let { add(deviceActionOptionLabel(it)) }
-    }
-    if (values.isEmpty()) return
-    Text(
-        text = values.joinToString(" · "),
-        style = MaterialTheme.typography.bodySmall,
-        fontWeight = FontWeight.SemiBold,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-    )
-}
-
-@Composable
-internal fun DeviceStatusRow(device: Device) {
-    val statuses = deviceStatuses(device)
-    if (statuses.isEmpty()) return
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        statuses.forEach { status ->
-            val color = if (status.active) StatusActiveColor else MaterialTheme.colorScheme.onSurfaceVariant
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .background(color, CircleShape),
-                )
-                Text(
-                    text = stringResource(status.labelRes),
-                    style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = color,
-                )
-            }
         }
     }
 }
@@ -500,8 +438,6 @@ private fun DoorLockButton(
         )
     }
 }
-
-private val StatusActiveColor = Color(0xFF22C55E)
 
 private fun hasPrimarySlider(device: Device): Boolean =
     device.isOn && device.type.canonicalName in setOf(

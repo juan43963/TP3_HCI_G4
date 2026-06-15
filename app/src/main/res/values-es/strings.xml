@@ -540,21 +540,6 @@
     <string name="rooms_device_category_kitchen">Cocina</string>
     <string name="rooms_device_category_cleaning">Limpieza</string>
     <string name="rooms_device_category_other">Dispositivo</string>
-    <string name="rooms_status_on">Encendido</string>
-    <string name="rooms_status_off">Apagado</string>
-    <string name="rooms_status_locked">Trabada</string>
-    <string name="rooms_status_unlocked">Destrabada</string>
-    <string name="rooms_status_open">Abierta</string>
-    <string name="rooms_status_closed">Cerrada</string>
-    <string name="rooms_status_faucet_open">Abierto</string>
-    <string name="rooms_status_faucet_closed">Cerrado</string>
-    <string name="rooms_status_opening">Abriéndose</string>
-    <string name="rooms_status_closing">Cerrándose</string>
-    <string name="rooms_status_alarm_home">Activada: modo casa</string>
-    <string name="rooms_status_alarm_regular">Activada: modo regular</string>
-    <string name="rooms_status_alarm_disarmed">Desactivada</string>
-    <string name="rooms_fridge_temperature_status">Heladera %1$d°C</string>
-    <string name="rooms_fridge_freezer_status">Freezer %1$d°C</string>
     <string name="rooms_retry">Reintentar</string>
 
     <string name="routines_edit">Editar</string>

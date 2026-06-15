@@ -142,7 +142,7 @@ private fun DeviceActionsCenteredCard(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.Top,
                 ) {
-                    SheetHeader(device = device, showStatus = false, modifier = Modifier.weight(1f))
+                    SheetHeader(device = device, modifier = Modifier.weight(1f))
                     ModalCloseButton(onDismiss = onDismiss)
                 }
                 Spacer(modifier = Modifier.height(14.dp))
@@ -208,7 +208,7 @@ private fun ColumnScope.DeviceActionsBody(
 }
 
 @Composable
-private fun SheetHeader(device: Device, showStatus: Boolean = true, modifier: Modifier = Modifier) {
+private fun SheetHeader(device: Device, modifier: Modifier = Modifier) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -241,10 +241,6 @@ private fun SheetHeader(device: Device, showStatus: Boolean = true, modifier: Mo
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            if (showStatus) {
-                Spacer(modifier = Modifier.height(6.dp))
-                DeviceStatusRow(device = device)
-            }
         }
     }
 }

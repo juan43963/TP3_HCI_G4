@@ -2,10 +2,12 @@ package com.grupo4.smarthome.ui.screens.rooms
 
 import androidx.annotation.StringRes
 import com.grupo4.smarthome.data.model.Device
+import com.grupo4.smarthome.data.model.DeviceActionNames
 import com.grupo4.smarthome.data.model.DeviceTypeInfo
 import com.grupo4.smarthome.data.model.DeviceTypeNames
 import com.grupo4.smarthome.data.model.Room
 import com.grupo4.smarthome.data.model.RoomType
+import com.grupo4.smarthome.ui.util.DeviceValueRanges
 
 data class RoomsUiState(
     val rooms: List<Room>,
@@ -173,13 +175,27 @@ fun List<Room>.withDeviceValueChanged(deviceId: String, value: Int): List<Room> 
             if (device.id != deviceId) {
                 device
             } else when (device.type.canonicalName) {
-                DeviceTypeNames.LIGHT -> device.copy(state = device.state.withInt("brightness", value.coerceIn(0, 100)))
-                DeviceTypeNames.AC -> device.copy(state = device.state.withInt("temperature", value.coerceIn(16, 30)))
-                DeviceTypeNames.SPEAKER -> device.copy(state = device.state.withInt("volume", value.coerceIn(0, 10)))
+                DeviceTypeNames.LIGHT ->
+                    device.copy(state = device.state.withInt("brightness", value.coerceIn(device.optimisticValueRange(DeviceValueRanges.LIGHT_BRIGHTNESS))))
+                DeviceTypeNames.AC ->
+                    device.copy(state = device.state.withInt("temperature", value.coerceIn(device.optimisticValueRange(DeviceValueRanges.AC_TEMPERATURE))))
+                DeviceTypeNames.SPEAKER ->
+                    device.copy(state = device.state.withInt("volume", value.coerceIn(device.optimisticValueRange(DeviceValueRanges.SPEAKER_VOLUME))))
                 else -> device
             }
         },
     )
+}
+
+// Rango de clamp del update optimista: usa el min/max real del catálogo (primer
+// parámetro de la acción primaria del tipo) y cae al fallback local solo si la
+// API no trae rango.
+private fun Device.optimisticValueRange(fallback: IntRange): IntRange {
+    val actionName = DeviceActionNames.primaryValueAction(type.canonicalName) ?: return fallback
+    val param = type.action(actionName)?.params?.firstOrNull()
+    val min = param?.min
+    val max = param?.max
+    return if (min != null && max != null) min..max else fallback
 }
 
 fun List<Room>.withoutDevice(deviceId: String): List<Room> = map { room ->

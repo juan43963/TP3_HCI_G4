@@ -6,7 +6,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.data.model.Device
-import com.grupo4.smarthome.data.model.DeviceActionNames
 import com.grupo4.smarthome.data.model.DeviceTypeInfo
 import com.grupo4.smarthome.data.model.DeviceTypeNames
 import com.grupo4.smarthome.data.model.RoomType
@@ -217,51 +216,3 @@ fun deviceCategoryLabel(type: DeviceTypeInfo): String = stringResource(
         else -> R.string.rooms_device_category_other
     },
 )
-
-data class DeviceStatusUi(@StringRes val labelRes: Int, val active: Boolean)
-
-fun deviceStatuses(device: Device): List<DeviceStatusUi> {
-    if (device.type.canonicalName == DeviceTypeNames.ALARM) {
-        return when (device.state.status) {
-            "armedstay", "armedhome" ->
-                listOf(DeviceStatusUi(R.string.rooms_status_alarm_home, active = true))
-            "armedaway", "armed" ->
-                listOf(DeviceStatusUi(R.string.rooms_status_alarm_regular, active = true))
-            "disarmed" ->
-                listOf(DeviceStatusUi(R.string.rooms_status_alarm_disarmed, active = false))
-            else -> emptyList()
-        }
-    }
-    if (!DeviceActionNames.supportsToggle(device.type)) return emptyList()
-    return when (device.type.canonicalName) {
-        DeviceTypeNames.DOOR -> buildList {
-            when (device.state.status) {
-                "open", "opened" -> add(DeviceStatusUi(R.string.rooms_status_open, active = true))
-                "opening" -> add(DeviceStatusUi(R.string.rooms_status_opening, active = true))
-                "closed" -> add(DeviceStatusUi(R.string.rooms_status_closed, active = false))
-                "closing" -> add(DeviceStatusUi(R.string.rooms_status_closing, active = false))
-            }
-            when (device.state.string("lock")?.lowercase()) {
-                "locked" -> add(DeviceStatusUi(R.string.rooms_status_locked, active = true))
-                "unlocked" -> add(DeviceStatusUi(R.string.rooms_status_unlocked, active = false))
-            }
-        }
-        DeviceTypeNames.BLINDS -> when (device.state.status) {
-            "closing" -> listOf(DeviceStatusUi(R.string.rooms_status_closing, active = false))
-            "opening" -> listOf(DeviceStatusUi(R.string.rooms_status_opening, active = true))
-            "closed" -> listOf(DeviceStatusUi(R.string.rooms_status_closed, active = false))
-            else -> listOf(DeviceStatusUi(R.string.rooms_status_open, active = device.isOn))
-        }
-        DeviceTypeNames.FAUCET ->
-            listOf(
-                DeviceStatusUi(
-                    if (device.isOn) R.string.rooms_status_faucet_open else R.string.rooms_status_faucet_closed,
-                    device.isOn,
-                ),
-            )
-        else ->
-            listOf(DeviceStatusUi(if (device.isOn) R.string.rooms_status_on else R.string.rooms_status_off, device.isOn))
-    }
-}
-
-fun deviceStatus(device: Device): DeviceStatusUi? = deviceStatuses(device).firstOrNull()

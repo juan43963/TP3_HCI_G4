@@ -86,4 +86,5 @@ data class DeviceActionParamInfo(
     val type: String,
     val min: Int? = null,
     val max: Int? = null,
+    val supportedValues: List<String> = emptyList(),
 )

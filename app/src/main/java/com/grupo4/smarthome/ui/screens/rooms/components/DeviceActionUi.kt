@@ -3,6 +3,7 @@ package com.grupo4.smarthome.ui.screens.rooms.components
 import com.grupo4.smarthome.data.model.DeviceActionInfo
 import com.grupo4.smarthome.data.model.DeviceActionNames
 import com.grupo4.smarthome.data.model.DeviceTypeNames
+import com.grupo4.smarthome.ui.util.DeviceValueRanges
 
 object DeviceActionRegistry {
 
@@ -20,6 +21,9 @@ object DeviceActionRegistry {
     fun controlFor(action: DeviceActionInfo, canonicalType: String): DeviceActionControl {
         val name = action.name
         val params = action.params
+        // supportedValues del catálogo si la API los trae; si no, lista hardcodeada (fallback).
+        fun choiceValues(fallback: List<String>): List<String> =
+            params.firstOrNull()?.supportedValues?.takeIf { it.isNotEmpty() } ?: fallback
         return when {
             DeviceActionNames.isReadOnlyAction(name) -> DeviceActionControl.Trigger
 
@@ -35,14 +39,14 @@ object DeviceActionRegistry {
 
             name.equals("setLocation", ignoreCase = true) -> DeviceActionControl.RoomPicker
 
-            name.equals("setMode", ignoreCase = true) -> DeviceActionControl.Choice(modesFor(canonicalType))
-            name.equals("setGenre", ignoreCase = true) -> DeviceActionControl.Choice(GENRES)
-            name.equals("setHeat", ignoreCase = true) -> DeviceActionControl.Choice(OVEN_HEAT)
-            name.equals("setGrill", ignoreCase = true) -> DeviceActionControl.Choice(OVEN_GRILL)
-            name.equals("setConvection", ignoreCase = true) -> DeviceActionControl.Choice(OVEN_CONVECTION)
-            name.equals("setVerticalSwing", ignoreCase = true) -> DeviceActionControl.Choice(VERTICAL_SWINGS)
-            name.equals("setHorizontalSwing", ignoreCase = true) -> DeviceActionControl.Choice(HORIZONTAL_SWINGS)
-            name.equals("setFanSpeed", ignoreCase = true) -> DeviceActionControl.Choice(FAN_SPEEDS)
+            name.equals("setMode", ignoreCase = true) -> DeviceActionControl.Choice(choiceValues(modesFor(canonicalType)))
+            name.equals("setGenre", ignoreCase = true) -> DeviceActionControl.Choice(choiceValues(GENRES))
+            name.equals("setHeat", ignoreCase = true) -> DeviceActionControl.Choice(choiceValues(OVEN_HEAT))
+            name.equals("setGrill", ignoreCase = true) -> DeviceActionControl.Choice(choiceValues(OVEN_GRILL))
+            name.equals("setConvection", ignoreCase = true) -> DeviceActionControl.Choice(choiceValues(OVEN_CONVECTION))
+            name.equals("setVerticalSwing", ignoreCase = true) -> DeviceActionControl.Choice(choiceValues(VERTICAL_SWINGS))
+            name.equals("setHorizontalSwing", ignoreCase = true) -> DeviceActionControl.Choice(choiceValues(HORIZONTAL_SWINGS))
+            name.equals("setFanSpeed", ignoreCase = true) -> DeviceActionControl.Choice(choiceValues(FAN_SPEEDS))
 
             isNumeric(action) -> {
                 val param = params.first()
@@ -75,19 +79,20 @@ object DeviceActionRegistry {
         val n = actionName.lowercase()
         val p = paramName.lowercase()
         fun has(token: String) = token in n || token in p
-        return when {
-            has("volume") -> 0 to 10
-            has("brightness") -> 0 to 100
-            has("freezer") -> -20 to -8
+        val range = when {
+            has("volume") -> DeviceValueRanges.SPEAKER_VOLUME
+            has("brightness") -> DeviceValueRanges.LIGHT_BRIGHTNESS
+            has("freezer") -> DeviceValueRanges.FREEZER_TEMPERATURE
             has("temperature") -> when (canonicalType) {
-                DeviceTypeNames.AC -> 18 to 38
-                DeviceTypeNames.OVEN -> 90 to 230
-                DeviceTypeNames.FRIDGE -> 2 to 8
-                else -> 0 to 100
+                DeviceTypeNames.AC -> DeviceValueRanges.AC_TEMPERATURE
+                DeviceTypeNames.OVEN -> DeviceValueRanges.OVEN_TEMPERATURE
+                DeviceTypeNames.FRIDGE -> DeviceValueRanges.FRIDGE_TEMPERATURE
+                else -> DeviceValueRanges.PERCENT
             }
-            has("position") || has("level") || has("intensity") || has("dispense") -> 0 to 100
-            else -> 0 to 100
+            has("position") || has("level") || has("intensity") || has("dispense") -> DeviceValueRanges.PERCENT
+            else -> DeviceValueRanges.PERCENT
         }
+        return range.first to range.last
     }
 
     private fun String.normalizedAction(): String = lowercase().replace("_", "").replace("-", "")

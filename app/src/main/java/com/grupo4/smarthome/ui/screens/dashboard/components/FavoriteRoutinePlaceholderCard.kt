@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -79,12 +80,9 @@ fun FavoriteRoutinePlaceholderCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            Box(
-                modifier = Modifier
-                    .size(34.dp)
-                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
-                    .clickable(onClick = onToggleFavorite),
-                contentAlignment = Alignment.Center,
+            IconButton(
+                onClick = onToggleFavorite,
+                modifier = Modifier.size(32.dp),
             ) {
                 Icon(
                     imageVector = if (routine.isFavorite) SmartHomeIcons.Favorite else SmartHomeIcons.FavoriteBorder,
@@ -93,7 +91,7 @@ fun FavoriteRoutinePlaceholderCard(
                         else R.string.dashboard_add_favorite
                     ),
                     tint = if (routine.isFavorite) StarActive else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(17.dp),
+                    modifier = Modifier.size(18.dp),
                 )
             }
         }

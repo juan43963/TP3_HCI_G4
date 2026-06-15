@@ -43,7 +43,6 @@ class PreferencesDataStore(
                 enabled = prefs[Keys.NotifEnabled] ?: true,
                 security = prefs[Keys.NotifSecurity] ?: true,
                 devices = prefs[Keys.NotifDevices] ?: true,
-                showInAppToast = prefs[Keys.NotifToast] ?: true,
             )
         }
 
@@ -52,7 +51,6 @@ class PreferencesDataStore(
             prefs[Keys.NotifEnabled] = preferences.enabled
             prefs[Keys.NotifSecurity] = preferences.security
             prefs[Keys.NotifDevices] = preferences.devices
-            prefs[Keys.NotifToast] = preferences.showInAppToast
         }
     }
 
@@ -100,7 +98,6 @@ class PreferencesDataStore(
         val NotifEnabled = booleanPreferencesKey("notif_enabled")
         val NotifSecurity = booleanPreferencesKey("notif_security")
         val NotifDevices = booleanPreferencesKey("notif_devices")
-        val NotifToast = booleanPreferencesKey("notif_toast")
         val NotificationsLastSeen = longPreferencesKey("notifications_last_seen")
         val RoomAccessTimes = stringPreferencesKey("room_access_times")
         val RoutineAccessTimes = stringPreferencesKey("routine_access_times")

@@ -1,6 +1,7 @@
 package com.grupo4.smarthome.data.remote.dto.device
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 
 @Serializable
 data class DeviceTypeDto(
@@ -14,12 +15,18 @@ data class DeviceTypeDto(
 data class DeviceTypeActionDto(
     val name: String? = null,
     val params: List<DeviceTypeActionParamDto> = emptyList(),
+    val `return`: JsonElement? = null,
 )
 
 @Serializable
 data class DeviceTypeActionParamDto(
     val name: String? = null,
     val type: String? = null,
-    val min: Int? = null,
-    val max: Int? = null,
+    val min: JsonElement? = null,
+    val max: JsonElement? = null,
+    val minValue: JsonElement? = null,
+    val maxValue: JsonElement? = null,
+    val supportedValues: List<JsonElement>? = null,
+    val description: String? = null,
+    val example: JsonElement? = null,
 )
