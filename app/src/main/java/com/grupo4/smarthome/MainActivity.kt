@@ -420,8 +420,12 @@ fun SmartHomeApp(
         navController.navigate(Screen.Search.route) { launchSingleTop = true }
     }
 
+    var roomsFullscreenDialogOpen by remember { mutableStateOf(false) }
+    val inRoomDetail = currentBaseRoute == Screen.Rooms.route && roomsUiState.selectedRoomId != null
     val showBottomBar = !isTablet &&
         !isDrawerVisible &&
+        !inRoomDetail &&
+        !roomsFullscreenDialogOpen &&
         Screen.isMainDestination(currentBaseRoute)
 
     val onBack: () -> Unit = {
@@ -846,6 +850,7 @@ fun SmartHomeApp(
                     onNotificationsClick = openNotifications,
                     unreadNotificationCount = unreadNotificationCount,
                     onQuickActionsOpen = openQuickActions,
+                    onFullscreenDialogChange = { roomsFullscreenDialogOpen = it },
                 )
             }
             composable(Screen.Routines.route) {

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -105,11 +106,20 @@ fun PhoneRoomsLayout(
             }
         },
         floatingActionButton = {
+            // En el detalle de habitación no hay bottom bar, así que compensamos su alto
+            // para que el FAB no se mueva respecto a la lista de habitaciones.
             PhoneRoomsFab(
                 onClick = {
                     val room = selectedRoom
                     if (room == null) callbacks.onAddClick()
                     else callbacks.onAddDeviceClick(room.id)
+                },
+                modifier = if (selectedRoom != null) {
+                    Modifier
+                        .navigationBarsPadding()
+                        .padding(bottom = 80.dp)
+                } else {
+                    Modifier
                 },
             )
         },

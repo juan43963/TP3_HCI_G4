@@ -14,6 +14,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.window.core.layout.WindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,6 +58,7 @@ fun RoomsScreen(
     onNotificationsClick: () -> Unit = {},
     unreadNotificationCount: Int = 0,
     onQuickActionsOpen: () -> Unit = {},
+    onFullscreenDialogChange: (Boolean) -> Unit = {},
 ) {
     val baseState by viewModel.uiState.collectAsStateWithLifecycle()
     val state = baseState.copy(unreadNotificationCount = unreadNotificationCount)
@@ -70,6 +72,13 @@ fun RoomsScreen(
     var dialogDeviceId by rememberSaveable { mutableStateOf<String?>(null) }
 
     val dialogKind = RoomsDialogKind.valueOf(dialogKindName)
+
+    // Estos diálogos abren una pantalla a pantalla completa en teléfono; avisamos para ocultar la bottom bar.
+    val fullscreenDialogOpen = dialogKind == RoomsDialogKind.AddRoom ||
+        dialogKind == RoomsDialogKind.EditRoom ||
+        dialogKind == RoomsDialogKind.AddDevices
+    LaunchedEffect(fullscreenDialogOpen) { onFullscreenDialogChange(fullscreenDialogOpen) }
+    DisposableEffect(Unit) { onDispose { onFullscreenDialogChange(false) } }
     val dialogRoom = dialogRoomId?.let { id -> state.rooms.firstOrNull { it.id == id } }
     val dialogDevice = dialogDeviceId?.let { id ->
         state.rooms.flatMap { it.devices }.firstOrNull { it.id == id }
