@@ -54,11 +54,43 @@ private fun String.toReadableLabel(): String =
         .filter { it.isNotBlank() }
         .joinToString(" ") { word -> word.replaceFirstChar { it.uppercase() } }
 
-// --- Acciones: label localizado para las conocidas (reusa los strings de historial), legible si no ---
+// --- Acciones: título limpio si existe, label de historial conocido, o texto legible si no ---
 
 @Composable
-fun deviceActionLabel(actionName: String): String =
-    knownActionLabelRes(actionName)?.let { stringResource(it) } ?: actionName.toReadableLabel()
+fun deviceActionLabel(actionName: String): String {
+    actionTitleRes(actionName)?.let { return stringResource(it) }
+    return knownActionLabelRes(actionName)?.let { stringResource(it) } ?: actionName.toReadableLabel()
+}
+
+// Etiqueta visible de un valor discreto (chip). El valor enviado a la API sigue siendo el original.
+@Composable
+fun deviceActionOptionLabel(value: String): String {
+    val res = when (value.lowercase()) {
+        "cool" -> R.string.rooms_action_value_cool
+        "heat" -> R.string.rooms_action_value_heat
+        "fan" -> R.string.rooms_action_value_fan
+        "dry" -> R.string.rooms_action_value_dry
+        "auto" -> R.string.rooms_action_value_auto
+        "silent" -> R.string.rooms_action_value_silent
+        "low" -> R.string.rooms_action_value_low
+        "mid" -> R.string.rooms_action_value_mid
+        "high" -> R.string.rooms_action_value_high
+        "default" -> R.string.rooms_action_value_default
+        "vacation" -> R.string.rooms_action_value_vacation
+        "party" -> R.string.rooms_action_value_party
+        "conventional" -> R.string.rooms_action_value_conventional
+        "top" -> R.string.rooms_action_value_top
+        "bottom" -> R.string.rooms_action_value_bottom
+        "off" -> R.string.rooms_action_value_off
+        "economic" -> R.string.rooms_action_value_economic
+        "full" -> R.string.rooms_action_value_full
+        "vacuum" -> R.string.rooms_action_value_vacuum
+        "mop" -> R.string.rooms_action_value_mop
+        "classical" -> R.string.rooms_action_value_classical
+        else -> null
+    }
+    return res?.let { stringResource(it) } ?: value
+}
 
 // Subtítulo descriptivo de cada sección de acción en el sheet (null = sin subtítulo).
 @Composable
@@ -83,6 +115,46 @@ fun deviceActionSubtitle(actionName: String): String? {
         else -> null
     }
     return res?.let { stringResource(it) }
+}
+
+// Título limpio (sustantivo) por acción; tiene prioridad sobre los strings de historial en pasado.
+@StringRes
+private fun actionTitleRes(actionName: String): Int? = when {
+    actionName.equals("setVerticalSwing", ignoreCase = true) -> R.string.rooms_action_title_vertical_swing
+    actionName.equals("setHorizontalSwing", ignoreCase = true) -> R.string.rooms_action_title_horizontal_swing
+    actionName.equals("setFanSpeed", ignoreCase = true) -> R.string.rooms_action_title_fan_speed
+    actionName.equals("setMode", ignoreCase = true) -> R.string.rooms_action_title_mode
+    actionName.equals("setTemperature", ignoreCase = true) -> R.string.rooms_action_title_temperature
+    actionName.equals("setBrightness", ignoreCase = true) -> R.string.rooms_action_title_brightness
+    actionName.equals("setVolume", ignoreCase = true) -> R.string.rooms_action_title_volume
+    actionName.equals("setColor", ignoreCase = true) -> R.string.rooms_action_title_color
+    actionName.equals("setFreezerTemperature", ignoreCase = true) -> R.string.rooms_action_title_freezer_temperature
+    actionName.equals("setHeat", ignoreCase = true) -> R.string.rooms_action_title_heat
+    actionName.equals("setGrill", ignoreCase = true) -> R.string.rooms_action_title_grill
+    actionName.equals("setConvection", ignoreCase = true) -> R.string.rooms_action_title_convection
+    actionName.lowercase().contains("securitycode") -> R.string.rooms_action_title_security_code
+    actionName.equals("armStay", ignoreCase = true) ||
+        actionName.equals("armHome", ignoreCase = true) -> R.string.rooms_action_title_arm_stay
+    actionName.equals("armAway", ignoreCase = true) -> R.string.rooms_action_title_arm_away
+    actionName.equals("disarm", ignoreCase = true) -> R.string.rooms_action_title_disarm
+    actionName.equals("up", ignoreCase = true) -> R.string.rooms_action_title_up
+    actionName.equals("down", ignoreCase = true) -> R.string.rooms_action_title_down
+    actionName.equals("setLevel", ignoreCase = true) -> R.string.rooms_action_title_level
+    actionName.equals("setPosition", ignoreCase = true) -> R.string.rooms_action_title_position
+    actionName.equals("setLocation", ignoreCase = true) -> R.string.rooms_action_title_location
+    actionName.equals("dock", ignoreCase = true) ||
+        actionName.equals("returnToBase", ignoreCase = true) -> R.string.rooms_action_title_return_to_base
+    actionName.equals("setGenre", ignoreCase = true) -> R.string.rooms_action_title_genre
+    actionName.equals("setIntensity", ignoreCase = true) -> R.string.rooms_action_title_intensity
+    actionName.equals("dispense", ignoreCase = true) -> R.string.rooms_action_title_dispense
+    actionName.equals("resume", ignoreCase = true) -> R.string.rooms_action_title_resume
+    actionName.equals("nextSong", ignoreCase = true) -> R.string.rooms_action_title_next_song
+    actionName.equals("previousSong", ignoreCase = true) -> R.string.rooms_action_title_previous_song
+    actionName.equals("getPlaylist", ignoreCase = true) -> R.string.rooms_action_title_get_playlist
+    actionName.equals("getStatus", ignoreCase = true) ||
+        actionName.equals("getState", ignoreCase = true) -> R.string.rooms_action_title_get_status
+    actionName.lowercase().startsWith("get") -> R.string.rooms_action_title_get_info
+    else -> null
 }
 
 @StringRes

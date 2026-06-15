@@ -652,7 +652,7 @@ private fun ChoiceBody(
                     FilterChip(
                         selected = currentValue?.equals(suggestion, ignoreCase = true) == true,
                         onClick = { text = suggestion; onApply(suggestion) },
-                        label = { Text(suggestion) },
+                        label = { Text(deviceActionOptionLabel(suggestion)) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primary,
                             selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
