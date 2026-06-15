@@ -1,8 +1,6 @@
 package com.grupo4.smarthome
 
-import android.net.Uri
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -16,21 +14,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.window.core.layout.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -40,95 +34,46 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.grupo4.smarthome.data.local.SessionState
 import kotlinx.coroutines.launch
-import androidx.navigation.NavType
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import androidx.navigation.get
-import com.grupo4.smarthome.ui.auth.change.AuthChangePasswordScreen
-import com.grupo4.smarthome.ui.auth.change.AuthChangePasswordScreenTablet
-import com.grupo4.smarthome.ui.auth.change.AuthChangePasswordViewModel
-import com.grupo4.smarthome.ui.auth.change.AuthChangePasswordViewModelFactory
-import com.grupo4.smarthome.ui.auth.change.ChangePasswordScreen
-import com.grupo4.smarthome.ui.auth.change.ChangePasswordScreenTablet
-import com.grupo4.smarthome.ui.auth.change.ChangePasswordViewModel
-import com.grupo4.smarthome.ui.auth.change.ChangePasswordViewModelFactory
-import com.grupo4.smarthome.ui.auth.login.LoginScreen
-import com.grupo4.smarthome.ui.auth.login.LoginScreenTablet
-import com.grupo4.smarthome.ui.auth.login.LoginViewModel
-import com.grupo4.smarthome.ui.auth.login.LoginViewModelFactory
-import com.grupo4.smarthome.ui.auth.recover.RecoverPasswordScreen
-import com.grupo4.smarthome.ui.auth.recover.RecoverPasswordScreenTablet
-import com.grupo4.smarthome.ui.auth.recover.RecoverPasswordViewModel
-import com.grupo4.smarthome.ui.auth.recover.RecoverPasswordViewModelFactory
-import com.grupo4.smarthome.ui.auth.register.RegisterScreen
-import com.grupo4.smarthome.ui.auth.register.RegisterScreenTablet
-import com.grupo4.smarthome.ui.auth.register.RegisterViewModel
-import com.grupo4.smarthome.ui.auth.register.RegisterViewModelFactory
-import com.grupo4.smarthome.ui.auth.verify.VerifyAccountScreen
-import com.grupo4.smarthome.ui.auth.verify.VerifyAccountViewModel
-import com.grupo4.smarthome.ui.auth.verify.VerifyAccountViewModelFactory
-import com.grupo4.smarthome.ui.auth.welcome.WelcomeScreen
-import com.grupo4.smarthome.ui.auth.welcome.WelcomeScreenTablet
 import com.grupo4.smarthome.ui.components.AppDrawerOverlay
 import com.grupo4.smarthome.ui.components.HomeSwitcherState
 import com.grupo4.smarthome.ui.components.LocalHomeSwitcher
 import com.grupo4.smarthome.ui.components.LocalOpenDrawer
 import com.grupo4.smarthome.ui.components.QuickActionsOverlay
+import com.grupo4.smarthome.ui.auth.AuthFlowViewModel
 import com.grupo4.smarthome.ui.navigation.AuthScreen
+import com.grupo4.smarthome.ui.navigation.accountGraph
+import com.grupo4.smarthome.ui.navigation.authGraph
+import com.grupo4.smarthome.ui.navigation.MainActions
+import com.grupo4.smarthome.ui.navigation.mainGraph
+import com.grupo4.smarthome.ui.navigation.selectHomeGraph
 import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeViewModel
 import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeViewModelFactory
 import com.grupo4.smarthome.ui.navigation.Screen
 import com.grupo4.smarthome.ui.screens.dashboard.layout.phone.PhoneHomeDrawer
-import com.grupo4.smarthome.ui.screens.firsthome.CreateFirstHomeScreen
-import com.grupo4.smarthome.ui.screens.history.HistoryScreen
-import com.grupo4.smarthome.ui.screens.history.HistoryViewModel
-import com.grupo4.smarthome.ui.screens.history.HistoryViewModelFactory
-import com.grupo4.smarthome.ui.screens.history.toHistoryEntries
-import com.grupo4.smarthome.ui.screens.home.HomeScreen
 import com.grupo4.smarthome.ui.screens.home.HomeViewModel
 import com.grupo4.smarthome.ui.screens.home.HomeViewModelFactory
 import com.grupo4.smarthome.ui.screens.selecthome.AddHomeOverlay
 import com.grupo4.smarthome.ui.screens.selecthome.HomeActionDialogs
-import com.grupo4.smarthome.ui.screens.notifications.NotificationSettingsScreen
-import com.grupo4.smarthome.ui.screens.notifications.NotificationsScreen
 import com.grupo4.smarthome.ui.screens.notifications.NotificationsViewModel
 import com.grupo4.smarthome.ui.screens.notifications.NotificationsViewModelFactory
-import com.grupo4.smarthome.ui.screens.notifications.toNotificationUi
-import com.grupo4.smarthome.ui.screens.selecthome.SelectHomeScreen
-import com.grupo4.smarthome.ui.screens.profile.ProfileScreen
-import com.grupo4.smarthome.ui.screens.profile.ProfileViewModel
-import com.grupo4.smarthome.ui.screens.profile.ProfileViewModelFactory
-import com.grupo4.smarthome.ui.screens.rooms.RoomsScreen
 import com.grupo4.smarthome.ui.screens.rooms.RoomsViewModel
 import com.grupo4.smarthome.ui.screens.rooms.RoomsViewModelFactory
-import com.grupo4.smarthome.ui.screens.rooms.ScannedDeviceRoomTarget
 import com.grupo4.smarthome.ui.screens.rooms.dialogs.AddDevicesToRoomDialog
 import com.grupo4.smarthome.ui.screens.rooms.dialogs.AddEditRoomDialog
 import com.grupo4.smarthome.ui.screens.rooms.dialogs.AddScannedDeviceDialog
 import com.grupo4.smarthome.data.model.QrDevicePayload
-import com.grupo4.smarthome.ui.screens.device.DeviceDetailScreen
-import com.grupo4.smarthome.ui.screens.scan.ScanNavEvent
-import com.grupo4.smarthome.ui.screens.scan.ScanScreen
-import com.grupo4.smarthome.ui.screens.scan.ScanViewModel
-import com.grupo4.smarthome.ui.screens.scan.ScanViewModelFactory
-import com.grupo4.smarthome.ui.screens.search.SearchCallbacks
-import com.grupo4.smarthome.ui.screens.search.SearchScreen
 import com.grupo4.smarthome.ui.screens.search.SearchViewModel
 import com.grupo4.smarthome.ui.screens.routines.AddRoutineActionOverlay
 import com.grupo4.smarthome.ui.screens.routines.AddRoutineTabletOverlay
 import com.grupo4.smarthome.ui.screens.routines.CreateRoutineOverlay
-import com.grupo4.smarthome.ui.screens.routines.RoutineDetailScreen
-import com.grupo4.smarthome.ui.screens.routines.RoutinesScreen
 import com.grupo4.smarthome.ui.screens.routines.RoutinesViewModel
 import com.grupo4.smarthome.ui.screens.routines.RoutinesViewModelFactory
-import com.grupo4.smarthome.ui.screens.routines.deviceNamesById
-import com.grupo4.smarthome.ui.screens.routines.deviceTypesById
-import com.grupo4.smarthome.ui.screens.routines.toDetailUi
-import com.grupo4.smarthome.ui.screens.routines.toRoutineUi
 import com.grupo4.smarthome.ui.theme.SmartHomeTheme
 import com.grupo4.smarthome.ui.theme.ThemePreference
 import com.grupo4.smarthome.ui.theme.ThemeViewModel
@@ -274,6 +219,8 @@ fun SmartHomeApp(
 
     val searchViewModel: SearchViewModel = viewModel()
     val searchUiState by searchViewModel.uiState.collectAsStateWithLifecycle()
+
+    val authFlowViewModel: AuthFlowViewModel = viewModel()
     LaunchedEffect(selectHomeUiState.activeHomeId) {
         searchViewModel.onHomeChanged(selectHomeUiState.activeHomeId)
     }
@@ -493,769 +440,59 @@ fun SmartHomeApp(
                     startDestination = startDestination,
                     modifier = Modifier.padding(innerPadding)
                 ) {
-            composable(AuthScreen.Welcome.route) {
-                val onRegister = { navController.navigate(AuthScreen.Register.route) }
-                val onLogin = { navController.navigate(AuthScreen.Login.route) }
-                if (isTablet) {
-                    WelcomeScreenTablet(
-                        onNavigateToRegister = onRegister,
-                        onNavigateToLogin = onLogin,
-                    )
-                } else {
-                    WelcomeScreen(
-                        onNavigateToRegister = onRegister,
-                        onNavigateToLogin = onLogin,
-                    )
-                }
-            }
-            composable(AuthScreen.Login.route) {
-                val application = LocalContext.current.applicationContext as SmartHomeApplication
-                val loginFactory = remember(application) {
-                    LoginViewModelFactory(application.appContainer.authRepository)
-                }
-                val loginViewModel: LoginViewModel = viewModel(factory = loginFactory)
-                val onNavigateToRegister = {
-                    navController.navigate(AuthScreen.Register.route) {
-                        popUpTo(AuthScreen.Login.route) { inclusive = true }
-                    }
-                    Unit
-                }
-                val onNavigateToForgotPassword = {
-                    navController.navigate(AuthScreen.RecoverPassword.route)
-                    Unit
-                }
-                val onLoginSuccess = {
-                    val target = if (hasSelectedHome) Screen.Home.route else Screen.SELECT_HOME_ROUTE
-                    navController.navigate(target) {
-                        popUpTo(AuthScreen.Welcome.route) { inclusive = true }
-                    }
-                    Unit
-                }
-                val loginContext = LocalContext.current
-                val accountNotVerifiedMessage = stringResource(R.string.login_account_not_verified)
-                val onNeedsVerification: (String, String) -> Unit = { email, password ->
-                    Toast.makeText(
-                        loginContext,
-                        accountNotVerifiedMessage,
-                        Toast.LENGTH_LONG,
-                    ).show()
-                    navController.navigate(
-                        AuthScreen.VerifyAccount.createRoute(Uri.encode(email), Uri.encode(password))
-                    )
-                }
-                if (isTablet) {
-                    LoginScreenTablet(
-                        onNavigateToRegister = onNavigateToRegister,
-                        onNavigateToForgotPassword = onNavigateToForgotPassword,
-                        onLoginSuccess = onLoginSuccess,
-                        onNeedsVerification = onNeedsVerification,
-                        viewModel = loginViewModel,
-                    )
-                } else {
-                    LoginScreen(
-                        onNavigateToRegister = onNavigateToRegister,
-                        onNavigateToForgotPassword = onNavigateToForgotPassword,
-                        onLoginSuccess = onLoginSuccess,
-                        onNeedsVerification = onNeedsVerification,
-                        viewModel = loginViewModel,
-                    )
-                }
-            }
-            composable(AuthScreen.Register.route) {
-                val application = LocalContext.current.applicationContext as SmartHomeApplication
-                val registerFactory = remember(application) {
-                    RegisterViewModelFactory(application.appContainer.authRepository)
-                }
-                val registerViewModel: RegisterViewModel = viewModel(factory = registerFactory)
-                val onNavigateToLogin = {
-                    navController.navigate(AuthScreen.Login.route) {
-                        popUpTo(AuthScreen.Register.route) { inclusive = true }
-                    }
-                    Unit
-                }
-                val onRegisterSuccess: (String, String) -> Unit = { email, password ->
-                    navController.navigate(
-                        AuthScreen.VerifyAccount.createRoute(Uri.encode(email), Uri.encode(password))
-                    )
-                    Unit
-                }
-                if (isTablet) {
-                    RegisterScreenTablet(
-                        onNavigateToLogin = onNavigateToLogin,
-                        onRegisterSuccess = onRegisterSuccess,
-                        viewModel = registerViewModel,
-                    )
-                } else {
-                    RegisterScreen(
-                        onNavigateToLogin = onNavigateToLogin,
-                        onRegisterSuccess = onRegisterSuccess,
-                        viewModel = registerViewModel,
-                    )
-                }
-            }
-            composable(
-                route = AuthScreen.VerifyAccount.routeWithEmail,
-                arguments = listOf(
-                    navArgument(AuthScreen.VerifyAccount.emailArg) {
-                        type = NavType.StringType
-                        defaultValue = ""
-                    },
-                    navArgument(AuthScreen.VerifyAccount.passwordArg) {
-                        type = NavType.StringType
-                        defaultValue = ""
-                    }
-                ),
-            ) { backStackEntry ->
-                val email = backStackEntry.arguments
-                    ?.getString(AuthScreen.VerifyAccount.emailArg)
-                    .orEmpty()
-                val password = backStackEntry.arguments
-                    ?.getString(AuthScreen.VerifyAccount.passwordArg)
-                    .orEmpty()
-                val application = LocalContext.current.applicationContext as SmartHomeApplication
-                val verifyFactory = remember(application) {
-                    VerifyAccountViewModelFactory(application.appContainer.authRepository)
-                }
-                val verifyViewModel: VerifyAccountViewModel = viewModel(factory = verifyFactory)
-                VerifyAccountScreen(
-                    email = email,
-                    password = password,
-                    onVerifySuccess = {
-                        navController.navigate(Screen.CREATE_FIRST_HOME_ROUTE) {
-                            popUpTo(AuthScreen.Welcome.route) { inclusive = true }
-                        }
-                    },
-                    onChangeEmail = { navController.popBackStack() },
-                    onBackToLogin = {
-                        navController.navigate(AuthScreen.Login.route) {
-                            popUpTo(AuthScreen.Welcome.route)
-                        }
-                    },
-                    viewModel = verifyViewModel,
-                )
-            }
-            composable(AuthScreen.RecoverPassword.route) {
-                val application = LocalContext.current.applicationContext as SmartHomeApplication
-                val recoverFactory = remember(application) {
-                    RecoverPasswordViewModelFactory(application.appContainer.authRepository)
-                }
-                val recoverViewModel: RecoverPasswordViewModel = viewModel(factory = recoverFactory)
-                val onLinkSent: (String) -> Unit = { email ->
-                    navController.navigate(
-                        "${AuthScreen.ChangePassword.route}?email=${Uri.encode(email)}"
-                    )
-                }
-                val onBackToLogin: () -> Unit = {
-                    navController.navigate(AuthScreen.Login.route) {
-                        popUpTo(AuthScreen.Welcome.route)
-                    }
-                }
-                if (isTablet) {
-                    RecoverPasswordScreenTablet(
-                        onLinkSent = onLinkSent,
-                        onBackToLogin = onBackToLogin,
-                        viewModel = recoverViewModel,
-                    )
-                } else {
-                    RecoverPasswordScreen(
-                        onLinkSent = onLinkSent,
-                        onBackToLogin = onBackToLogin,
-                        viewModel = recoverViewModel,
-                    )
-                }
-            }
-            composable("${AuthScreen.ChangePassword.route}?email={email}") { backStackEntry ->
-                val email = backStackEntry.arguments?.getString("email").orEmpty()
-                val application = LocalContext.current.applicationContext as SmartHomeApplication
-                val changeFactory = remember(application) {
-                    ChangePasswordViewModelFactory(application.appContainer.authRepository)
-                }
-                val changeViewModel: ChangePasswordViewModel = viewModel(factory = changeFactory)
-                val onPasswordChanged: () -> Unit = {
-                    navController.navigate(AuthScreen.Login.route) {
-                        popUpTo(AuthScreen.Welcome.route)
-                    }
-                }
-                val onBackToLogin: () -> Unit = {
-                    navController.navigate(AuthScreen.Login.route) {
-                        popUpTo(AuthScreen.Welcome.route)
-                    }
-                }
-                if (isTablet) {
-                    ChangePasswordScreenTablet(
-                        email = email,
-                        onPasswordChanged = onPasswordChanged,
-                        onBackToLogin = onBackToLogin,
-                        viewModel = changeViewModel,
-                    )
-                } else {
-                    ChangePasswordScreen(
-                        email = email,
-                        onPasswordChanged = onPasswordChanged,
-                        onBackToLogin = onBackToLogin,
-                        viewModel = changeViewModel,
-                    )
-                }
-            }
+            authGraph(
+                navController = navController,
+                isTablet = isTablet,
+                hasSelectedHome = hasSelectedHome,
+                authFlowViewModel = authFlowViewModel,
+            )
 
-            composable(Screen.CREATE_FIRST_HOME_ROUTE) {
-                CreateFirstHomeScreen(
-                    windowSize = windowSize,
-                    onCreateHome = { showAddHome = true },
-                )
-            }
+            selectHomeGraph(
+                navController = navController,
+                windowSize = windowSize,
+                selectHomeViewModel = selectHomeViewModel,
+                onAddHome = { showAddHome = true },
+                onSearchClick = openSearch,
+            )
 
-            composable(Screen.SELECT_HOME_ROUTE) {
-                SelectHomeScreen(
-                    windowSize = windowSize,
-                    userName = selectHomeUiState.userName,
-                    homes = selectHomeUiState.homes,
-                    isLoading = selectHomeUiState.isLoading,
-                    homesLoaded = selectHomeUiState.homesLoaded,
-                    errorMessage = selectHomeUiState.errorMessage?.let { stringResource(it) },
-                    onRetry = selectHomeViewModel::loadHomes,
-                    onHomeSelected = { home ->
-                        selectHomeViewModel.selectHome(home.id)
-                        navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.SELECT_HOME_ROUTE) { inclusive = true }
-                        }
-                    },
-                    onAddHome = { showAddHome = true },
-                    onSearchClick = openSearch,
-                    onProfileClick = {
-                        navController.navigate(Screen.Profile.route) {
-                            launchSingleTop = true
-                        }
-                    },
-                    onShareHome = selectHomeViewModel::openShareDialog,
-                    onRenameHome = selectHomeViewModel::openRenameDialog,
-                    onDeleteHome = selectHomeViewModel::openDeleteDialog,
-                )
-            }
-
-            composable(Screen.Home.route) {
-                val dashboardSnackbarHostState = remember { SnackbarHostState() }
-                val routineExecutedTemplate = stringResource(R.string.routines_executed)
-                LaunchedEffect(routinesUiState.infoMessage) {
-                    routinesUiState.infoMessage?.let {
-                        dashboardSnackbarHostState.showSnackbar(routineExecutedTemplate.format(it))
-                        routinesViewModel.dismissInfo()
-                    }
-                }
-                Box(modifier = Modifier.fillMaxSize()) {
-                HomeScreen(
-                    windowSize = windowSize,
-                    state = homeUiState,
-                    onNavigateRooms = {
-                        navController.navigate(Screen.Rooms.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onNavigateRoutines = {
-                        navController.navigate(Screen.Routines.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onSearchClick = openSearch,
-                    onRoomClick = { roomId ->
-                        roomsViewModel.onRoomOpenedFromDashboard(roomId)
-                        navController.navigate(Screen.Rooms.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onToggleRoomFavorite = homeViewModel::toggleRoomFavorite,
-                    onToggleRoutineFavorite = homeViewModel::toggleRoutineFavorite,
-                    onRunRoutine = routinesViewModel::executeRoutine,
-                    onNavigateProfile = {
-                        navController.navigate(Screen.Profile.route) {
-                            launchSingleTop = true
-                        }
-                    },
-                    onNavigateHistory = {
-                        navController.navigate(Screen.History.route) {
-                            popUpTo(navController.graph[Screen.Home.route].id)
-                            launchSingleTop = true
-                        }
-                    },
-                    onNavigateNotifications = openNotifications,
-                    unreadNotificationCount = unreadNotificationCount,
-                    onQuickActionsOpen = openQuickActions,
-                    onCreateRoom = openCreateRoom,
-                    onCreateDevice = openCreateDevice,
-                    onCreateRoutine = openCreateRoutine,
-                    showQuickAddFab = !isTablet && !showQuickActions && !showCreateRoom &&
-                        !showCreateDevice && !showCreateRoutine,
-                )
-                SnackbarHost(
-                    hostState = dashboardSnackbarHostState,
-                    modifier = Modifier.align(Alignment.BottomCenter),
-                )
-                }
-            }
-            composable(Screen.Search.route) {
-                SearchScreen(
-                    windowSize = windowSize,
-                    state = searchUiState,
-                    rooms = roomsUiState.rooms,
-                    routines = routinesUiState.routines,
-                    roomsErrorMessage = roomsUiState.errorMessage?.let { stringResource(it) },
-                    deviceActionResult = roomsUiState.actionResult,
-                    routinesErrorMessage = routinesUiState.errorMessage?.let { stringResource(it) },
-                    routineInfoMessage = routinesUiState.infoMessage,
-                    callbacks = SearchCallbacks(
-                        onQueryChange = searchViewModel::onQueryChange,
-                        onBack = { navController.popBackStack() },
-                        onRoomClick = { roomId ->
-                            roomsViewModel.onRoomClick(roomId)
-                            navController.navigate(Screen.Rooms.route) {
-                                launchSingleTop = true
-                            }
-                        },
-                        onToggleRoomFavorite = roomsViewModel::toggleRoomFavorite,
-                        onToggleDevice = roomsViewModel::onToggleDevice,
-                        onDeviceValueChange = roomsViewModel::onDeviceValueChange,
-                        onDeviceAction = roomsViewModel::runDeviceAction,
-                        onRunRoutine = routinesViewModel::executeRoutine,
-                        onToggleRoutineFavorite = routinesViewModel::toggleFavorite,
-                        onDismissRoomError = roomsViewModel::dismissError,
-                        onConsumeDeviceActionResult = roomsViewModel::consumeActionResult,
-                        onDismissRoutineError = routinesViewModel::dismissError,
-                        onDismissRoutineInfo = routinesViewModel::dismissInfo,
-                    ),
-                )
-            }
-            composable(Screen.Rooms.route) {
-                RoomsScreen(
-                    viewModel = roomsViewModel,
-                    activeHomeId = selectHomeUiState.activeHomeId,
-                    windowSize = windowSize,
-                    onProfileClick = {
-                        navController.navigate(Screen.Profile.route) {
-                            launchSingleTop = true
-                        }
-                    },
-                    onNavigateHome = {
-                        navController.navigate(Screen.Home.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onNavigateRoutines = {
-                        navController.navigate(Screen.Routines.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onNavigateHistory = {
-                        navController.navigate(Screen.History.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onSearchClick = {
-                        roomsViewModel.onSearchChange("")
-                        openSearch()
-                    },
-                    onNotificationsClick = openNotifications,
-                    unreadNotificationCount = unreadNotificationCount,
-                    onQuickActionsOpen = openQuickActions,
-                    onFullscreenDialogChange = { roomsFullscreenDialogOpen = it },
-                )
-            }
-            composable(Screen.Routines.route) {
-                RoutinesScreen(
-                    onNotificationsClick = openNotifications,
-                    unreadNotificationCount = unreadNotificationCount,
-                    onSearchClick = openSearch,
-                    onProfileClick = {
-                        navController.navigate(Screen.Profile.route) {
-                            launchSingleTop = true
-                        }
-                    },
-                    onCreateRoom = openCreateRoom,
-                    onCreateDevice = openCreateDevice,
-                    onAddRoutine = if (isTablet) openCreateRoutine else openQuickActions,
-                    onCreateFirstRoutine = openCreateRoutine,
-                    onQuickAddClick = openQuickActions,
-                    showQuickAddFab = !isTablet && !showQuickActions && !showCreateRoom &&
-                        !showCreateDevice && !showCreateRoutine,
-                    isTablet = isTablet,
-                    onNavigateHome = {
-                        navController.navigate(Screen.Home.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onNavigateRooms = {
-                        navController.navigate(Screen.Rooms.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onNavigateHistory = {
-                        navController.navigate(Screen.History.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onRoutineClick = { routineId ->
-                        if (!isTablet) {
-                            navController.navigate("${Screen.ROUTINE_DETAIL_ROUTE}/$routineId")
-                        }
-                    },
-                    routines = routinesUiState.routines.map {
-                        it.toRoutineUi(routinesUiState.deviceNamesById)
-                    },
-                    isLoading = routinesUiState.isLoading,
-                    errorMessage = routinesUiState.errorMessage?.let { stringResource(it) },
-                    infoMessage = routinesUiState.infoMessage,
-                    onExecuteRoutine = routinesViewModel::executeRoutine,
-                    onToggleRoutineFavorite = routinesViewModel::toggleFavorite,
-                    onEditRoutine = { routineEditTargetId = it },
-                    onSaveRoutine = { id, name, time24h, days, enabled ->
-                        routinesViewModel.saveRoutine(id, name, time24h, days, enabled)
-                    },
-                    onDeleteRoutine = routinesViewModel::deleteRoutine,
-                    detailFor = { id ->
-                        routinesUiState.routines.firstOrNull { it.id == id }?.toDetailUi(
-                            routinesUiState.deviceNamesById,
-                            routinesUiState.deviceTypesById,
-                        )
-                    },
-                    onRetry = routinesViewModel::loadRoutines,
-                    onDismissError = routinesViewModel::dismissError,
-                    onDismissInfo = routinesViewModel::dismissInfo,
-                )
-            }
-            composable("${Screen.ROUTINE_DETAIL_ROUTE}/{routineId}") { backStackEntry ->
-                val routineId = backStackEntry.arguments?.getString("routineId").orEmpty()
-                val routine = routinesUiState.routines.firstOrNull { it.id == routineId }
-                if (routine == null) {
-                    LaunchedEffect(routineId) { navController.popBackStack() }
-                } else {
-                    RoutineDetailScreen(
-                        routine = routine.toDetailUi(
-                            routinesUiState.deviceNamesById,
-                            routinesUiState.deviceTypesById,
-                        ),
-                        onBack = { navController.popBackStack() },
-                        onDelete = {
-                            routinesViewModel.deleteRoutine(routineId)
-                            navController.popBackStack()
-                        },
-                        onAddAction = { routineActionTargetId = routineId },
-                        onSave = { name, time24h, days, enabled ->
-                            routinesViewModel.saveRoutine(routineId, name, time24h, days, enabled)
-                            navController.popBackStack()
-                        },
-                    )
-                }
-            }
-            composable(Screen.SCAN_QR_ROUTE) {
-                val scanViewModel: ScanViewModel = viewModel(
-                    factory = remember { ScanViewModelFactory() },
-                )
-                val scanState by scanViewModel.uiState.collectAsStateWithLifecycle()
-                val scanNavEvent by scanViewModel.navEvent.collectAsStateWithLifecycle()
-                val homeDevices = remember(roomsUiState.rooms) {
-                    roomsUiState.rooms.flatMap { it.devices }
-                }
-                val devicesLoaded = roomsUiState.devicesLoaded
-                LaunchedEffect(Unit) {
-                    if (!roomsUiState.devicesLoaded && !roomsUiState.isLoading) roomsViewModel.loadRooms()
-                    if (roomsUiState.availableDeviceTypes.isEmpty()) roomsViewModel.refreshDeviceTypes()
-                }
-                LaunchedEffect(homeDevices, devicesLoaded) {
-                    scanViewModel.onDevicesUpdated(homeDevices, devicesLoaded)
-                }
-                LaunchedEffect(scanNavEvent) {
-                    when (val event = scanNavEvent) {
-                        is ScanNavEvent.OpenDevice -> {
-                            scanViewModel.consumeNavEvent()
-                            navController.navigate("${Screen.DEVICE_DETAIL_ROUTE}/${event.deviceId}") {
-                                popUpTo(Screen.SCAN_QR_ROUTE) { inclusive = true }
-                            }
-                        }
-                        is ScanNavEvent.CreateDevice -> {
-                            scanViewModel.consumeNavEvent()
-                            scannedPayload = event.payload
-                            navController.popBackStack()
-                        }
-                        null -> Unit
-                    }
-                }
-                ScanScreen(
-                    uiState = scanState,
-                    homeDevices = homeDevices,
-                    onCodeDetected = { raw, devices ->
-                        scanViewModel.onCodeDetected(raw, devices, devicesLoaded)
-                    },
-                    onClose = { navController.popBackStack() },
-                    onRetry = scanViewModel::resumeScanning,
-                )
-            }
-            composable("${Screen.DEVICE_DETAIL_ROUTE}/{deviceId}") { backStackEntry ->
-                val deviceId = backStackEntry.arguments?.getString("deviceId").orEmpty()
-                val device = roomsUiState.rooms
-                    .flatMap { it.devices }
-                    .firstOrNull { it.id == deviceId }
-                if (device == null) {
-                    LaunchedEffect(deviceId) { navController.popBackStack() }
-                } else {
-                    val roomName = roomsUiState.rooms.firstOrNull { it.id == device.roomId }?.name
-                    DeviceDetailScreen(
-                        device = device,
-                        roomName = roomName,
-                        isTablet = isTablet,
-                        onBack = { navController.popBackStack() },
-                        onToggle = { roomsViewModel.onToggleDevice(device.id) },
-                        onValueChange = { value -> roomsViewModel.onDeviceValueChange(device.id, value) },
-                        onAction = { name, args -> roomsViewModel.runDeviceAction(device.id, name, args) },
-                    )
-                }
-            }
-            composable(Screen.Profile.route) {
-                val origin = navController.previousBackStackEntry
-                    ?.destination?.route?.substringBefore('?')
-                val enteredFromHome = origin != null && origin != Screen.SELECT_HOME_ROUTE
-                val context = LocalContext.current
-                val profileFactory = remember(homesApplication) {
-                    ProfileViewModelFactory(
-                        homesApplication.appContainer.profileRepository,
-                        homesApplication.appContainer.sessionManager,
-                    )
-                }
-                val profileViewModel: ProfileViewModel = viewModel(factory = profileFactory)
-                val profileUiState by profileViewModel.uiState.collectAsStateWithLifecycle()
-                val profileSavedMessage = stringResource(R.string.profile_saved)
-                LaunchedEffect(profileUiState.nameSaved) {
-                    if (profileUiState.nameSaved) {
-                        profileViewModel.consumeNameSaved()
-                        Toast.makeText(
-                            context,
-                            profileSavedMessage,
-                            Toast.LENGTH_SHORT,
-                        ).show()
-                    }
-                }
-                ProfileScreen(
-                    windowSize = windowSize,
-                    userName = profileUiState.name,
-                    userEmail = profileUiState.email,
-                    isSavingName = profileUiState.isSaving,
-                    onSaveName = profileViewModel::saveName,
-                    themePreference = themePreference,
+            mainGraph(
+                navController = navController,
+                windowSize = windowSize,
+                isTablet = isTablet,
+                homeViewModel = homeViewModel,
+                roomsViewModel = roomsViewModel,
+                routinesViewModel = routinesViewModel,
+                searchViewModel = searchViewModel,
+                notificationsViewModel = notificationsViewModel,
+                actions = MainActions(
+                    openSearch = openSearch,
+                    openNotifications = openNotifications,
+                    openDrawer = openDrawer,
+                    onBack = onBack,
+                    openQuickActions = openQuickActions,
+                    openCreateRoom = openCreateRoom,
+                    openCreateDevice = openCreateDevice,
+                    openCreateRoutine = openCreateRoutine,
+                    performLogout = performLogout,
                     onThemePreferenceChange = onThemePreferenceChange,
-                    onChangePassword = {
-                        navController.navigate(Screen.CHANGE_PASSWORD_ROUTE)
-                    },
-                    onLogout = performLogout,
-                    onOpenNotificationSettings = openNotificationSettings,
-                    notificationPreferences = notificationPreferences,
-                    onNotificationPreferencesChange = notificationsViewModel::setPreferences,
-                    onNotificationsClick = openNotifications,
-                    onSearchClick = openSearch,
-                    unreadNotificationCount = unreadNotificationCount,
-                    enteredFromHome = enteredFromHome,
-                    onBack = onBack,
-                    onNavigateHome = {
-                        navController.navigate(Screen.Home.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onNavigateRooms = {
-                        navController.navigate(Screen.Rooms.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onNavigateRoutines = {
-                        navController.navigate(Screen.Routines.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onNavigateHistory = {
-                        navController.navigate(Screen.History.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                )
-            }
-            composable(Screen.CHANGE_PASSWORD_ROUTE) {
-                val application = LocalContext.current.applicationContext as SmartHomeApplication
-                val context = LocalContext.current
-                val authChangeFactory = remember(application) {
-                    AuthChangePasswordViewModelFactory(application.appContainer.authRepository)
-                }
-                val authChangeViewModel: AuthChangePasswordViewModel =
-                    viewModel(factory = authChangeFactory)
-                val passwordChangedMessage = stringResource(R.string.auth_change_pwd_success)
-                val onPasswordChanged: () -> Unit = {
-                    Toast.makeText(
-                        context,
-                        passwordChangedMessage,
-                        Toast.LENGTH_LONG,
-                    ).show()
-                    navController.popBackStack()
-                }
-                val onBack: () -> Unit = { navController.popBackStack() }
-                if (isTablet) {
-                    AuthChangePasswordScreenTablet(
-                        onPasswordChanged = onPasswordChanged,
-                        onBack = onBack,
-                        viewModel = authChangeViewModel,
-                    )
-                } else {
-                    AuthChangePasswordScreen(
-                        onPasswordChanged = onPasswordChanged,
-                        onBack = onBack,
-                        viewModel = authChangeViewModel,
-                    )
-                }
-            }
-            composable(Screen.History.route) {
-                val context = LocalContext.current
-                val historyFactory = remember(homesApplication) {
-                    HistoryViewModelFactory(homesApplication.appContainer.devicesRepository)
-                }
-                val historyViewModel: HistoryViewModel = viewModel(factory = historyFactory)
-                val historyUiState by historyViewModel.uiState.collectAsStateWithLifecycle()
-                val historyEntries = remember(historyUiState.logs, roomsUiState.rooms) {
-                    historyUiState.logs.toHistoryEntries(context, roomsUiState.rooms)
-                }
-                HistoryScreen(
-                    windowSize = windowSize,
-                    entries = historyEntries,
-                    isLoading = historyUiState.isLoading,
-                    isLoadingMore = historyUiState.isLoadingMore,
-                    canLoadMore = historyUiState.canLoadMore,
-                    onLoadMore = historyViewModel::loadMore,
-                    errorMessage = historyUiState.errorMessage?.let { stringResource(it) },
-                    onRefresh = historyViewModel::load,
-                    onRetry = historyViewModel::load,
-                    onBack = onBack,
-                    selectedHomeName = activeHomeName,
-                    onSearchClick = openSearch,
-                    onProfileClick = {
-                        navController.navigate(Screen.Profile.route) {
-                            launchSingleTop = true
-                        }
-                    },
-                    onNavigateHome = {
-                        navController.navigate(Screen.Home.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onNavigateRoutines = {
-                        navController.navigate(Screen.Routines.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onNavigateRooms = {
-                        navController.navigate(Screen.Rooms.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onNotificationsClick = openNotifications,
-                    unreadNotificationCount = unreadNotificationCount,
-                    onQuickAddClick = openQuickActions,
-                )
-            }
-            composable(Screen.Notifications.route) {
-                val context = LocalContext.current
-                val notificationItems = remember(notificationsUiState.items, roomsUiState.rooms) {
-                    notificationsUiState.items.toNotificationUi(context, roomsUiState.rooms)
-                }
-                DisposableEffect(Unit) {
-                    notificationsViewModel.onScreenVisible()
-                    onDispose { notificationsViewModel.onScreenHidden() }
-                }
-                NotificationsScreen(
-                    windowSize = windowSize,
-                    notifications = notificationItems,
-                    onMarkAllRead = notificationsViewModel::markAllSeen,
-                    onBack = onBack,
-                    selectedHomeName = activeHomeName,
-                    onHomeSelectorClick = openDrawer,
-                    onSearchClick = openSearch,
-                    onProfileClick = {
-                        navController.navigate(Screen.Profile.route) {
-                            launchSingleTop = true
-                        }
-                    },
-                    onNavigateHome = {
-                        navController.navigate(Screen.Home.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onNavigateRoutines = {
-                        navController.navigate(Screen.Routines.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onNavigateRooms = {
-                        navController.navigate(Screen.Rooms.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onNavigateHistory = {
-                        navController.navigate(Screen.History.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                )
-            }
-            composable(Screen.NotificationSettings.route) {
-                NotificationSettingsScreen(
-                    windowSize = windowSize,
-                    preferences = notificationPreferences,
-                    onPreferencesChange = notificationsViewModel::setPreferences,
-                    onBack = onBack,
-                    onSearchClick = openSearch,
-                    onProfileClick = {
-                        navController.navigate(Screen.Profile.route) {
-                            launchSingleTop = true
-                        }
-                    },
-                    onNavigateHome = {
-                        navController.navigate(Screen.Home.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onNavigateRoutines = {
-                        navController.navigate(Screen.Routines.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onNavigateRooms = {
-                        navController.navigate(Screen.Rooms.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onNavigateHistory = {
-                        navController.navigate(Screen.History.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                )
-            }
+                    onRoomsFullscreenDialogChange = { roomsFullscreenDialogOpen = it },
+                    onEditRoutine = { routineEditTargetId = it },
+                    onAddRoutineAction = { routineActionTargetId = it },
+                    onScannedPayload = { scannedPayload = it },
+                ),
+                unreadCount = { unreadNotificationCount },
+                activeHomeName = { activeHomeName },
+                activeHomeId = { selectHomeUiState.activeHomeId },
+                themePreference = { themePreference },
+                showQuickAddFab = {
+                    !isTablet && !showQuickActions && !showCreateRoom &&
+                        !showCreateDevice && !showCreateRoutine
+                },
+            )
+            accountGraph(
+                navController = navController,
+                isTablet = isTablet,
+            )
         }
     }
 
