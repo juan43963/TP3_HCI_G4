@@ -109,7 +109,6 @@ fun RoutineDetailScreen(
     var showRenameDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showScheduleDialog by remember { mutableStateOf(false) }
-    var showDaysDialog by remember { mutableStateOf(false) }
 
     val daysSummary = daysSummaryText(days)
 
@@ -159,7 +158,9 @@ fun RoutineDetailScreen(
             item {
                 DaysCard(
                     days = days,
-                    onClick = { showDaysDialog = true },
+                    onToggleDay = { index ->
+                        days = days.toMutableList().also { it[index] = !it[index] }
+                    },
                 )
             }
             item {
@@ -204,17 +205,6 @@ fun RoutineDetailScreen(
             onConfirm = { newTime ->
                 time = newTime
                 showScheduleDialog = false
-            },
-        )
-    }
-
-    if (showDaysDialog) {
-        EditDaysDialog(
-            currentDays = days,
-            onDismiss = { showDaysDialog = false },
-            onConfirm = { newDays ->
-                days = newDays
-                showDaysDialog = false
             },
         )
     }
@@ -701,14 +691,11 @@ internal fun NavigationRowCard(
 @Composable
 internal fun DaysCard(
     days: List<Boolean>,
-    onClick: () -> Unit,
+    onToggleDay: (Int) -> Unit = {},
     editable: Boolean = true,
 ) {
     Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .clickable(enabled = editable, onClick = onClick),
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 1.dp,
@@ -727,13 +714,10 @@ internal fun DaysCard(
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                DayChipsRow(days = days)
-            }
-            if (editable) {
-                Icon(
-                    imageVector = SmartHomeIcons.ChevronRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                DayChipsRow(
+                    days = days,
+                    editable = editable,
+                    onToggleDay = onToggleDay,
                 )
             }
         }
@@ -741,26 +725,45 @@ internal fun DaysCard(
 }
 
 @Composable
-private fun DayChipsRow(days: List<Boolean>) {
+private fun DayChipsRow(
+    days: List<Boolean>,
+    editable: Boolean,
+    onToggleDay: (Int) -> Unit,
+) {
     val initials = stringArrayResource(R.array.routines_day_initials)
+    val names = stringArrayResource(R.array.routines_day_names)
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         days.forEachIndexed { index, active ->
-            DayChip(label = initials.getOrElse(index) { "" }, active = active)
+            DayChip(
+                label = initials.getOrElse(index) { "" },
+                contentDescription = names.getOrElse(index) { "" },
+                active = active,
+                editable = editable,
+                onClick = { onToggleDay(index) },
+            )
         }
     }
 }
 
 @Composable
-private fun DayChip(label: String, active: Boolean) {
+private fun DayChip(
+    label: String,
+    contentDescription: String,
+    active: Boolean,
+    editable: Boolean,
+    onClick: () -> Unit,
+) {
+    val shape = RoundedCornerShape(10.dp)
     val base = Modifier
-        .size(34.dp)
-        .clip(CircleShape)
+        .size(36.dp)
+        .clip(shape)
+        .clickable(enabled = editable, onClick = onClick)
     val styled = if (active) {
         base.background(RoutineDay)
     } else {
         base
             .background(MaterialTheme.colorScheme.surfaceVariant)
-            .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
+            .border(1.dp, MaterialTheme.colorScheme.outline, shape)
     }
     Box(modifier = styled, contentAlignment = Alignment.Center) {
         Text(
@@ -1298,7 +1301,6 @@ fun TabletRoutinesDetailLayout(
     var showRenameDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showScheduleDialog by remember { mutableStateOf(false) }
-    var showDaysDialog by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf<RoutineCategory?>(null) }
     var selectedRoutineId by remember(initialRoutineId, masterRoutines) {
         mutableStateOf(initialRoutineId ?: masterRoutines.firstOrNull()?.id)
@@ -1416,7 +1418,9 @@ fun TabletRoutinesDetailLayout(
                             item {
                                 DaysCard(
                                     days = days,
-                                    onClick = { showDaysDialog = true },
+                                    onToggleDay = { index ->
+                                        days = days.toMutableList().also { it[index] = !it[index] }
+                                    },
                                 )
                             }
                             item {
@@ -1464,16 +1468,6 @@ fun TabletRoutinesDetailLayout(
             onConfirm = { newTime ->
                 time = newTime
                 showScheduleDialog = false
-            },
-        )
-    }
-    if (showDaysDialog) {
-        EditDaysDialog(
-            currentDays = days,
-            onDismiss = { showDaysDialog = false },
-            onConfirm = { newDays ->
-                days = newDays
-                showDaysDialog = false
             },
         )
     }

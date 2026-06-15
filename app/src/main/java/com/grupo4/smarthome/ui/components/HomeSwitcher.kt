@@ -22,8 +22,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -74,7 +72,6 @@ private val SwitcherCorner = 20.dp
 private val SwitcherListMaxHeight = 240.dp
 private val SwitcherRowHeight = 44.dp
 private val SwitcherRowCorner = 12.dp
-private val ActionMenuWidth = 168.dp
 private val ActionMenuItemHeight = 42.dp
 
 private class ActiveHomeMenu(val home: SelectableHome, val anchor: Rect)
@@ -256,7 +253,7 @@ private fun BoxScope.HomeRowActionMenu(
     onShare: () -> Unit,
 ) {
     val density = LocalDensity.current
-    val menuWidthPx = with(density) { ActionMenuWidth.toPx() }
+    val menuWidthPx = with(density) { HomeActionMenuWidth.toPx() }
     val gapPx = with(density) { 4.dp.toPx() }
     val estMenuHeightPx = with(density) { (ActionMenuItemHeight * 2 + 12.dp).toPx() }
 
@@ -268,61 +265,13 @@ private fun BoxScope.HomeRowActionMenu(
         (anchor.top - gapPx - estMenuHeightPx).coerceAtLeast(0f)
     }
 
-    Surface(
+    HomeActionMenuContent(
+        onEdit = onEdit,
+        onShare = onShare,
         modifier = Modifier
             .offset { IntOffset(x.roundToInt(), y.roundToInt()) }
-            .width(ActionMenuWidth)
             .zIndex(1f),
-        shape = RoundedCornerShape(14.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        shadowElevation = 6.dp,
-    ) {
-        Column(modifier = Modifier.padding(6.dp)) {
-            HomeRowActionItem(
-                label = stringResource(R.string.select_home_menu_rename),
-                icon = Icons.Outlined.Edit,
-                onClick = onEdit,
-            )
-            HomeRowActionItem(
-                label = stringResource(R.string.select_home_menu_share),
-                icon = Icons.Outlined.Share,
-                onClick = onShare,
-            )
-        }
-    }
-}
-
-@Composable
-private fun HomeRowActionItem(
-    label: String,
-    icon: ImageVector,
-    onClick: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(ActionMenuItemHeight)
-            .clip(RoundedCornerShape(10.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(18.dp),
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
+    )
 }
 
 @Composable

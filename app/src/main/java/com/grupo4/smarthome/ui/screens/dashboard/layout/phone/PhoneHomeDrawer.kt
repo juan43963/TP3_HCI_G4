@@ -3,6 +3,7 @@ package com.grupo4.smarthome.ui.screens.dashboard.layout.phone
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,10 +20,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,6 +40,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.grupo4.smarthome.R
 import com.grupo4.smarthome.data.model.HomeType
+import com.grupo4.smarthome.ui.components.HomeActionMenuPopup
 import com.grupo4.smarthome.ui.components.SmartHomeWordmark
 import com.grupo4.smarthome.ui.components.SmartHomeWordmarkSize
 import com.grupo4.smarthome.ui.screens.selecthome.SelectableHome
@@ -260,43 +258,36 @@ private fun DrawerHomeRow(
         }
 
         var menuExpanded by remember { mutableStateOf(false) }
-        IconButton(
-            onClick = { menuExpanded = true },
-            modifier = Modifier.size(40.dp),
-        ) {
-            Icon(
-                imageVector = Icons.Filled.MoreVert,
-                contentDescription = stringResource(
-                    R.string.select_home_card_menu_content_description
-                ),
-                tint = if (selected) {
-                    contentColor
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
-                modifier = Modifier.size(20.dp),
-            )
-            DropdownMenu(
-                expanded = menuExpanded,
-                onDismissRequest = { menuExpanded = false },
+        Box {
+            IconButton(
+                onClick = { menuExpanded = true },
+                modifier = Modifier.size(40.dp),
             ) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.select_home_menu_rename)) },
-                    leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null) },
-                    onClick = {
-                        menuExpanded = false
-                        onEdit()
+                Icon(
+                    imageVector = Icons.Filled.MoreVert,
+                    contentDescription = stringResource(
+                        R.string.select_home_card_menu_content_description
+                    ),
+                    tint = if (selected) {
+                        contentColor
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
                     },
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.select_home_menu_share)) },
-                    leadingIcon = { Icon(Icons.Outlined.Share, contentDescription = null) },
-                    onClick = {
-                        menuExpanded = false
-                        onShare()
-                    },
+                    modifier = Modifier.size(20.dp),
                 )
             }
+            HomeActionMenuPopup(
+                expanded = menuExpanded,
+                onDismiss = { menuExpanded = false },
+                onEdit = {
+                    menuExpanded = false
+                    onEdit()
+                },
+                onShare = {
+                    menuExpanded = false
+                    onShare()
+                },
+            )
         }
     }
 }

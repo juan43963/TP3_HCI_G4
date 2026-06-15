@@ -299,6 +299,8 @@ private fun CreateRoutineScreen(
     var days by rememberSaveable(stateSaver = DaysListSaver) {
         mutableStateOf(listOf(true, true, true, true, true, false, false))
     }
+    // Manual: la rutina se ejecuta a mano, sin horario ni días
+    var manual by rememberSaveable { mutableStateOf(false) }
     var draftActions by remember { mutableStateOf(listOf<RoutineAction>()) }
     // Selección transitoria mientras se arma una acción
     var selectedDevice by remember { mutableStateOf<Device?>(null) }
@@ -381,7 +383,7 @@ private fun CreateRoutineScreen(
                                 routineName.trim(),
                                 selectedCategory.toDomain(),
                                 parseDisplayTimeTo24h(time),
-                                days,
+                                if (manual) List(7) { false } else days,
                                 draftActions,
                             )
                             onDismiss()
@@ -407,6 +409,8 @@ private fun CreateRoutineScreen(
                         onTimeChange = { time = it },
                         days = days,
                         onDaysChange = { days = it },
+                        manual = manual,
+                        onManualChange = { manual = it },
                     )
 
                     CreateRoutineStep.ActionsSummary -> ActionsSummaryStep(
@@ -649,6 +653,8 @@ private fun DetailsStep(
     onTimeChange: (String) -> Unit,
     days: List<Boolean>,
     onDaysChange: (List<Boolean>) -> Unit,
+    manual: Boolean,
+    onManualChange: (Boolean) -> Unit,
 ) {
     var showScheduleDialog by rememberSaveable { mutableStateOf(false) }
     var showDaysDialog by rememberSaveable { mutableStateOf(false) }
@@ -675,8 +681,18 @@ private fun DetailsStep(
             selectedCategory = selectedCategory,
             onCategorySelected = onCategorySelected,
         )
-        ScheduleCard(time = time, onClick = { showScheduleDialog = true })
-        RepeatCard(days = days, onClick = { showDaysDialog = true })
+        Text(
+            text = stringResource(R.string.create_routine_activation_label),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.ExtraBold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        ActivationSelector(manual = manual, onManualChange = onManualChange)
+        // Manual no usa horario ni repetición
+        if (!manual) {
+            ScheduleCard(time = time, onClick = { showScheduleDialog = true })
+            RepeatCard(days = days, onClick = { showDaysDialog = true })
+        }
     }
 
     if (showScheduleDialog) {
@@ -808,6 +824,32 @@ private fun ChoicePill(
                 maxLines = 1,
             )
         }
+    }
+}
+
+@Composable
+private fun ActivationSelector(
+    manual: Boolean,
+    onManualChange: (Boolean) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        ChoicePill(
+            label = stringResource(R.string.create_routine_activation_schedule),
+            icon = SmartHomeIcons.Schedule,
+            selected = !manual,
+            modifier = Modifier.weight(1f),
+            onClick = { onManualChange(false) },
+        )
+        ChoicePill(
+            label = stringResource(R.string.create_routine_activation_manual),
+            icon = SmartHomeIcons.ManualTrigger,
+            selected = manual,
+            modifier = Modifier.weight(1f),
+            onClick = { onManualChange(true) },
+        )
     }
 }
 

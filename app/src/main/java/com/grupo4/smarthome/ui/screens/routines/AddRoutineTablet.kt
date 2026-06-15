@@ -155,6 +155,10 @@ private fun AddRoutineTabletDialogContent(
             initialRoutine?.days ?: listOf(true, true, true, true, true, false, false),
         )
     }
+    // Manual: la rutina se ejecuta a mano, sin horario ni días
+    var manual by rememberSaveable {
+        mutableStateOf(initialRoutine?.days?.none { it } ?: false)
+    }
     var draftActions by remember { mutableStateOf(initialRoutine?.actions.orEmpty()) }
     var selectedDevice by remember { mutableStateOf<Device?>(null) }
     var selectedActionInfo by remember { mutableStateOf<DeviceActionInfo?>(null) }
@@ -230,6 +234,8 @@ private fun AddRoutineTabletDialogContent(
                         onTimeChange = { time = it },
                         days = days,
                         onDaysChange = { days = it },
+                        manual = manual,
+                        onManualChange = { manual = it },
                     )
 
                     AddRoutineTabletStep.ActionsSummary -> AddRoutineTabletActionsSummaryStep(
@@ -318,7 +324,7 @@ private fun AddRoutineTabletDialogContent(
                             routineName.trim(),
                             selectedCategory.toDomain(),
                             parseDisplayTimeTo24h(time),
-                            days,
+                            if (manual) List(7) { false } else days,
                             draftActions,
                         )
                         onDismiss()
@@ -529,6 +535,8 @@ private fun AddRoutineTabletDetailsStep(
     onTimeChange: (String) -> Unit,
     days: List<Boolean>,
     onDaysChange: (List<Boolean>) -> Unit,
+    manual: Boolean,
+    onManualChange: (Boolean) -> Unit,
 ) {
     var showScheduleDialog by rememberSaveable { mutableStateOf(false) }
     var showDaysDialog by rememberSaveable { mutableStateOf(false) }
@@ -549,20 +557,48 @@ private fun AddRoutineTabletDetailsStep(
         selectedCategory = selectedCategory,
         onCategorySelected = onCategorySelected,
     )
+    Text(
+        text = stringResource(R.string.create_routine_activation_label),
+        style = MaterialTheme.typography.labelLarge,
+        fontWeight = FontWeight.ExtraBold,
+        color = MaterialTheme.colorScheme.onSurface,
+    )
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        AddRoutineTabletScheduleCard(
-            time = time,
-            onClick = { showScheduleDialog = true },
+        AddRoutineTabletPill(
+            label = stringResource(R.string.create_routine_activation_schedule),
+            icon = SmartHomeIcons.Schedule,
+            selected = !manual,
             modifier = Modifier.weight(1f),
+            onClick = { onManualChange(false) },
         )
-        AddRoutineTabletRepeatCard(
-            days = days,
-            onClick = { showDaysDialog = true },
-            modifier = Modifier.weight(1.4f),
+        AddRoutineTabletPill(
+            label = stringResource(R.string.create_routine_activation_manual),
+            icon = SmartHomeIcons.ManualTrigger,
+            selected = manual,
+            modifier = Modifier.weight(1f),
+            onClick = { onManualChange(true) },
         )
+    }
+    // Manual no usa horario ni repetición
+    if (!manual) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            AddRoutineTabletScheduleCard(
+                time = time,
+                onClick = { showScheduleDialog = true },
+                modifier = Modifier.weight(1f),
+            )
+            AddRoutineTabletRepeatCard(
+                days = days,
+                onClick = { showDaysDialog = true },
+                modifier = Modifier.weight(1.4f),
+            )
+        }
     }
 
     if (showScheduleDialog) {

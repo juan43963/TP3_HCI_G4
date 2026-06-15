@@ -738,7 +738,6 @@ private fun TabletRoutineDetailPane(
             item {
                 DaysCard(
                     days = days,
-                    onClick = {},
                     editable = false,
                 )
             }

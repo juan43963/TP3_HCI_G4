@@ -658,15 +658,16 @@ private fun DaysRow(days: List<Boolean>, modifier: Modifier = Modifier) {
 
 @Composable
 private fun DayCircle(letter: String, active: Boolean) {
+    val shape = RoundedCornerShape(8.dp)
     val baseModifier = Modifier
-        .size(26.dp)
-        .clip(CircleShape)
+        .size(28.dp)
+        .clip(shape)
     val styledModifier = if (active) {
         baseModifier.background(DayActiveColor)
     } else {
         baseModifier
             .background(MaterialTheme.colorScheme.surface)
-            .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
+            .border(1.dp, MaterialTheme.colorScheme.outline, shape)
     }
     Box(modifier = styledModifier, contentAlignment = Alignment.Center) {
         Text(
