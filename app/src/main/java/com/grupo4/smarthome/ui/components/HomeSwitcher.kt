@@ -62,6 +62,7 @@ data class HomeSwitcherState(
     val onHomeSelected: (String) -> Unit,
     val onEditHome: (SelectableHome) -> Unit,
     val onShareHome: (SelectableHome) -> Unit,
+    val onDeleteHome: (SelectableHome) -> Unit,
     val onAddHome: () -> Unit,
 )
 
@@ -166,6 +167,11 @@ fun CompactHomeSwitcherMenu(
                             onDismiss()
                             switcher.onShareHome(menu.home)
                         },
+                        onDelete = {
+                            activeMenu = null
+                            onDismiss()
+                            switcher.onDeleteHome(menu.home)
+                        },
                     )
                 }
             }
@@ -251,11 +257,12 @@ private fun BoxScope.HomeRowActionMenu(
     rootHeightPx: Int,
     onEdit: () -> Unit,
     onShare: () -> Unit,
+    onDelete: () -> Unit,
 ) {
     val density = LocalDensity.current
     val menuWidthPx = with(density) { HomeActionMenuWidth.toPx() }
     val gapPx = with(density) { 4.dp.toPx() }
-    val estMenuHeightPx = with(density) { (ActionMenuItemHeight * 2 + 12.dp).toPx() }
+    val estMenuHeightPx = with(density) { (ActionMenuItemHeight * 3 + 12.dp).toPx() }
 
     val x = (anchor.right - menuWidthPx).coerceAtLeast(0f)
     val openDown = rootHeightPx <= 0 || anchor.bottom + gapPx + estMenuHeightPx <= rootHeightPx
@@ -268,6 +275,7 @@ private fun BoxScope.HomeRowActionMenu(
     HomeActionMenuContent(
         onEdit = onEdit,
         onShare = onShare,
+        onDelete = onDelete,
         modifier = Modifier
             .offset { IntOffset(x.roundToInt(), y.roundToInt()) }
             .zIndex(1f),

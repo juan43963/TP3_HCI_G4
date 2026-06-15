@@ -443,6 +443,7 @@ fun SmartHomeApp(
         onHomeSelected = { selectHomeViewModel.selectHome(it) },
         onEditHome = { selectHomeViewModel.openRenameDialog(it) },
         onShareHome = { selectHomeViewModel.openShareDialog(it) },
+        onDeleteHome = { selectHomeViewModel.openDeleteDialog(it) },
         onAddHome = { showAddHome = true },
     )
 
@@ -1266,6 +1267,10 @@ fun SmartHomeApp(
                         },
                         onShareHome = { home ->
                             selectHomeViewModel.openShareDialog(home)
+                            closeDrawer()
+                        },
+                        onDeleteHome = { home ->
+                            selectHomeViewModel.openDeleteDialog(home)
                             closeDrawer()
                         },
                         onAddHome = {

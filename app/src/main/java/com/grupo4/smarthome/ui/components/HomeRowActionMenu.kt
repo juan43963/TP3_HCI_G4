@@ -29,15 +29,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import com.grupo4.smarthome.R
+import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
 val HomeActionMenuWidth = 168.dp
 private val HomeActionMenuItemHeight = 42.dp
 
-// Menú redondeado de Renombrar/Compartir compartido entre el switcher y el drawer.
+// Menú de acciones por hogar compartido entre el switcher y el drawer.
 @Composable
 fun HomeActionMenuContent(
     onEdit: () -> Unit,
     onShare: () -> Unit,
+    onDelete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Surface(
@@ -58,6 +60,12 @@ fun HomeActionMenuContent(
                 icon = Icons.Outlined.Share,
                 onClick = onShare,
             )
+            HomeActionMenuItem(
+                label = stringResource(R.string.select_home_menu_delete),
+                icon = SmartHomeIcons.Delete,
+                onClick = onDelete,
+                destructive = true,
+            )
         }
     }
 }
@@ -69,6 +77,7 @@ fun HomeActionMenuPopup(
     onDismiss: () -> Unit,
     onEdit: () -> Unit,
     onShare: () -> Unit,
+    onDelete: () -> Unit,
 ) {
     if (!expanded) return
     Popup(
@@ -79,6 +88,7 @@ fun HomeActionMenuPopup(
         HomeActionMenuContent(
             onEdit = onEdit,
             onShare = onShare,
+            onDelete = onDelete,
         )
     }
 }
@@ -88,7 +98,14 @@ private fun HomeActionMenuItem(
     label: String,
     icon: ImageVector,
     onClick: () -> Unit,
+    destructive: Boolean = false,
 ) {
+    val contentColor = if (destructive) {
+        MaterialTheme.colorScheme.error
+    } else {
+        MaterialTheme.colorScheme.onSurface
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -102,13 +119,13 @@ private fun HomeActionMenuItem(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            tint = if (destructive) contentColor else MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(18.dp),
         )
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = contentColor,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )

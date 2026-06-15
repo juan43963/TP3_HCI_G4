@@ -56,6 +56,7 @@ fun PhoneHomeDrawer(
     onHomeSelected: (String) -> Unit,
     onEditHome: (SelectableHome) -> Unit,
     onShareHome: (SelectableHome) -> Unit,
+    onDeleteHome: (SelectableHome) -> Unit,
     onAddHome: () -> Unit,
     onHistory: () -> Unit,
     onLogout: () -> Unit,
@@ -74,6 +75,7 @@ fun PhoneHomeDrawer(
             onHomeSelected = onHomeSelected,
             onEditHome = onEditHome,
             onShareHome = onShareHome,
+            onDeleteHome = onDeleteHome,
             onAddHome = onAddHome,
             onHistory = onHistory,
             onLogout = onLogout,
@@ -89,6 +91,7 @@ fun PhoneHomeDrawerContent(
     onHomeSelected: (String) -> Unit,
     onEditHome: (SelectableHome) -> Unit,
     onShareHome: (SelectableHome) -> Unit,
+    onDeleteHome: (SelectableHome) -> Unit,
     onAddHome: () -> Unit,
     onHistory: () -> Unit,
     onLogout: () -> Unit,
@@ -130,6 +133,7 @@ fun PhoneHomeDrawerContent(
                         },
                         onEdit = { onEditHome(home) },
                         onShare = { onShareHome(home) },
+                        onDelete = { onDeleteHome(home) },
                     )
                 }
             }
@@ -202,6 +206,7 @@ private fun DrawerHomeRow(
     onSelect: () -> Unit,
     onEdit: () -> Unit,
     onShare: () -> Unit,
+    onDelete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val contentColor = if (selected) {
@@ -286,6 +291,10 @@ private fun DrawerHomeRow(
                 onShare = {
                     menuExpanded = false
                     onShare()
+                },
+                onDelete = {
+                    menuExpanded = false
+                    onDelete()
                 },
             )
         }
