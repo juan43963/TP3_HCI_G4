@@ -78,6 +78,7 @@ fun DeviceCard(
     modifier: Modifier = Modifier,
     variant: DeviceCardVariant = DeviceCardVariant.Standard,
     onAction: (actionName: String, args: List<ActionArg>) -> Unit = { _, _ -> },
+    roomOptions: List<RoomOption> = emptyList(),
 ) {
     if (variant == DeviceCardVariant.Phone) {
         PhoneDeviceCard(
@@ -88,6 +89,7 @@ fun DeviceCard(
             onEdit = onEdit,
             onDelete = onDelete,
             onAction = onAction,
+            roomOptions = roomOptions,
             modifier = modifier,
         )
         return
@@ -123,7 +125,7 @@ fun DeviceCard(
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 if (!editMode) {
-                    DeviceMoreActions(device = device, onAction = onAction, includePrimary = true)
+                    DeviceMoreActions(device = device, onAction = onAction, includePrimary = true, roomOptions = roomOptions)
                 }
             }
             if (editMode) {
@@ -183,6 +185,7 @@ private fun PhoneDeviceCard(
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     onAction: (String, List<ActionArg>) -> Unit,
+    roomOptions: List<RoomOption> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
     val primary = MaterialTheme.colorScheme.primary
@@ -218,7 +221,7 @@ private fun PhoneDeviceCard(
                 }
                 if (!editMode) {
                     Spacer(modifier = Modifier.height(14.dp))
-                    DeviceMoreActions(device = device, onAction = onAction)
+                    DeviceMoreActions(device = device, onAction = onAction, roomOptions = roomOptions)
                 }
             }
             if (editMode) {
@@ -261,6 +264,7 @@ private fun DeviceMoreActions(
     device: Device,
     onAction: (String, List<ActionArg>) -> Unit,
     includePrimary: Boolean = false,
+    roomOptions: List<RoomOption> = emptyList(),
 ) {
     if (device.type.actions.isEmpty()) return
     var showSheet by rememberSaveable(device.id) { mutableStateOf(false) }
@@ -292,6 +296,7 @@ private fun DeviceMoreActions(
             onAction = onAction,
             onDismiss = { showSheet = false },
             includePrimaryAction = includePrimary,
+            roomOptions = roomOptions,
         )
     }
 }
@@ -410,6 +415,16 @@ private fun DeviceCardHeader(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+            when (device.type.canonicalName) {
+                DeviceTypeNames.DOOR, DeviceTypeNames.ALARM -> {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    DeviceStatusRow(device = device)
+                }
+                DeviceTypeNames.FRIDGE -> {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    FridgeStatusSummary(device = device)
+                }
+            }
         }
         // En tablet (showControl=false) no hay control inline: todo se hace desde "More actions".
         if (showControl) {
@@ -421,26 +436,56 @@ private fun DeviceCardHeader(
     }
 }
 
+@Composable
+private fun FridgeStatusSummary(device: Device) {
+    val temperature = device.state.int("temperature")
+    val freezerTemperature = device.state.int("freezerTemperature")
+        ?: device.state.int("freezer")
+    val mode = device.state.string("mode")
+    val values = buildList {
+        temperature?.let { add(stringResource(R.string.rooms_fridge_temperature_status, it)) }
+        freezerTemperature?.let { add(stringResource(R.string.rooms_fridge_freezer_status, it)) }
+        mode?.let { add(deviceActionOptionLabel(it)) }
+    }
+    if (values.isEmpty()) return
+    Text(
+        text = values.joinToString(" · "),
+        style = MaterialTheme.typography.bodySmall,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+    )
+}
+
 // Línea de estado real: punto de color + texto (On/Off, Locked/Unlocked, Open/Closed) según el device.
 @Composable
 internal fun DeviceStatusRow(device: Device) {
-    val status = deviceStatus(device) ?: return
-    val color = if (status.active) StatusActiveColor else MaterialTheme.colorScheme.onSurfaceVariant
+    val statuses = deviceStatuses(device)
+    if (statuses.isEmpty()) return
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Box(
-            modifier = Modifier
-                .size(8.dp)
-                .background(color, CircleShape),
-        )
-        Text(
-            text = stringResource(status.labelRes),
-            style = MaterialTheme.typography.bodySmall,
-            fontWeight = FontWeight.SemiBold,
-            color = color,
-        )
+        statuses.forEach { status ->
+            val color = if (status.active) StatusActiveColor else MaterialTheme.colorScheme.onSurfaceVariant
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .background(color, CircleShape),
+                )
+                Text(
+                    text = stringResource(status.labelRes),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = color,
+                )
+            }
+        }
     }
 }
 
@@ -625,7 +670,7 @@ private fun AirConditionerControl(
     if (!device.isOn) {
         return
     }
-    val temperature = device.temperature ?: 22
+    val temperature = device.temperature ?: 24
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -646,7 +691,7 @@ private fun AirConditionerControl(
             RoomsGradientSlider(
                 value = temperature.toFloat(),
                 onValueChange = { onValueChange(it.toInt()) },
-                valueRange = 16f..30f,
+                valueRange = 18f..38f,
                 modifier = Modifier.weight(1f),
             )
             TemperatureStepButton(

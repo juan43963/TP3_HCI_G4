@@ -40,6 +40,7 @@ import com.grupo4.smarthome.ui.screens.rooms.RoomsCallbacks
 import com.grupo4.smarthome.ui.screens.rooms.RoomsPresentationState
 import com.grupo4.smarthome.ui.screens.rooms.RoomsUiState
 import com.grupo4.smarthome.ui.screens.rooms.components.DeviceCard
+import com.grupo4.smarthome.ui.screens.rooms.components.RoomOption
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsEditIconButton
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsEmptyState
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsNoDevicesEmptyState
@@ -152,6 +153,7 @@ fun TabletRoomDetailLayout(
                                 onDelete = { callbacks.onDeleteDevice(device.id) },
                                 onAction = { name, args -> callbacks.onDeviceAction(device.id, name, args) },
                                 modifier = Modifier.height(deviceCardHeight),
+                                roomOptions = state.rooms.map { RoomOption(it.id, it.name) },
                             )
                         }
                     }

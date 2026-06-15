@@ -79,6 +79,7 @@ import com.grupo4.smarthome.data.model.Device
 import com.grupo4.smarthome.data.model.DeviceActionInfo
 import com.grupo4.smarthome.data.model.DeviceActionNames
 import com.grupo4.smarthome.data.model.DeviceActionParamInfo
+import com.grupo4.smarthome.data.model.DeviceTypeNames
 
 /**
  * Panel "Más acciones": header (nombre/categoría/estado) + una tarjeta por sección. La primera es el
@@ -95,11 +96,13 @@ fun DeviceActionsSheet(
     // En tablet la card no tiene el slider primario, así que el sheet también lo incluye. También es la
     // señal de que estamos en tablet: ahí el panel se muestra como card flotante centrada (no bottom sheet).
     includePrimaryAction: Boolean = false,
+    // Habitaciones del hogar para el selector de `setLocation` (aspiradora). Vacío = cae a texto libre.
+    roomOptions: List<RoomOption> = emptyList(),
 ) {
     if (includePrimaryAction) {
-        DeviceActionsCenteredCard(device = device, onAction = onAction, onDismiss = onDismiss)
+        DeviceActionsCenteredCard(device = device, onAction = onAction, onDismiss = onDismiss, roomOptions = roomOptions)
     } else {
-        DeviceActionsModalSheet(device = device, onAction = onAction, onDismiss = onDismiss)
+        DeviceActionsModalSheet(device = device, onAction = onAction, onDismiss = onDismiss, roomOptions = roomOptions)
     }
 }
 
@@ -110,6 +113,7 @@ private fun DeviceActionsModalSheet(
     device: Device,
     onAction: (String, List<ActionArg>) -> Unit,
     onDismiss: () -> Unit,
+    roomOptions: List<RoomOption>,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ModalBottomSheet(
@@ -127,7 +131,7 @@ private fun DeviceActionsModalSheet(
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             SheetHeader(device = device)
-            DeviceActionsBody(device = device, onAction = onAction, includePrimaryAction = false)
+            DeviceActionsBody(device = device, onAction = onAction, includePrimaryAction = false, roomOptions = roomOptions)
         }
     }
 }
@@ -138,6 +142,7 @@ private fun DeviceActionsCenteredCard(
     device: Device,
     onAction: (String, List<ActionArg>) -> Unit,
     onDismiss: () -> Unit,
+    roomOptions: List<RoomOption>,
 ) {
     Dialog(
         onDismissRequest = onDismiss,
@@ -172,7 +177,7 @@ private fun DeviceActionsCenteredCard(
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
-                    DeviceActionsBody(device = device, onAction = onAction, includePrimaryAction = true)
+                    DeviceActionsBody(device = device, onAction = onAction, includePrimaryAction = true, roomOptions = roomOptions)
                 }
             }
         }
@@ -185,6 +190,7 @@ private fun ColumnScope.DeviceActionsBody(
     device: Device,
     onAction: (String, List<ActionArg>) -> Unit,
     includePrimaryAction: Boolean,
+    roomOptions: List<RoomOption>,
 ) {
     val pair = onOffPairFor(device)
     if (pair != null) {
@@ -202,9 +208,7 @@ private fun ColumnScope.DeviceActionsBody(
     val canonical = device.type.canonicalName
     val primary = if (includePrimaryAction) null else DeviceActionNames.primaryValueAction(canonical)
     val rest = device.type.actions.filter { action ->
-        // getState se resuelve solo como refresco; no lo mostramos como acción.
-        !DeviceActionNames.isStateRefreshAction(action.name) &&
-            (pair == null || (!action.name.equals(pair.onName, ignoreCase = true) &&
+        (pair == null || (!action.name.equals(pair.onName, ignoreCase = true) &&
                 !action.name.equals(pair.offName, ignoreCase = true))) &&
             (primary == null || !action.name.equals(primary, ignoreCase = true))
     }
@@ -214,9 +218,21 @@ private fun ColumnScope.DeviceActionsBody(
     if (triggers.isNotEmpty()) {
         SectionCard { TriggerGroup(actions = triggers, onAction = onAction) }
     }
-    others.forEach { action ->
+    // Luz/AC/horno apagados y grifo cerrado no se configuran (hay que encenderlos/abrirlos primero).
+    // Parlante pausado, aspiradora en base y persiana cerrada SÍ se configuran (ver gatesConfigurationWhenOff).
+    val configurable = !DeviceActionNames.gatesConfigurationWhenOff(device.type) || device.isOn
+    if (configurable) {
+        others.forEach { action ->
+            SectionCard {
+                ActionSection(action = action, device = device, onAction = onAction, roomOptions = roomOptions)
+            }
+        }
+    } else if (others.isNotEmpty()) {
         SectionCard {
-            ActionSection(action = action, device = device, onAction = onAction)
+            SectionHeader(
+                title = stringResource(R.string.rooms_device_turn_on_to_configure),
+                subtitle = null,
+            )
         }
     }
 }
@@ -347,6 +363,7 @@ private fun ColumnScope.ActionSection(
     action: DeviceActionInfo,
     device: Device,
     onAction: (String, List<ActionArg>) -> Unit,
+    roomOptions: List<RoomOption> = emptyList(),
 ) {
     val label = deviceActionLabel(action.name)
     val subtitle = deviceActionSubtitle(action.name)
@@ -355,7 +372,13 @@ private fun ColumnScope.ActionSection(
             TriggerControl(label = label) { onAction(action.name, emptyList()) }
 
         is DeviceActionControl.Numeric ->
-            NumericSection(label = label, subtitle = subtitle, control = control) { value ->
+            NumericSection(
+                label = label,
+                subtitle = subtitle,
+                control = control,
+                // Arranca en el valor actual del dispositivo (no en el mínimo), leído del estado.
+                currentValue = numericCurrentValue(device, action.name),
+            ) { value ->
                 onAction(action.name, listOf(ActionArg.IntArg(value)))
             }
 
@@ -364,6 +387,10 @@ private fun ColumnScope.ActionSection(
             ChoiceBody(
                 suggestions = control.suggestions,
                 currentValue = device.state.string(stateKeyFor(action.name)),
+                allowCustomValue = !(
+                    device.type.canonicalName == DeviceTypeNames.FRIDGE &&
+                        action.name.equals("setMode", ignoreCase = true)
+                    ),
             ) { value -> onAction(action.name, listOf(ActionArg.StringArg(value))) }
         }
 
@@ -377,6 +404,19 @@ private fun ColumnScope.ActionSection(
         is DeviceActionControl.Dispense -> {
             SectionHeader(label, subtitle)
             DispenseBody { args -> onAction(action.name, args) }
+        }
+
+        is DeviceActionControl.RoomPicker -> {
+            SectionHeader(label, subtitle)
+            if (roomOptions.isNotEmpty()) {
+                RoomPickerBody(
+                    options = roomOptions,
+                    currentId = device.state.string(stateKeyFor(action.name)),
+                ) { roomId -> onAction(action.name, listOf(ActionArg.StringArg(roomId))) }
+            } else {
+                // Sin lista de rooms a mano (búsqueda/detalle): fallback a texto libre del id.
+                GenericBody(params = action.params) { args -> onAction(action.name, args) }
+            }
         }
 
         is DeviceActionControl.Code -> {
@@ -406,6 +446,18 @@ private fun ColumnScope.ActionSection(
 private fun stateKeyFor(actionName: String): String =
     actionName.removePrefix("set").removePrefix("Set").replaceFirstChar { it.lowercase() }
 
+// Valor actual para un control numérico. Para persianas, la acción (setPosition/setLevel) y la clave de
+// estado ("position"/"level") pueden no coincidir según el back-end, así que probamos ambas.
+private fun numericCurrentValue(device: Device, actionName: String): Int? {
+    val key = stateKeyFor(actionName)
+    device.state.int(key)?.let { return it }
+    return when (key) {
+        "position" -> device.state.int("level")
+        "level" -> device.state.int("position")
+        else -> null
+    }
+}
+
 // --- Par on/off (power / open-close) ---
 
 private data class OnOffPair(
@@ -426,6 +478,14 @@ private fun onOffPairFor(device: Device): OnOffPair? {
     val close = type.action("close")?.name
     if (open != null && close != null) {
         return OnOffPair(open, close, Icons.Outlined.ArrowCircleUp, Icons.Outlined.ArrowCircleDown)
+    }
+    // Persiana/cortina/toldo: el abrir/cerrar completo se expone como up/down (flechas ↑/↓, no play).
+    if (type.canonicalName == DeviceTypeNames.BLINDS) {
+        val up = type.action("up")?.name
+        val down = type.action("down")?.name
+        if (up != null && down != null) {
+            return OnOffPair(up, down, Icons.Outlined.ArrowCircleUp, Icons.Outlined.ArrowCircleDown)
+        }
     }
     return null
 }
@@ -575,11 +635,14 @@ private fun ColumnScope.NumericSection(
     label: String,
     subtitle: String?,
     control: DeviceActionControl.Numeric,
+    currentValue: Int?,
     onApply: (Int) -> Unit,
 ) {
     val min = control.fallbackMin
     val max = control.fallbackMax.coerceAtLeast(min + 1)
-    var value by remember(label) { mutableStateOf(min.toFloat()) }
+    // Valor = estado actual del dispositivo acotado al rango; si no hay estado, el mínimo. Se re-sincroniza
+    // cuando el estado cambia por otra acción (p. ej. up/down llevan el nivel a 100/0), no solo al abrir.
+    var value by remember(label, currentValue) { mutableStateOf((currentValue?.coerceIn(min, max) ?: min).toFloat()) }
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -642,6 +705,7 @@ private fun StepButton(symbol: String, onClick: () -> Unit) {
 private fun ChoiceBody(
     suggestions: List<String>,
     currentValue: String?,
+    allowCustomValue: Boolean = true,
     onApply: (String) -> Unit,
 ) {
     var text by remember { mutableStateOf("") }
@@ -661,19 +725,47 @@ private fun ChoiceBody(
                 }
             }
         }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            OutlinedTextField(
-                value = text,
-                onValueChange = { text = it },
-                modifier = Modifier.weight(1f),
-                singleLine = true,
-                placeholder = { Text(stringResource(R.string.rooms_device_custom_value)) },
+        if (allowCustomValue) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    placeholder = { Text(stringResource(R.string.rooms_device_custom_value)) },
+                )
+                ApplyButton(enabled = text.isNotBlank(), onClick = { onApply(text.trim()) })
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RoomPickerBody(
+    options: List<RoomOption>,
+    currentId: String?,
+    onApply: (String) -> Unit,
+) {
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        options.forEach { room ->
+            FilterChip(
+                selected = currentId == room.id,
+                onClick = { onApply(room.id) },
+                label = { Text(room.name) },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                ),
             )
-            ApplyButton(enabled = text.isNotBlank(), onClick = { onApply(text.trim()) })
         }
     }
 }
@@ -915,8 +1007,9 @@ private fun ApplyButton(
 }
 
 // Cantidades/unidades sugeridas del prototipo. Editable/seleccionable; si la API espera otras, no bloquea.
-private val DispenseQuickAmounts = listOf("0.25", "0.5", "1", "2", "5")
-private val DispenseUnits = listOf("ml", "l", "oz", "cup")
+// Cantidad 0–100 y unidades métricas según la spec de la cátedra (mililitro/centilitro/decilitro/litro).
+private val DispenseQuickAmounts = listOf("25", "50", "75", "100")
+private val DispenseUnits = listOf("ml", "cl", "dl", "l")
 
 // Presets pastel del prototipo (hex). Editable: el campo manda lo que el usuario tenga, así que si la
 // API espera otro formato, no lo bloquea (mismo criterio que los chips de Choice).

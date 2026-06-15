@@ -48,6 +48,7 @@ import com.grupo4.smarthome.ui.screens.rooms.RoomsPresentationState
 import com.grupo4.smarthome.ui.screens.rooms.RoomsUiState
 import com.grupo4.smarthome.ui.screens.rooms.components.DeviceCard
 import com.grupo4.smarthome.ui.screens.rooms.components.DeviceCardVariant
+import com.grupo4.smarthome.ui.screens.rooms.components.RoomOption
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomCard
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomCardVariant
 import com.grupo4.smarthome.ui.screens.rooms.components.RoomsEditIconButton
@@ -275,6 +276,7 @@ private fun PhoneRoomDetail(
                         onDelete = { callbacks.onDeleteDevice(device.id) },
                         onAction = { name, args -> callbacks.onDeviceAction(device.id, name, args) },
                         variant = DeviceCardVariant.Phone,
+                        roomOptions = state.rooms.map { RoomOption(it.id, it.name) },
                     )
                 }
             }

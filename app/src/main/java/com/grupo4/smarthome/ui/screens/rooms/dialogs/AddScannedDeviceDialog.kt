@@ -160,7 +160,11 @@ fun AddScannedDeviceDialog(
                             onSelectType = { selectedTypeId = it.id },
                             deviceName = deviceName,
                             onNameChange = { deviceName = it },
-                            showNameError = submitted && deviceName.isBlank(),
+                            nameErrorRes = if (!submitted) null else when {
+                                deviceName.isBlank() -> R.string.rooms_error_required_name
+                                !isDeviceNameValid(deviceName) -> R.string.rooms_error_name_too_short
+                                else -> null
+                            },
                             showTypeError = submitted && deviceType == null,
                         )
                     }
@@ -180,7 +184,7 @@ fun AddScannedDeviceDialog(
                         submitted = true
                         val target = roomTarget
                         val type = deviceType
-                        if (target != null && type != null && deviceName.isNotBlank()) {
+                        if (target != null && type != null && isDeviceNameValid(deviceName)) {
                             onConfirm(target, type, deviceName.trim())
                         }
                     },
@@ -331,7 +335,7 @@ private fun DeviceStep(
     onSelectType: (DeviceTypeInfo) -> Unit,
     deviceName: String,
     onNameChange: (String) -> Unit,
-    showNameError: Boolean,
+    nameErrorRes: Int?,
     showTypeError: Boolean,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -369,10 +373,10 @@ private fun DeviceStep(
             label = { Text(stringResource(R.string.rooms_field_name)) },
             placeholder = { Text(stringResource(R.string.rooms_device_name_placeholder)) },
             singleLine = true,
-            isError = showNameError,
+            isError = nameErrorRes != null,
             supportingText = {
-                if (showNameError) {
-                    Text(text = stringResource(R.string.rooms_error_required_name))
+                if (nameErrorRes != null) {
+                    Text(text = stringResource(nameErrorRes))
                 }
             },
         )

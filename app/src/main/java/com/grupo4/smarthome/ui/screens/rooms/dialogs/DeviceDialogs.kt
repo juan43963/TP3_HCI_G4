@@ -73,6 +73,11 @@ import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
 private const val PENDING_FIELD_SEP = ""
 
+// La API rechaza nombres demasiado cortos; validamos del lado cliente para dar un error claro.
+internal const val MIN_DEVICE_NAME_LENGTH = 3
+
+internal fun isDeviceNameValid(name: String): Boolean = name.trim().length >= MIN_DEVICE_NAME_LENGTH
+
 internal val PendingDevicesSaver = listSaver<SnapshotStateList<PendingDevice>, String>(
     save = { list ->
         list.map {
@@ -246,6 +251,7 @@ fun AddDevicesToRoomDialog(
                     AddDevicesFooter(
                         step = step,
                         hasDevices = hasDevices,
+                        canProceed = step == 1 || devices.all { isDeviceNameValid(it.name) },
                         onBack = { if (step > 1) step -= 1 },
                         onNext = { if (hasDevices && step < 3) step += 1 },
                         onConfirm = { onConfirm(selectedRoomId, devices.toList()) },
@@ -588,6 +594,11 @@ private fun CustomizeDeviceRow(
                 DeleteDeviceButton(onClick = onRemove)
             }
             Spacer(modifier = Modifier.height(12.dp))
+            val nameError = when {
+                device.name.isBlank() -> R.string.rooms_error_required_name
+                !isDeviceNameValid(device.name) -> R.string.rooms_error_name_too_short
+                else -> null
+            }
             OutlinedTextField(
                 value = device.name,
                 onValueChange = onRename,
@@ -595,6 +606,8 @@ private fun CustomizeDeviceRow(
                 placeholder = { Text(stringResource(R.string.rooms_device_name_placeholder)) },
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp),
+                isError = nameError != null,
+                supportingText = nameError?.let { { Text(stringResource(it)) } },
                 trailingIcon = {
                     if (device.name.isNotEmpty()) {
                         IconButton(onClick = onClear) {
@@ -856,6 +869,7 @@ private fun DeviceIconTileRoom(roomType: RoomType) {
 private fun AddDevicesFooter(
     step: Int,
     hasDevices: Boolean,
+    canProceed: Boolean,
     onBack: () -> Unit,
     onNext: () -> Unit,
     onConfirm: () -> Unit,
@@ -881,6 +895,7 @@ private fun AddDevicesFooter(
         if (hasDevices) {
             Button(
                 onClick = if (step < 3) onNext else onConfirm,
+                enabled = canProceed,
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = BrandIndigoDark,
@@ -908,7 +923,12 @@ fun EditDeviceDialog(
 ) {
     var name by rememberSaveable(device.id) { mutableStateOf(device.name) }
     var submitted by rememberSaveable(device.id) { mutableStateOf(false) }
-    val showNameError = submitted && name.isBlank()
+    val nameErrorRes = when {
+        name.isBlank() -> R.string.rooms_error_required_name
+        !isDeviceNameValid(name) -> R.string.rooms_error_name_too_short
+        else -> null
+    }
+    val showNameError = submitted && nameErrorRes != null
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -948,8 +968,8 @@ fun EditDeviceDialog(
                             singleLine = true,
                             isError = showNameError,
                             supportingText = {
-                                if (showNameError) {
-                                    Text(text = stringResource(R.string.rooms_error_required_name))
+                                if (showNameError && nameErrorRes != null) {
+                                    Text(text = stringResource(nameErrorRes))
                                 }
                             },
                         )
@@ -959,7 +979,7 @@ fun EditDeviceDialog(
                         confirmLabel = stringResource(R.string.rooms_save_changes),
                         onConfirm = {
                             submitted = true
-                            if (name.isNotBlank()) {
+                            if (isDeviceNameValid(name)) {
                                 onConfirm(name)
                             }
                         },

@@ -86,7 +86,8 @@ fun deviceActionOptionLabel(value: String): String {
         "full" -> R.string.rooms_action_value_full
         "vacuum" -> R.string.rooms_action_value_vacuum
         "mop" -> R.string.rooms_action_value_mop
-        "classical" -> R.string.rooms_action_value_classical
+        "clasica" -> R.string.rooms_action_value_classical
+        "latina" -> R.string.rooms_action_value_latina
         else -> null
     }
     return res?.let { stringResource(it) } ?: value
@@ -120,6 +121,10 @@ fun deviceActionSubtitle(actionName: String): String? {
 // Título limpio (sustantivo) por acción; tiene prioridad sobre los strings de historial en pasado.
 @StringRes
 private fun actionTitleRes(actionName: String): Int? = when {
+    actionName.equals("open", ignoreCase = true) -> R.string.routine_action_open
+    actionName.equals("close", ignoreCase = true) -> R.string.routine_action_close
+    actionName.equals("lock", ignoreCase = true) -> R.string.rooms_device_lock
+    actionName.equals("unlock", ignoreCase = true) -> R.string.rooms_device_unlock
     actionName.equals("setVerticalSwing", ignoreCase = true) -> R.string.rooms_action_title_vertical_swing
     actionName.equals("setHorizontalSwing", ignoreCase = true) -> R.string.rooms_action_title_horizontal_swing
     actionName.equals("setFanSpeed", ignoreCase = true) -> R.string.rooms_action_title_fan_speed
@@ -228,17 +233,51 @@ fun deviceCategoryLabel(type: DeviceTypeInfo): String = stringResource(
 // Door usa locked/unlocked; blinds usa open/closed; el resto on/off. Todo derivado del estado del device.
 data class DeviceStatusUi(@StringRes val labelRes: Int, val active: Boolean)
 
-// Devuelve null para tipos sin on/off real (p. ej. heladera): no mostramos un estado engañoso.
-fun deviceStatus(device: Device): DeviceStatusUi? {
-    if (!DeviceActionNames.supportsToggle(device.type)) return null
-    return when (device.type.canonicalName) {
-        DeviceTypeNames.DOOR -> {
-            val locked = device.locked == true
-            DeviceStatusUi(if (locked) R.string.rooms_status_locked else R.string.rooms_status_unlocked, locked)
+// Una puerta tiene dos estados independientes (apertura y bloqueo), por eso puede devolver dos items.
+fun deviceStatuses(device: Device): List<DeviceStatusUi> {
+    if (device.type.canonicalName == DeviceTypeNames.ALARM) {
+        return when (device.state.status) {
+            "armedstay", "armedhome" ->
+                listOf(DeviceStatusUi(R.string.rooms_status_alarm_home, active = true))
+            "armedaway", "armed" ->
+                listOf(DeviceStatusUi(R.string.rooms_status_alarm_regular, active = true))
+            "disarmed" ->
+                listOf(DeviceStatusUi(R.string.rooms_status_alarm_disarmed, active = false))
+            else -> emptyList()
         }
-        DeviceTypeNames.BLINDS ->
-            DeviceStatusUi(if (device.isOn) R.string.rooms_status_open else R.string.rooms_status_closed, device.isOn)
+    }
+    if (!DeviceActionNames.supportsToggle(device.type)) return emptyList()
+    return when (device.type.canonicalName) {
+        DeviceTypeNames.DOOR -> buildList {
+            when (device.state.status) {
+                "open", "opened" -> add(DeviceStatusUi(R.string.rooms_status_open, active = true))
+                "opening" -> add(DeviceStatusUi(R.string.rooms_status_opening, active = true))
+                "closed" -> add(DeviceStatusUi(R.string.rooms_status_closed, active = false))
+                "closing" -> add(DeviceStatusUi(R.string.rooms_status_closing, active = false))
+            }
+            when (device.state.string("lock")?.lowercase()) {
+                "locked" -> add(DeviceStatusUi(R.string.rooms_status_locked, active = true))
+                "unlocked" -> add(DeviceStatusUi(R.string.rooms_status_unlocked, active = false))
+            }
+        }
+        DeviceTypeNames.BLINDS -> when (device.state.status) {
+            // Estados reales de la persiana (getState): cerrada/cerrándose/abriéndose/abierta.
+            "closing" -> listOf(DeviceStatusUi(R.string.rooms_status_closing, active = false))
+            "opening" -> listOf(DeviceStatusUi(R.string.rooms_status_opening, active = true))
+            "closed" -> listOf(DeviceStatusUi(R.string.rooms_status_closed, active = false))
+            else -> listOf(DeviceStatusUi(R.string.rooms_status_open, active = device.isOn))
+        }
+        DeviceTypeNames.FAUCET ->
+            listOf(
+                DeviceStatusUi(
+                    if (device.isOn) R.string.rooms_status_faucet_open else R.string.rooms_status_faucet_closed,
+                    device.isOn,
+                ),
+            )
         else ->
-            DeviceStatusUi(if (device.isOn) R.string.rooms_status_on else R.string.rooms_status_off, device.isOn)
+            listOf(DeviceStatusUi(if (device.isOn) R.string.rooms_status_on else R.string.rooms_status_off, device.isOn))
     }
 }
+
+// Compatibilidad para consumidores que solo necesiten un indicador.
+fun deviceStatus(device: Device): DeviceStatusUi? = deviceStatuses(device).firstOrNull()

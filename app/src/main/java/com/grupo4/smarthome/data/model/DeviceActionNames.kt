@@ -17,8 +17,9 @@ object DeviceActionNames {
     const val UNLOCK = "unlock"
 
     // Candidatos de encendido/apagado: se ejecuta el primero que el tipo soporte según el catálogo.
-    val ON_CANDIDATES = listOf("turnOn", "open", "play", "start", "armAway", "arm")
-    val OFF_CANDIDATES = listOf("turnOff", "close", "pause", "stop", "dock", "disarm")
+    // `up`/`down` van al final: son el abrir/cerrar completo de la persiana (otros tipos ya matchean antes).
+    val ON_CANDIDATES = listOf("turnOn", "open", "play", "start", "armAway", "arm", "up")
+    val OFF_CANDIDATES = listOf("turnOff", "close", "pause", "stop", "dock", "disarm", "down")
 
     /**
      * ¿El tipo tiene un on/off real para mostrar un toggle/estado en la card? Puertas → lock/unlock;
@@ -33,6 +34,16 @@ object DeviceActionNames {
         val hasOn = ON_CANDIDATES.any { type.supports(it) }
         val hasOff = OFF_CANDIDATES.any { type.supports(it) }
         return hasOn && hasOff
+    }
+
+    /**
+     * Tipos cuyo estado "apagado/cerrado" impide configurarlos (hay que encenderlos/abrirlos primero):
+     * luz, AC y horno (apagados) y grifo (cerrado no dispensa). En cambio, parlante (pausado), aspiradora
+     * (en base) y persiana (cerrada → poner posición la abre) SÍ se configuran estando "off".
+     */
+    fun gatesConfigurationWhenOff(type: DeviceTypeInfo): Boolean = when (type.canonicalName) {
+        DeviceTypeNames.LIGHT, DeviceTypeNames.AC, DeviceTypeNames.OVEN, DeviceTypeNames.FAUCET -> true
+        else -> false
     }
 
     /** Acción del slider primario de la card según el tipo canónico; null = sin slider primario. */

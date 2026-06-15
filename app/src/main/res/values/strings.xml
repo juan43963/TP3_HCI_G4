@@ -382,6 +382,7 @@
     <string name="rooms_room_name_placeholder">E.g.: Living room, Kitchen, Bedroom</string>
     <string name="rooms_field_type">Type *</string>
     <string name="rooms_error_required_name">Enter a name.</string>
+    <string name="rooms_error_name_too_short">The name must be at least 3 characters.</string>
     <string name="rooms_error_required_type">Select a type.</string>
     <string name="rooms_cancel">Cancel</string>
     <string name="rooms_save_changes">Save changes</string>
@@ -443,6 +444,7 @@
     <string name="rooms_device_apply">Apply</string>
     <string name="rooms_device_power">Power</string>
     <string name="rooms_device_quick_controls">Quick controls</string>
+    <string name="rooms_device_turn_on_to_configure">Turn the device on to configure it</string>
     <string name="rooms_device_color">Color</string>
     <string name="rooms_device_quantity">Quantity</string>
     <string name="rooms_device_enter_amount">Enter amount</string>
@@ -493,7 +495,7 @@
     <string name="rooms_action_title_previous_song">Previous song</string>
     <string name="rooms_action_title_color">Color</string>
     <string name="rooms_action_title_get_playlist">View playlist</string>
-    <string name="rooms_action_title_get_status">Check status</string>
+    <string name="rooms_action_title_get_status">Refresh status</string>
     <string name="rooms_action_title_get_info">View information</string>
     <string name="rooms_action_value_cool">Cool</string>
     <string name="rooms_action_value_heat">Heat</string>
@@ -504,7 +506,7 @@
     <string name="rooms_action_value_low">Low</string>
     <string name="rooms_action_value_mid">Mid</string>
     <string name="rooms_action_value_high">High</string>
-    <string name="rooms_action_value_default">Default</string>
+    <string name="rooms_action_value_default">Normal</string>
     <string name="rooms_action_value_vacation">Vacation</string>
     <string name="rooms_action_value_party">Party</string>
     <string name="rooms_action_value_conventional">Conventional</string>
@@ -516,6 +518,7 @@
     <string name="rooms_action_value_vacuum">Vacuum</string>
     <string name="rooms_action_value_mop">Mop</string>
     <string name="rooms_action_value_classical">Classical</string>
+    <string name="rooms_action_value_latina">Latin</string>
     <string name="rooms_device_category_lighting">Lighting</string>
     <string name="rooms_device_category_security">Security</string>
     <string name="rooms_device_category_access">Access</string>
@@ -532,6 +535,15 @@
     <string name="rooms_status_unlocked">Unlocked</string>
     <string name="rooms_status_open">Open</string>
     <string name="rooms_status_closed">Closed</string>
+    <string name="rooms_status_faucet_open">Open</string>
+    <string name="rooms_status_faucet_closed">Closed</string>
+    <string name="rooms_status_opening">Opening</string>
+    <string name="rooms_status_closing">Closing</string>
+    <string name="rooms_status_alarm_home">Armed: home mode</string>
+    <string name="rooms_status_alarm_regular">Armed: regular mode</string>
+    <string name="rooms_status_alarm_disarmed">Disarmed</string>
+    <string name="rooms_fridge_temperature_status">Fridge %1$d°C</string>
+    <string name="rooms_fridge_freezer_status">Freezer %1$d°C</string>
     <string name="rooms_retry">Retry</string>
 
     <string name="routines_edit">Edit</string>
