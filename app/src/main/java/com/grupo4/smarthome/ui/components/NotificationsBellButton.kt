@@ -8,6 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -31,7 +32,11 @@ fun NotificationsBellButton(
 ) {
     val hasUnread = unreadCount > 0
     val description = if (hasUnread) {
-        stringResource(R.string.notifications_badge_count_content_description, unreadCount)
+        pluralStringResource(
+            R.plurals.notifications_badge_count_content_description,
+            unreadCount,
+            unreadCount,
+        )
     } else {
         stringResource(R.string.notifications_open_content_description)
     }

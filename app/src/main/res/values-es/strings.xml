@@ -183,8 +183,16 @@
     <string name="first_home_subtitle">Empezá configurando tu primer hogar para organizar habitaciones y tareas.</string>
     <string name="first_home_illustration_cd">Ilustración de un hogar</string>
     <string name="select_home_retry">Reintentar</string>
-    <string name="select_home_rooms_count">%1$d habitaciones</string>
-    <string name="select_home_devices_count">%1$d dispositivos</string>
+    <plurals name="select_home_rooms_count">
+        <item quantity="one">%1$d habitación</item>
+        <item quantity="other">%1$d habitaciones</item>
+        <item quantity="many">%1$d habitaciones</item>
+    </plurals>
+    <plurals name="select_home_devices_count">
+        <item quantity="one">%1$d dispositivo</item>
+        <item quantity="other">%1$d dispositivos</item>
+        <item quantity="many">%1$d dispositivos</item>
+    </plurals>
     <string name="select_home_photo_placeholder">Foto · %1$s</string>
     <string name="select_home_browse_files">or browse files</string>
     <string name="select_home_card_menu_content_description">Más opciones</string>
@@ -354,7 +362,11 @@
     <string name="rooms_favorite_content_description">Marcar habitación como favorita</string>
     <string name="rooms_back_to_rooms">Habitaciones</string>
     <string name="rooms_detail_subtitle">Gestioná los dispositivos de esta habitación</string>
-    <string name="rooms_detail_summary">%1$d de %2$d dispositivos activos</string>
+    <plurals name="rooms_detail_summary">
+        <item quantity="one">%1$d de %2$d dispositivo activo</item>
+        <item quantity="other">%1$d de %2$d dispositivos activos</item>
+        <item quantity="many">%1$d de %2$d dispositivos activos</item>
+    </plurals>
     <string name="rooms_add_device">Agregar dispositivo</string>
     <string name="rooms_add_device_short">Agregar</string>
     <string name="rooms_add_content_description">Agregar en habitaciones</string>
@@ -557,7 +569,11 @@
     <string name="routines_category_comfort">Confort</string>
     <string name="routines_category_security">Seguridad</string>
     <string name="routines_category_custom">Personalizada</string>
-    <string name="routines_more_actions">+%1$d acciones más</string>
+    <plurals name="routines_more_actions">
+        <item quantity="one">+%1$d acción más</item>
+        <item quantity="other">+%1$d acciones más</item>
+        <item quantity="many">+%1$d acciones más</item>
+    </plurals>
     <string name="routines_executed">Se ejecutó “%1$s”.</string>
     <string name="routines_retry">Reintentar</string>
     <string name="routines_favorite_content_description">Marcar como favorita</string>
@@ -677,7 +693,11 @@
     <string name="routine_detail_delete">Eliminar rutina</string>
     <string name="routine_detail_automated">Rutina automatizada</string>
     <string name="routine_detail_enabled">Activar rutina</string>
-    <string name="routine_detail_summary_actions">%1$d acciones</string>
+    <plurals name="routine_detail_summary_actions">
+        <item quantity="one">%1$d acción</item>
+        <item quantity="other">%1$d acciones</item>
+        <item quantity="many">%1$d acciones</item>
+    </plurals>
     <string name="routine_detail_schedule_title">Horario</string>
     <string name="routine_detail_days_title">Días</string>
     <string name="routine_detail_actions_title">Acciones</string>
@@ -724,21 +744,28 @@
     <plurals name="rooms_active_devices_progress">
         <item quantity="one">%1$d de %2$d activo</item>
         <item quantity="other">%1$d de %2$d activos</item>
+        <item quantity="many">%1$d de %2$d activos</item>
     </plurals>
     <plurals name="rooms_devices_count">
         <item quantity="one">%1$d dispositivo</item>
         <item quantity="other">%1$d dispositivos</item>
+        <item quantity="many">%1$d dispositivos</item>
     </plurals>
     <plurals name="rooms_active_count">
         <item quantity="one">%1$d activo</item>
         <item quantity="other">%1$d activos</item>
+        <item quantity="many">%1$d activos</item>
     </plurals>
 
     <string name="nav_notifications">Notificaciones</string>
     <string name="nav_search">Buscar</string>
     <string name="notifications_open_content_description">Abrir notificaciones</string>
     <string name="notifications_badge_overflow">9+</string>
-    <string name="notifications_badge_count_content_description">%1$d notificaciones sin leer</string>
+    <plurals name="notifications_badge_count_content_description">
+        <item quantity="one">%1$d notificación sin leer</item>
+        <item quantity="other">%1$d notificaciones sin leer</item>
+        <item quantity="many">%1$d notificaciones sin leer</item>
+    </plurals>
     <string name="notifications_title">Notificaciones</string>
     <string name="notifications_subtitle">Avisos sobre lo que pasa en tu hogar.</string>
     <string name="notifications_settings_content_description">Configurar notificaciones</string>

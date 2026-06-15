@@ -38,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -344,11 +345,19 @@ internal fun HomeCard(
             ) {
                 MetricRow(
                     icon = SmartHomeIcons.Rooms,
-                    text = stringResource(R.string.select_home_rooms_count, home.roomsCount),
+                    text = pluralStringResource(
+                        R.plurals.select_home_rooms_count,
+                        home.roomsCount,
+                        home.roomsCount,
+                    ),
                 )
                 MetricRow(
                     icon = SmartHomeIcons.Devices,
-                    text = stringResource(R.string.select_home_devices_count, home.devicesCount),
+                    text = pluralStringResource(
+                        R.plurals.select_home_devices_count,
+                        home.devicesCount,
+                        home.devicesCount,
+                    ),
                 )
             }
         }

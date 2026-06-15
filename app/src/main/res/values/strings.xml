@@ -184,8 +184,14 @@
     <string name="first_home_subtitle">Start by setting up your first home so you can organize rooms and tasks.</string>
     <string name="first_home_illustration_cd">Illustration of a home</string>
     <string name="select_home_retry">Retry</string>
-    <string name="select_home_rooms_count">%1$d rooms</string>
-    <string name="select_home_devices_count">%1$d devices</string>
+    <plurals name="select_home_rooms_count">
+        <item quantity="one">%1$d room</item>
+        <item quantity="other">%1$d rooms</item>
+    </plurals>
+    <plurals name="select_home_devices_count">
+        <item quantity="one">%1$d device</item>
+        <item quantity="other">%1$d devices</item>
+    </plurals>
     <string name="select_home_photo_placeholder">Photo · %1$s</string>
     <string name="select_home_browse_files">or browse files</string>
     <string name="select_home_card_menu_content_description">More options</string>
@@ -355,7 +361,10 @@
     <string name="rooms_favorite_content_description">Mark room as favorite</string>
     <string name="rooms_back_to_rooms">Rooms</string>
     <string name="rooms_detail_subtitle">Manage this room\'s devices</string>
-    <string name="rooms_detail_summary">%1$d of %2$d active devices</string>
+    <plurals name="rooms_detail_summary">
+        <item quantity="one">%1$d of %2$d active device</item>
+        <item quantity="other">%1$d of %2$d active devices</item>
+    </plurals>
     <string name="rooms_add_device">Add device</string>
     <string name="rooms_add_device_short">Add</string>
     <string name="rooms_add_content_description">Add in rooms</string>
@@ -558,7 +567,10 @@
     <string name="routines_category_comfort">Comfort</string>
     <string name="routines_category_security">Security</string>
     <string name="routines_category_custom">Custom</string>
-    <string name="routines_more_actions">+%1$d more actions</string>
+    <plurals name="routines_more_actions">
+        <item quantity="one">+%1$d more action</item>
+        <item quantity="other">+%1$d more actions</item>
+    </plurals>
     <string name="routines_executed">\"%1$s\" ran.</string>
     <string name="routines_retry">Retry</string>
     <string name="routines_favorite_content_description">Mark as favorite</string>
@@ -678,7 +690,10 @@
     <string name="routine_detail_delete">Delete routine</string>
     <string name="routine_detail_automated">Automated routine</string>
     <string name="routine_detail_enabled">Enable routine</string>
-    <string name="routine_detail_summary_actions">%1$d actions</string>
+    <plurals name="routine_detail_summary_actions">
+        <item quantity="one">%1$d action</item>
+        <item quantity="other">%1$d actions</item>
+    </plurals>
     <string name="routine_detail_schedule_title">Schedule</string>
     <string name="routine_detail_days_title">Days</string>
     <string name="routine_detail_actions_title">Actions</string>
@@ -739,7 +754,10 @@
     <string name="nav_search">Search</string>
     <string name="notifications_open_content_description">Open notifications</string>
     <string name="notifications_badge_overflow">9+</string>
-    <string name="notifications_badge_count_content_description">%1$d unread notifications</string>
+    <plurals name="notifications_badge_count_content_description">
+        <item quantity="one">%1$d unread notification</item>
+        <item quantity="other">%1$d unread notifications</item>
+    </plurals>
     <string name="notifications_title">Notifications</string>
     <string name="notifications_subtitle">Updates about what\'s happening in your home.</string>
     <string name="notifications_settings_content_description">Configure notifications</string>

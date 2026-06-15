@@ -37,5 +37,5 @@ class ProfileRepositoryImpl(
             }
         }.getOrElse { throwable ->
             AppResult.Error(ErrorMapper.fromThrowable(throwable))
-        }
+        }.expireSessionOnUnauthorized(sessionManager)
 }

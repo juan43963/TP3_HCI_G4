@@ -34,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -358,7 +359,12 @@ private fun PhoneRoomDetailHeader(
                         .background(MaterialTheme.colorScheme.primary, CircleShape),
                 )
                 Text(
-                    text = stringResource(R.string.rooms_detail_summary, activeDevices, devicesTotal),
+                    text = pluralStringResource(
+                        R.plurals.rooms_detail_summary,
+                        devicesTotal,
+                        activeDevices,
+                        devicesTotal,
+                    ),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,

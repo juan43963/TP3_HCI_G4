@@ -1,11 +1,11 @@
 package com.grupo4.smarthome.data.repository
 
-import android.util.Log
 import com.grupo4.smarthome.core.network.ApiJson
 import com.grupo4.smarthome.core.result.ApiError
 import com.grupo4.smarthome.core.result.AppResult
 import com.grupo4.smarthome.core.result.ErrorKind
 import com.grupo4.smarthome.core.result.ErrorMapper
+import com.grupo4.smarthome.data.local.SessionManager
 import com.grupo4.smarthome.data.model.ActionArg
 import com.grupo4.smarthome.data.model.Device
 import com.grupo4.smarthome.data.model.DeviceActionInfo
@@ -34,6 +34,7 @@ import kotlinx.serialization.json.buildJsonObject
 
 class DevicesRepositoryImpl(
     private val devicesApi: DevicesApi,
+    private val sessionManager: SessionManager,
     private val localActionTracker: LocalActionTracker = LocalActionTracker(),
 ) : DevicesRepository {
     // Catálogo de tipos cacheado en memoria (ya mapeado al dominio): resuelve type.id -> DeviceTypeInfo
@@ -52,12 +53,13 @@ class DevicesRepositoryImpl(
             }
         }.getOrElse { throwable ->
             AppResult.Error(ErrorMapper.fromThrowable(throwable))
-        }
+        }.expireSessionOnUnauthorized(sessionManager)
 
     override suspend fun getDeviceTypes(): AppResult<List<DeviceTypeInfo>> =
         runCatching {
             ensureDeviceTypes()?.let { AppResult.Success(it) } ?: catalogError()
         }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
+            .expireSessionOnUnauthorized(sessionManager)
 
     override suspend fun getRoomDevices(roomId: String): AppResult<List<Device>> =
         runCatching {
@@ -70,6 +72,7 @@ class DevicesRepositoryImpl(
                 AppResult.Error(ErrorMapper.fromHttp(response.status, body))
             }
         }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
+            .expireSessionOnUnauthorized(sessionManager)
 
     override suspend fun createDevice(
         roomId: String,
@@ -78,7 +81,6 @@ class DevicesRepositoryImpl(
         qrId: String?,
     ): AppResult<Device> =
         runCatching {
-            Log.d("CreateDeviceAudit", "CREATE_START roomId=$roomId type=${type.name} name=$name deviceId=unknown ts=${System.currentTimeMillis()}")
             val catalog = ensureDeviceTypes() ?: return@runCatching catalogError()
             // El id del tipo ya viene validado (no-blank) desde el catálogo: lo usamos directo.
             val response = devicesApi.createDevice(
@@ -97,7 +99,6 @@ class DevicesRepositoryImpl(
             val created = ApiJson.Instance.decodeFromString(DeviceDto.serializer(), body)
                 .toDomain({ catalog.byId(it) }, roomId)
                 ?: return@runCatching AppResult.Error(ApiError(ErrorKind.Unknown))
-            Log.d("CreateDeviceAudit", "CREATE_RESPONSE deviceId=${created.id} ts=${System.currentTimeMillis()}")
 
             if (created.id.isNotBlank()) {
                 localActionTracker.record(created.id, NotificationKind.DEVICE_CREATED)
@@ -130,6 +131,7 @@ class DevicesRepositoryImpl(
                 afterAssociate?.firstOrNull { it.id == created.id } ?: created.copy(roomId = roomId)
             )
         }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
+            .expireSessionOnUnauthorized(sessionManager)
 
     override suspend fun renameDevice(deviceId: String, name: String): AppResult<Device> =
         runCatching {
@@ -147,6 +149,7 @@ class DevicesRepositoryImpl(
             )
             parseDeviceResponse(response, catalog, current.room?.id.orEmpty())
         }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
+            .expireSessionOnUnauthorized(sessionManager)
 
     override suspend fun deleteDevice(deviceId: String): AppResult<Unit> =
         runCatching {
@@ -158,6 +161,7 @@ class DevicesRepositoryImpl(
                 AppResult.Error(ErrorMapper.fromHttp(response.status, response.bodyAsText()))
             }
         }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
+            .expireSessionOnUnauthorized(sessionManager)
 
     override suspend fun toggleDevice(device: Device): AppResult<Device> {
         val actionName = resolveToggleActionName(device)
@@ -215,6 +219,7 @@ class DevicesRepositoryImpl(
                     if (resultText != null) AppResult.Success(DeviceActionResult(device, resultText)) else refreshed
             }
         }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
+            .expireSessionOnUnauthorized(sessionManager)
 
     override suspend fun refreshDevice(device: Device): AppResult<Device> =
         runCatching {
@@ -223,6 +228,7 @@ class DevicesRepositoryImpl(
             // nunca un PATCH: cubre el requisito de "obtener estado" sin depender de la forma de /state.
             refetchDevice(device.id, device.roomId, catalog)
         }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
+            .expireSessionOnUnauthorized(sessionManager)
 
     override suspend fun getActionsFor(type: DeviceTypeInfo): AppResult<List<DeviceActionInfo>> =
         runCatching {
@@ -230,6 +236,7 @@ class DevicesRepositoryImpl(
             val catalog = ensureDeviceTypes() ?: return@runCatching catalogError()
             AppResult.Success(catalog.byId(type.id)?.actions.orEmpty())
         }.getOrElse { AppResult.Error(ErrorMapper.fromThrowable(it)) }
+            .expireSessionOnUnauthorized(sessionManager)
 
     // --- Helpers de red ---
 
@@ -264,6 +271,7 @@ class DevicesRepositoryImpl(
             if (response.status.isSuccess()) {
                 ApiJson.Instance.decodeFromString(DeviceDto.serializer(), response.bodyAsText())
             } else {
+                sessionManager.expireSessionIfUnauthorized(response.status)
                 null
             }
         }.getOrNull()
@@ -271,7 +279,12 @@ class DevicesRepositoryImpl(
     private suspend fun fetchRoomDevicesOrNull(roomId: String, catalog: List<DeviceTypeInfo>): List<Device>? =
         runCatching {
             val response = devicesApi.getRoomDevices(roomId)
-            if (response.status.isSuccess()) parseDevices(response.bodyAsText(), roomId, catalog) else null
+            if (response.status.isSuccess()) {
+                parseDevices(response.bodyAsText(), roomId, catalog)
+            } else {
+                sessionManager.expireSessionIfUnauthorized(response.status)
+                null
+            }
         }.getOrNull()
 
     private fun parseDevices(body: String, roomId: String, catalog: List<DeviceTypeInfo>): List<Device> =
@@ -291,6 +304,7 @@ class DevicesRepositoryImpl(
                     .mapNotNull { it.toDomain() }
                     .also { deviceTypesCache = it }
             } else {
+                sessionManager.expireSessionIfUnauthorized(response.status)
                 null
             }
         }.getOrNull()

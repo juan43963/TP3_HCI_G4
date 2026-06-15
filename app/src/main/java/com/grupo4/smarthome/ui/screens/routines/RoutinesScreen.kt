@@ -43,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -594,7 +595,11 @@ internal fun RoutineCard(
                 }
                 if (routine.extraActions > 0) {
                     Text(
-                        text = stringResource(R.string.routines_more_actions, routine.extraActions),
+                        text = pluralStringResource(
+                            R.plurals.routines_more_actions,
+                            routine.extraActions,
+                            routine.extraActions,
+                        ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(start = 24.dp),

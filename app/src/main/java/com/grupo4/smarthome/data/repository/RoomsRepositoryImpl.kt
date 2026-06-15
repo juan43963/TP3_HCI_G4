@@ -5,6 +5,7 @@ import com.grupo4.smarthome.core.result.ApiError
 import com.grupo4.smarthome.core.result.AppResult
 import com.grupo4.smarthome.core.result.ErrorKind
 import com.grupo4.smarthome.core.result.ErrorMapper
+import com.grupo4.smarthome.data.local.SessionManager
 import com.grupo4.smarthome.data.model.Room
 import com.grupo4.smarthome.data.model.RoomType
 import com.grupo4.smarthome.data.remote.api.RoomsApi
@@ -21,6 +22,7 @@ import kotlinx.serialization.builtins.ListSerializer
 
 class RoomsRepositoryImpl(
     private val roomsApi: RoomsApi,
+    private val sessionManager: SessionManager,
 ) : RoomsRepository {
     // Caché en memoria (ADR-0005): preserva type/favorite para reconstruir metadata en updates
     private var cachedRooms: List<Room> = emptyList()
@@ -39,7 +41,7 @@ class RoomsRepositoryImpl(
             }
         }.getOrElse { throwable ->
             AppResult.Error(ErrorMapper.fromThrowable(throwable))
-        }
+        }.expireSessionOnUnauthorized(sessionManager)
 
     override suspend fun createRoom(
         homeId: String,
@@ -93,7 +95,7 @@ class RoomsRepositoryImpl(
             AppResult.Success(afterAssociate?.firstOrNull { it.id == created.id } ?: created)
         }.getOrElse { throwable ->
             AppResult.Error(ErrorMapper.fromThrowable(throwable))
-        }
+        }.expireSessionOnUnauthorized(sessionManager)
 
     override suspend fun renameRoom(
         roomId: String,
@@ -119,7 +121,7 @@ class RoomsRepositoryImpl(
             parseRoomResponse(response)
         }.getOrElse { throwable ->
             AppResult.Error(ErrorMapper.fromThrowable(throwable))
-        }
+        }.expireSessionOnUnauthorized(sessionManager)
 
     override suspend fun deleteRoom(homeId: String, roomId: String): AppResult<Unit> =
         runCatching {
@@ -133,7 +135,7 @@ class RoomsRepositoryImpl(
             }
         }.getOrElse { throwable ->
             AppResult.Error(ErrorMapper.fromThrowable(throwable))
-        }
+        }.expireSessionOnUnauthorized(sessionManager)
 
     override suspend fun toggleRoomFavorite(roomId: String): AppResult<Room> =
         runCatching {
@@ -155,7 +157,7 @@ class RoomsRepositoryImpl(
             parseRoomResponse(response)
         }.getOrElse { throwable ->
             AppResult.Error(ErrorMapper.fromThrowable(throwable))
-        }
+        }.expireSessionOnUnauthorized(sessionManager)
 
     // Parsea la respuesta de un único Room y actualiza la caché; mapea el error si no fue 2xx
     private suspend fun parseRoomResponse(response: HttpResponse): AppResult<Room> {
@@ -181,6 +183,7 @@ class RoomsRepositoryImpl(
             if (response.status.isSuccess()) {
                 ApiJson.Instance.decodeFromString(RoomDto.serializer(), response.bodyAsText()).toDomain()
             } else {
+                sessionManager.expireSessionIfUnauthorized(response.status)
                 null
             }
         }.getOrNull()
@@ -190,7 +193,12 @@ class RoomsRepositoryImpl(
     private suspend fun fetchRoomsOrNull(homeId: String): List<Room>? =
         runCatching {
             val response = roomsApi.getRoomsByHome(homeId)
-            if (response.status.isSuccess()) parseRooms(response.bodyAsText()) else null
+            if (response.status.isSuccess()) {
+                parseRooms(response.bodyAsText())
+            } else {
+                sessionManager.expireSessionIfUnauthorized(response.status)
+                null
+            }
         }.getOrNull()
 
     private fun parseRooms(body: String): List<Room> =

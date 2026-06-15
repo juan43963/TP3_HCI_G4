@@ -56,21 +56,23 @@ class AppContainer(context: Context) {
 
     private val homesApi: HomesApi = HomesApi(httpClient)
 
-    val homesRepository: HomesRepository = HomesRepositoryImpl(homesApi)
+    val homesRepository: HomesRepository = HomesRepositoryImpl(homesApi, sessionManager)
 
     private val roomsApi: RoomsApi = RoomsApi(httpClient)
 
-    val roomsRepository: RoomsRepository = RoomsRepositoryImpl(roomsApi)
+    val roomsRepository: RoomsRepository = RoomsRepositoryImpl(roomsApi, sessionManager)
 
     private val devicesApi: DevicesApi = DevicesApi(httpClient)
 
     private val localActionTracker: LocalActionTracker = LocalActionTracker()
 
-    val devicesRepository: DevicesRepository = DevicesRepositoryImpl(devicesApi, localActionTracker)
+    val devicesRepository: DevicesRepository =
+        DevicesRepositoryImpl(devicesApi, sessionManager, localActionTracker)
 
     private val routinesApi: RoutinesApi = RoutinesApi(httpClient)
 
-    val routinesRepository: RoutinesRepository = RoutinesRepositoryImpl(routinesApi, localActionTracker)
+    val routinesRepository: RoutinesRepository =
+        RoutinesRepositoryImpl(routinesApi, sessionManager, localActionTracker)
 
     private val socketClient: SmartHomeSocketClient =
         SmartHomeSocketClient { sessionManager.currentToken() }

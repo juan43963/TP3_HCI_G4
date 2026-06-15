@@ -36,4 +36,7 @@ class SessionManager(
     suspend fun clearSession() {
         sessionDataStore.clearSession()
     }
+
+    // Sesión rechazada por el servidor (401). Hoy equivale a clearSession().
+    suspend fun expireSession() = clearSession()
 }

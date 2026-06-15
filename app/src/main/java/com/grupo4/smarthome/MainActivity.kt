@@ -385,6 +385,20 @@ fun SmartHomeApp(
         }
     }
 
+    LaunchedEffect(sessionState, currentBaseRoute) {
+        if (sessionState is SessionState.Unauthenticated &&
+            currentBaseRoute != null &&
+            currentBaseRoute !in AuthScreen.routes
+        ) {
+            isDrawerVisible = false
+            showAddHome = false
+            navController.navigate(AuthScreen.Welcome.route) {
+                popUpTo(0) { inclusive = true }
+                launchSingleTop = true
+            }
+        }
+    }
+
     val notificationsViewModel: NotificationsViewModel = viewModel(
         factory = remember(homesApplication) {
             NotificationsViewModelFactory(
@@ -522,10 +536,11 @@ fun SmartHomeApp(
                     Unit
                 }
                 val loginContext = LocalContext.current
+                val accountNotVerifiedMessage = stringResource(R.string.login_account_not_verified)
                 val onNeedsVerification: (String, String) -> Unit = { email, password ->
                     Toast.makeText(
                         loginContext,
-                        loginContext.getString(R.string.login_account_not_verified),
+                        accountNotVerifiedMessage,
                         Toast.LENGTH_LONG,
                     ).show()
                     navController.navigate(
@@ -1023,12 +1038,13 @@ fun SmartHomeApp(
                 }
                 val profileViewModel: ProfileViewModel = viewModel(factory = profileFactory)
                 val profileUiState by profileViewModel.uiState.collectAsStateWithLifecycle()
+                val profileSavedMessage = stringResource(R.string.profile_saved)
                 LaunchedEffect(profileUiState.nameSaved) {
                     if (profileUiState.nameSaved) {
                         profileViewModel.consumeNameSaved()
                         Toast.makeText(
                             context,
-                            context.getString(R.string.profile_saved),
+                            profileSavedMessage,
                             Toast.LENGTH_SHORT,
                         ).show()
                     }
@@ -1087,10 +1103,11 @@ fun SmartHomeApp(
                 }
                 val authChangeViewModel: AuthChangePasswordViewModel =
                     viewModel(factory = authChangeFactory)
+                val passwordChangedMessage = stringResource(R.string.auth_change_pwd_success)
                 val onPasswordChanged: () -> Unit = {
                     Toast.makeText(
                         context,
-                        context.getString(R.string.auth_change_pwd_success),
+                        passwordChangedMessage,
                         Toast.LENGTH_LONG,
                     ).show()
                     navController.popBackStack()

@@ -54,6 +54,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -564,8 +565,9 @@ internal fun HeroCard(
                 ) {
                     SummaryItem(
                         icon = SmartHomeIcons.Routines,
-                        text = stringResource(
-                            R.string.routine_detail_summary_actions,
+                        text = pluralStringResource(
+                            R.plurals.routine_detail_summary_actions,
+                            routine.actions.size,
                             routine.actions.size,
                         ),
                     )
@@ -796,8 +798,9 @@ internal fun ActionsCard(
                         color = MaterialTheme.colorScheme.onSurface,
                     )
                     Text(
-                        text = stringResource(
-                            R.string.routine_detail_summary_actions,
+                        text = pluralStringResource(
+                            R.plurals.routine_detail_summary_actions,
+                            actions.size,
                             actions.size,
                         ),
                         style = MaterialTheme.typography.bodyMedium,

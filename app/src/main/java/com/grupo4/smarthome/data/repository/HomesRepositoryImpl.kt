@@ -3,6 +3,7 @@ package com.grupo4.smarthome.data.repository
 import com.grupo4.smarthome.core.network.ApiJson
 import com.grupo4.smarthome.core.result.AppResult
 import com.grupo4.smarthome.core.result.ErrorMapper
+import com.grupo4.smarthome.data.local.SessionManager
 import com.grupo4.smarthome.data.model.Home
 import com.grupo4.smarthome.data.model.HomeType
 import com.grupo4.smarthome.data.model.SharedUser
@@ -20,6 +21,7 @@ import kotlinx.serialization.builtins.ListSerializer
 
 class HomesRepositoryImpl(
     private val homesApi: HomesApi,
+    private val sessionManager: SessionManager,
 ) : HomesRepository {
     // Caché en memoria (ADR-0005): vive con el proceso, no se persiste en DataStore
     private var cachedHomes: List<Home> = emptyList()
@@ -39,7 +41,7 @@ class HomesRepositoryImpl(
             }
         }.getOrElse { throwable ->
             AppResult.Error(ErrorMapper.fromThrowable(throwable))
-        }
+        }.expireSessionOnUnauthorized(sessionManager)
 
     override suspend fun createHome(
         name: String,
@@ -63,7 +65,7 @@ class HomesRepositoryImpl(
             }
         }.getOrElse { throwable ->
             AppResult.Error(ErrorMapper.fromThrowable(throwable))
-        }
+        }.expireSessionOnUnauthorized(sessionManager)
 
     override suspend fun renameHome(homeId: String, name: String): AppResult<Home> =
         runCatching {
@@ -89,7 +91,7 @@ class HomesRepositoryImpl(
             }
         }.getOrElse { throwable ->
             AppResult.Error(ErrorMapper.fromThrowable(throwable))
-        }
+        }.expireSessionOnUnauthorized(sessionManager)
 
     override suspend fun deleteHome(homeId: String): AppResult<Unit> =
         runCatching {
@@ -101,7 +103,7 @@ class HomesRepositoryImpl(
             }
         }.getOrElse { throwable ->
             AppResult.Error(ErrorMapper.fromThrowable(throwable))
-        }
+        }.expireSessionOnUnauthorized(sessionManager)
 
     override suspend fun getSharedUsers(homeId: String): AppResult<List<SharedUser>> =
         runCatching {
@@ -115,7 +117,7 @@ class HomesRepositoryImpl(
             }
         }.getOrElse { throwable ->
             AppResult.Error(ErrorMapper.fromThrowable(throwable))
-        }
+        }.expireSessionOnUnauthorized(sessionManager)
 
     override suspend fun shareHome(homeId: String, email: String): AppResult<List<SharedUser>> =
         runCatching {
@@ -130,7 +132,7 @@ class HomesRepositoryImpl(
             }
         }.getOrElse { throwable ->
             AppResult.Error(ErrorMapper.fromThrowable(throwable))
-        }
+        }.expireSessionOnUnauthorized(sessionManager)
 
     private fun parseSharedUsers(body: String): List<SharedUser> =
         ApiJson.Instance
