@@ -187,9 +187,6 @@ fun List<Room>.withDeviceValueChanged(deviceId: String, value: Int): List<Room> 
     )
 }
 
-// Rango de clamp del update optimista: usa el min/max real del catálogo (primer
-// parámetro de la acción primaria del tipo) y cae al fallback local solo si la
-// API no trae rango.
 private fun Device.optimisticValueRange(fallback: IntRange): IntRange {
     val actionName = DeviceActionNames.primaryValueAction(type.canonicalName) ?: return fallback
     val param = type.action(actionName)?.params?.firstOrNull()

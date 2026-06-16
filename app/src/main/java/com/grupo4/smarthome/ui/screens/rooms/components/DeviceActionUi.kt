@@ -21,7 +21,6 @@ object DeviceActionRegistry {
     fun controlFor(action: DeviceActionInfo, canonicalType: String): DeviceActionControl {
         val name = action.name
         val params = action.params
-        // supportedValues del catálogo si la API los trae; si no, lista hardcodeada (fallback).
         fun choiceValues(fallback: List<String>): List<String> =
             params.firstOrNull()?.supportedValues?.takeIf { it.isNotEmpty() } ?: fallback
         return when {

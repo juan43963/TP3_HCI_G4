@@ -17,10 +17,6 @@ import java.time.Instant
 class SmartHomeSocketClient(
     private val tokenFlow: Flow<String?>,
 ) {
-    // Conecta solo cuando hay un token valido y RECONECTA cuando el token cambia
-    // (login/logout). Evita el cold-start donde el socket se autenticaba con token
-    // null y quedaba mudo toda la sesion. flatMapLatest cancela la conexion vieja
-    // y abre una nueva con el token vigente.
     @OptIn(ExperimentalCoroutinesApi::class)
     fun events(): Flow<SocketEvent> =
         tokenFlow

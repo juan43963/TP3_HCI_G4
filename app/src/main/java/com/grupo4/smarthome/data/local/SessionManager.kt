@@ -22,8 +22,6 @@ class SessionManager(
 
     fun currentToken(): String? = session.value?.token
 
-    // Token de sesión como Flow: el socket lo usa para (re)conectar con el token vigente
-    // y para no conectar hasta que haya uno (evita el cold-start sin autenticar).
     val tokenFlow: Flow<String?> = session.map { it?.token }
 
     suspend fun saveSession(token: String, user: User) {

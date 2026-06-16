@@ -335,10 +335,6 @@ internal fun ConfigureParameterStep(
     )
 }
 
-// Control compartido para parametrizar una accion de rutina. Reutiliza los mismos
-// bodies que la pantalla de "More actions" (RoomPicker/Choice/Color) para que el
-// usuario elija de forma amigable, pero el valor enviado al backend es el real
-// (roomId, modo, hex, numero) — nunca texto libre.
 @Composable
 internal fun RoutineParamControls(
     action: DeviceActionInfo,
@@ -417,8 +413,6 @@ internal fun RoutineParamControls(
     }
 }
 
-// Valor real a enviar al backend para el parametro de la accion: numerico si el
-// control es slider; si no, el valor seleccionado (roomId/modo/hex/texto).
 internal fun routineParamCommit(
     action: DeviceActionInfo,
     canonicalType: String,
@@ -439,8 +433,6 @@ internal fun routineParamCanConfirm(
     DeviceActionRegistry.controlFor(action, canonicalType) is DeviceActionControl.Numeric ||
         textValue.isNotBlank()
 
-// Habitaciones del hogar para el room picker (setLocation), derivadas de los
-// dispositivos cargados. Devuelve roomId real + nombre amigable.
 internal fun routineRoomOptions(
     devices: List<Device>,
     deviceRoomNames: Map<String, String>,

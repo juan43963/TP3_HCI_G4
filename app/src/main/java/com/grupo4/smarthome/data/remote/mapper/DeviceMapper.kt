@@ -48,8 +48,6 @@ private fun DeviceTypeActionDto.toDomain(): DeviceActionInfo? {
     return DeviceActionInfo(
         name = actionName,
         params = params.mapIndexed { index, param ->
-            // Solo extraemos min/max numéricos cuando el tipo del parámetro es numérico.
-            // Para strings (color "#000000", securityCode "0000") el dominio queda sin min/max.
             val numericType = param.type?.lowercase() in NUMERIC_PARAM_TYPES
             DeviceActionParamInfo(
                 name = param.name?.takeIf { it.isNotBlank() } ?: "param${index + 1}",
@@ -74,8 +72,6 @@ private fun JsonObject?.readString(key: String): String? =
 
 private val NUMERIC_PARAM_TYPES = setOf("integer", "int", "number", "float", "double")
 
-// Convierte a Int? solo si el JsonElement es número o string numérico ("16").
-// Un decimal (2.5), un string no numérico ("#FFFFFF") o JsonNull devuelven null → se usa el fallback.
 private fun JsonElement?.asIntOrNull(): Int? {
     val primitive = this as? JsonPrimitive ?: return null
     return primitive.intOrNull ?: primitive.contentOrNull?.toIntOrNull()

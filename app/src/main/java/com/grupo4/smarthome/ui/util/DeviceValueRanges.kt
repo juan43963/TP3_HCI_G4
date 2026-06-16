@@ -1,10 +1,5 @@
 package com.grupo4.smarthome.ui.util
 
-/**
- * Rangos de valores por tipo de dispositivo. Única fuente de verdad compartida
- * entre el slider de acciones (DeviceActionRegistry) y el update optimista del
- * estado (RoomsUiState), para que no vuelvan a divergir.
- */
 object DeviceValueRanges {
     val AC_TEMPERATURE = 18..38
     val LIGHT_BRIGHTNESS = 0..100
