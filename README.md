@@ -34,7 +34,7 @@
 
 La aplicación se probó tanto en **dispositivos físicos** como en **emulador**:
 
-- **Dispositivo físico:** teléfono Android con **Android 14 (API Level 34)**.
+- **Dispositivo físico:** Samsung Galaxy A7 (SM-A750G).
 - **Emulador:** Android Virtual Device (AVD) con **Android 16 (API Level 36)**.
 
 Niveles de API soportados por la aplicación:
