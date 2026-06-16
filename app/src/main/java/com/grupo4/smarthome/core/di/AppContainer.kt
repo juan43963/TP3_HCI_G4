@@ -75,7 +75,7 @@ class AppContainer(context: Context) {
         RoutinesRepositoryImpl(routinesApi, sessionManager, localActionTracker)
 
     private val socketClient: SmartHomeSocketClient =
-        SmartHomeSocketClient { sessionManager.currentToken() }
+        SmartHomeSocketClient(sessionManager.tokenFlow)
 
     val socketEvents: SharedFlow<SocketEvent> =
         socketClient.events().shareIn(applicationScope, SharingStarted.WhileSubscribed(5_000L))

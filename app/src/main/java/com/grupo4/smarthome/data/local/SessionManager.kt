@@ -2,6 +2,7 @@ package com.grupo4.smarthome.data.local
 
 import com.grupo4.smarthome.data.model.User
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -20,6 +21,10 @@ class SessionManager(
             .stateIn(scope, SharingStarted.Eagerly, SessionState.Loading)
 
     fun currentToken(): String? = session.value?.token
+
+    // Token de sesión como Flow: el socket lo usa para (re)conectar con el token vigente
+    // y para no conectar hasta que haya uno (evita el cold-start sin autenticar).
+    val tokenFlow: Flow<String?> = session.map { it?.token }
 
     suspend fun saveSession(token: String, user: User) {
         sessionDataStore.saveSession(token, user)

@@ -46,6 +46,7 @@ import com.grupo4.smarthome.data.model.Device
 import com.grupo4.smarthome.data.model.DeviceActionInfo
 import com.grupo4.smarthome.data.model.DeviceActionParamInfo
 import com.grupo4.smarthome.data.model.DeviceTypeNames
+import com.grupo4.smarthome.ui.screens.rooms.components.RoomOption
 import com.grupo4.smarthome.ui.screens.rooms.components.deviceTypeIcon
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
@@ -269,68 +270,29 @@ private fun AddRoutineTabletActionRow(
 @Composable
 internal fun AddRoutineTabletConfigureParameterStep(
     actionName: String,
-    param: DeviceActionParamInfo?,
+    action: DeviceActionInfo,
+    canonicalType: String,
+    roomOptions: List<RoomOption>,
     value: Float,
     onValueChange: (Float) -> Unit,
-    textParamLabel: String?,
     textValue: String,
     onTextValueChange: (String) -> Unit,
 ) {
-    val isTextParam = textParamLabel != null
-    val min = (param?.min ?: 0).toFloat()
-    val max = (param?.max ?: 100).toFloat()
     AddRoutineTabletSubstepLabel(stringResource(R.string.create_routine_parameters_step_label))
     Text(
         text = stringResource(R.string.create_routine_parameter_prompt, actionName),
         style = MaterialTheme.typography.titleMedium,
         color = MaterialTheme.colorScheme.onSurface,
     )
-    if (isTextParam) {
-        OutlinedTextField(
-            value = textValue,
-            onValueChange = onTextValueChange,
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text(textParamLabel.orEmpty().replaceFirstChar { it.uppercase() }) },
-            singleLine = true,
-            shape = RoundedCornerShape(14.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-            ),
-        )
-    } else {
-        Text(
-            text = param?.name.orEmpty(),
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            Slider(
-                value = value,
-                onValueChange = onValueChange,
-                valueRange = min..max,
-                modifier = Modifier.weight(1f),
-                colors = SliderDefaults.colors(
-                    thumbColor = MaterialTheme.colorScheme.primary,
-                    activeTrackColor = MaterialTheme.colorScheme.primary,
-                    inactiveTrackColor = MaterialTheme.colorScheme.primaryContainer,
-                ),
-            )
-            Text(
-                text = value.toInt().toString(),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.width(36.dp),
-                textAlign = TextAlign.End,
-            )
-        }
-    }
+    RoutineParamControls(
+        action = action,
+        canonicalType = canonicalType,
+        roomOptions = roomOptions,
+        value = value,
+        onValueChange = onValueChange,
+        textValue = textValue,
+        onTextValueChange = onTextValueChange,
+    )
 }
 
 internal val tabletRoutineNumericTypes = setOf("integer", "int", "number", "float", "double")

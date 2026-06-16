@@ -59,6 +59,7 @@ import com.grupo4.smarthome.data.model.DeviceActionInfo
 import com.grupo4.smarthome.data.model.Routine
 import com.grupo4.smarthome.data.model.RoutineAction
 import com.grupo4.smarthome.data.model.RoutineCategory
+import com.grupo4.smarthome.ui.screens.rooms.components.RoomOption
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
 internal enum class AddRoutineTabletStep {
@@ -151,6 +152,8 @@ private fun AddRoutineTabletDialogContent(
     var selectedActionInfo by remember { mutableStateOf<DeviceActionInfo?>(null) }
     var paramValue by remember { mutableStateOf(0f) }
     var paramTextValue by rememberSaveable { mutableStateOf("") }
+
+    val roomOptions = remember(devices, deviceRoomNames) { routineRoomOptions(devices, deviceRoomNames) }
 
     val currentActions = remember(selectedDevice, deviceActions) {
         selectedDevice?.let { deviceActions[it.type.id] }.orEmpty()
@@ -269,10 +272,11 @@ private fun AddRoutineTabletDialogContent(
 
                     AddRoutineTabletStep.ConfigureParameter -> AddRoutineTabletConfigureParameterStep(
                         actionName = routineActionLabel(selectedActionInfo?.name.orEmpty()),
-                        param = selectedActionInfo?.let(::tabletRoutineNumericParam),
+                        action = selectedActionInfo ?: DeviceActionInfo(""),
+                        canonicalType = selectedDevice?.type?.canonicalName.orEmpty(),
+                        roomOptions = roomOptions,
                         value = paramValue,
                         onValueChange = { paramValue = it },
-                        textParamLabel = selectedActionInfo?.let { tabletRoutineTextParamLabel(selectedDevice, it) },
                         textValue = paramTextValue,
                         onTextValueChange = { paramTextValue = it },
                     )
@@ -294,15 +298,19 @@ private fun AddRoutineTabletDialogContent(
                     }
                 },
                 onConfirmParameter = {
-                    if (selectedActionInfo?.let { tabletRoutineTextParamLabel(selectedDevice, it) } != null) {
-                        commitAction(listOf(paramTextValue.trim()))
-                    } else {
-                        commitAction(listOf(paramValue.toInt().toString()))
+                    selectedActionInfo?.let { info ->
+                        commitAction(
+                            routineParamCommit(
+                                info,
+                                selectedDevice?.type?.canonicalName.orEmpty(),
+                                paramValue,
+                                paramTextValue,
+                            ),
+                        )
                     }
                 },
                 canConfirmParameter = selectedActionInfo?.let { info ->
-                    val textLabel = tabletRoutineTextParamLabel(selectedDevice, info)
-                    textLabel == null || paramTextValue.isNotBlank()
+                    routineParamCanConfirm(info, selectedDevice?.type?.canonicalName.orEmpty(), paramTextValue)
                 } ?: true,
                 isEditing = initialRoutine != null,
                 onCreate = {

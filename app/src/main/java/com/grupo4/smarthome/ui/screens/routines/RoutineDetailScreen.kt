@@ -105,7 +105,6 @@ fun RoutineDetailScreen(
             onBack = onBack,
             onRename = { showRenameDialog = true },
             onDelete = { showDeleteDialog = true },
-            onAddAction = onAddAction,
         )
 
         LazyColumn(
@@ -150,7 +149,7 @@ fun RoutineDetailScreen(
                 ActionsCard(
                     actions = routine.actions,
                     onAddAction = onAddAction,
-                    showAddActionButton = false,
+                    showAddActionButton = true,
                 )
             }
         }
@@ -349,7 +348,6 @@ internal fun DetailTopBar(
     onBack: () -> Unit,
     onRename: () -> Unit,
     onDelete: () -> Unit,
-    onAddAction: (() -> Unit)? = null,
     onEditRoutine: (() -> Unit)? = null,
     showTitle: Boolean = true,
     showBackButton: Boolean = true,
@@ -419,24 +417,9 @@ internal fun DetailTopBar(
             DropdownMenu(
                 expanded = menuExpanded,
                 onDismissRequest = { menuExpanded = false },
+                shape = RoundedCornerShape(16.dp),
                 containerColor = MaterialTheme.colorScheme.surface,
             ) {
-                if (onAddAction != null) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.routine_detail_add_action)) },
-                        onClick = {
-                            menuExpanded = false
-                            onAddAction()
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = SmartHomeIcons.Add,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurface,
-                            )
-                        },
-                    )
-                }
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.routine_detail_rename)) },
                     onClick = {
@@ -772,7 +755,7 @@ internal fun ActionsCard(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 LeadingIconBadge(icon = SmartHomeIcons.Routines)
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = stringResource(R.string.routine_detail_actions_title),
                         style = MaterialTheme.typography.titleMedium,
@@ -788,6 +771,9 @@ internal fun ActionsCard(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                }
+                if (showAddActionButton) {
+                    AddActionIconButton(onClick = onAddAction)
                 }
             }
 
@@ -805,11 +791,6 @@ internal fun ActionsCard(
                         ActionRow(index = index + 1, action = action)
                     }
                 }
-            }
-
-            if (showAddActionButton) {
-                Spacer(modifier = Modifier.height(12.dp))
-                AddActionButton(onClick = onAddAction)
             }
         }
     }
@@ -890,33 +871,22 @@ private fun ActionRow(index: Int, action: RoutineActionUi) {
 }
 
 @Composable
-private fun AddActionButton(onClick: () -> Unit) {
+private fun AddActionIconButton(onClick: () -> Unit) {
     Surface(
         modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
+            .size(40.dp)
+            .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(14.dp),
-        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)),
     ) {
-        Row(
-            modifier = Modifier.padding(vertical = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-        ) {
+        Box(contentAlignment = Alignment.Center) {
             Icon(
                 imageVector = SmartHomeIcons.Add,
-                contentDescription = null,
+                contentDescription = stringResource(R.string.routine_detail_add_action),
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(20.dp),
-            )
-            Spacer(modifier = Modifier.size(8.dp))
-            Text(
-                text = stringResource(R.string.routine_detail_add_action),
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
             )
         }
     }

@@ -47,6 +47,12 @@ import com.grupo4.smarthome.R
 import com.grupo4.smarthome.data.model.Device
 import com.grupo4.smarthome.data.model.DeviceActionInfo
 import com.grupo4.smarthome.data.model.DeviceActionParamInfo
+import com.grupo4.smarthome.ui.screens.rooms.components.ChoiceBody
+import com.grupo4.smarthome.ui.screens.rooms.components.ColorBody
+import com.grupo4.smarthome.ui.screens.rooms.components.DeviceActionControl
+import com.grupo4.smarthome.ui.screens.rooms.components.DeviceActionRegistry
+import com.grupo4.smarthome.ui.screens.rooms.components.RoomOption
+import com.grupo4.smarthome.ui.screens.rooms.components.RoomPickerBody
 import com.grupo4.smarthome.ui.screens.rooms.components.deviceTypeIcon
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
@@ -304,70 +310,148 @@ private fun ActionOptionCard(
 @Composable
 internal fun ConfigureParameterStep(
     actionName: String,
-    param: DeviceActionParamInfo?,
+    action: DeviceActionInfo,
+    canonicalType: String,
+    roomOptions: List<RoomOption>,
     value: Float,
     onValueChange: (Float) -> Unit,
-    textParamLabel: String?,
     textValue: String,
     onTextValueChange: (String) -> Unit,
 ) {
-    val isTextParam = textParamLabel != null
-    val min = (param?.min ?: 0).toFloat()
-    val max = (param?.max ?: 100).toFloat()
     Text(
         text = stringResource(R.string.create_routine_parameter_prompt, actionName),
         style = MaterialTheme.typography.titleMedium,
         color = MaterialTheme.colorScheme.onSurface,
     )
     Spacer(modifier = Modifier.height(28.dp))
-    if (isTextParam) {
-        OutlinedTextField(
-            value = textValue,
-            onValueChange = onTextValueChange,
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text(textParamLabel.orEmpty().replaceFirstChar { it.uppercase() }) },
-            singleLine = true,
-            shape = RoundedCornerShape(14.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-            ),
-        )
-    } else {
-        Text(
-            text = param?.name.orEmpty(),
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Spacer(modifier = Modifier.height(22.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            Slider(
-                value = value,
-                onValueChange = onValueChange,
-                valueRange = min..max,
-                modifier = Modifier.weight(1f),
-                colors = SliderDefaults.colors(
-                    thumbColor = MaterialTheme.colorScheme.primary,
-                    activeTrackColor = MaterialTheme.colorScheme.primary,
-                    inactiveTrackColor = MaterialTheme.colorScheme.primaryContainer,
-                ),
+    RoutineParamControls(
+        action = action,
+        canonicalType = canonicalType,
+        roomOptions = roomOptions,
+        value = value,
+        onValueChange = onValueChange,
+        textValue = textValue,
+        onTextValueChange = onTextValueChange,
+    )
+}
+
+// Control compartido para parametrizar una accion de rutina. Reutiliza los mismos
+// bodies que la pantalla de "More actions" (RoomPicker/Choice/Color) para que el
+// usuario elija de forma amigable, pero el valor enviado al backend es el real
+// (roomId, modo, hex, numero) — nunca texto libre.
+@Composable
+internal fun RoutineParamControls(
+    action: DeviceActionInfo,
+    canonicalType: String,
+    roomOptions: List<RoomOption>,
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    textValue: String,
+    onTextValueChange: (String) -> Unit,
+) {
+    when (val control = DeviceActionRegistry.controlFor(action, canonicalType)) {
+        is DeviceActionControl.RoomPicker ->
+            RoomPickerBody(
+                options = roomOptions,
+                currentId = textValue.ifBlank { null },
+                onApply = onTextValueChange,
             )
+        is DeviceActionControl.Choice ->
+            ChoiceBody(
+                suggestions = control.suggestions,
+                currentValue = textValue.ifBlank { null },
+                allowCustomValue = false,
+                onApply = onTextValueChange,
+            )
+        is DeviceActionControl.ColorPicker ->
+            ColorBody(currentValue = textValue.ifBlank { null }, onApply = onTextValueChange)
+        is DeviceActionControl.Numeric -> {
             Text(
-                text = value.toInt().toString(),
-                style = MaterialTheme.typography.titleMedium,
+                text = action.params.firstOrNull()?.name.orEmpty(),
+                style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.width(36.dp),
-                textAlign = TextAlign.End,
             )
+            Spacer(modifier = Modifier.height(22.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                Slider(
+                    value = value,
+                    onValueChange = onValueChange,
+                    valueRange = control.fallbackMin.toFloat()..control.fallbackMax.toFloat(),
+                    modifier = Modifier.weight(1f),
+                    colors = SliderDefaults.colors(
+                        thumbColor = MaterialTheme.colorScheme.primary,
+                        activeTrackColor = MaterialTheme.colorScheme.primary,
+                        inactiveTrackColor = MaterialTheme.colorScheme.primaryContainer,
+                    ),
+                )
+                Text(
+                    text = value.toInt().toString(),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.width(36.dp),
+                    textAlign = TextAlign.End,
+                )
+            }
         }
+        else ->
+            OutlinedTextField(
+                value = textValue,
+                onValueChange = onTextValueChange,
+                modifier = Modifier.fillMaxWidth(),
+                label = {
+                    Text((action.params.firstOrNull()?.name?.ifBlank { null } ?: "value").replaceFirstChar { it.uppercase() })
+                },
+                singleLine = true,
+                shape = RoundedCornerShape(14.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                ),
+            )
     }
 }
+
+// Valor real a enviar al backend para el parametro de la accion: numerico si el
+// control es slider; si no, el valor seleccionado (roomId/modo/hex/texto).
+internal fun routineParamCommit(
+    action: DeviceActionInfo,
+    canonicalType: String,
+    numericValue: Float,
+    textValue: String,
+): List<String> =
+    if (DeviceActionRegistry.controlFor(action, canonicalType) is DeviceActionControl.Numeric) {
+        listOf(numericValue.toInt().toString())
+    } else {
+        listOf(textValue.trim())
+    }
+
+internal fun routineParamCanConfirm(
+    action: DeviceActionInfo,
+    canonicalType: String,
+    textValue: String,
+): Boolean =
+    DeviceActionRegistry.controlFor(action, canonicalType) is DeviceActionControl.Numeric ||
+        textValue.isNotBlank()
+
+// Habitaciones del hogar para el room picker (setLocation), derivadas de los
+// dispositivos cargados. Devuelve roomId real + nombre amigable.
+internal fun routineRoomOptions(
+    devices: List<Device>,
+    deviceRoomNames: Map<String, String>,
+): List<RoomOption> =
+    devices
+        .mapNotNull { device ->
+            device.roomId.takeIf { it.isNotBlank() }
+                ?.let { id -> RoomOption(id = id, name = deviceRoomNames[device.id].orEmpty()) }
+        }
+        .filter { it.name.isNotBlank() }
+        .distinctBy { it.id }
 
 @Composable
 internal fun CreateRoutineBottomBar(

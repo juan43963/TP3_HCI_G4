@@ -3,18 +3,36 @@ package com.grupo4.smarthome.data.remote.socket
 import com.grupo4.smarthome.core.network.ApiConstants
 import io.socket.client.IO
 import io.socket.emitter.Emitter
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import org.json.JSONObject
 import java.time.Instant
 
 class SmartHomeSocketClient(
-    private val tokenProvider: () -> String?,
+    private val tokenFlow: Flow<String?>,
 ) {
-    fun events(): Flow<SocketEvent> = callbackFlow {
+    // Conecta solo cuando hay un token valido y RECONECTA cuando el token cambia
+    // (login/logout). Evita el cold-start donde el socket se autenticaba con token
+    // null y quedaba mudo toda la sesion. flatMapLatest cancela la conexion vieja
+    // y abre una nueva con el token vigente.
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun events(): Flow<SocketEvent> =
+        tokenFlow
+            .map { it?.takeIf { token -> token.isNotBlank() } }
+            .distinctUntilChanged()
+            .flatMapLatest { token ->
+                if (token == null) emptyFlow() else connect(token)
+            }
+
+    private fun connect(token: String): Flow<SocketEvent> = callbackFlow {
         val auth = buildMap {
-            tokenProvider()?.let { put("token", it) }
+            put("token", token)
             put("apiKey", ApiConstants.ApiKey)
         }
         val options = IO.Options().apply { this.auth = auth }

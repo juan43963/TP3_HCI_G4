@@ -63,6 +63,7 @@ import com.grupo4.smarthome.data.model.DeviceActionParamInfo
 import com.grupo4.smarthome.data.model.DeviceTypeNames
 import com.grupo4.smarthome.data.model.RoutineAction
 import com.grupo4.smarthome.data.model.RoutineCategory
+import com.grupo4.smarthome.ui.screens.rooms.components.RoomOption
 import com.grupo4.smarthome.ui.theme.SmartHomeIcons
 
 private val DaysListSaver = listSaver<List<Boolean>, Boolean>(
@@ -151,6 +152,8 @@ private fun AddRoutineActionScreen(
     var paramValue by remember { mutableStateOf(0f) }
     var paramTextValue by rememberSaveable { mutableStateOf("") }
 
+    val roomOptions = remember(devices, deviceRoomNames) { routineRoomOptions(devices, deviceRoomNames) }
+
     val currentActions = remember(selectedDevice, deviceActions) {
         selectedDevice?.let { deviceActions[it.type.id] }.orEmpty()
     }
@@ -200,15 +203,19 @@ private fun AddRoutineActionScreen(
                     canCreate = false,
                     onNext = {},
                     onConfirmParameter = {
-                        if (selectedActionInfo?.let { routineTextParamLabel(selectedDevice, it) } != null) {
-                            commitAction(listOf(paramTextValue.trim()))
-                        } else {
-                            commitAction(listOf(paramValue.toInt().toString()))
+                        selectedActionInfo?.let { info ->
+                            commitAction(
+                                routineParamCommit(
+                                    info,
+                                    selectedDevice?.type?.canonicalName.orEmpty(),
+                                    paramValue,
+                                    paramTextValue,
+                                ),
+                            )
                         }
                     },
                     canConfirmParameter = selectedActionInfo?.let { info ->
-                        val textLabel = routineTextParamLabel(selectedDevice, info)
-                        textLabel == null || paramTextValue.isNotBlank()
+                        routineParamCanConfirm(info, selectedDevice?.type?.canonicalName.orEmpty(), paramTextValue)
                     } ?: true,
                     onCreate = {},
                 )
@@ -254,12 +261,11 @@ private fun AddRoutineActionScreen(
 
                     CreateRoutineStep.ConfigureParameter -> ConfigureParameterStep(
                         actionName = routineActionLabel(selectedActionInfo?.name.orEmpty()),
-                        param = selectedActionInfo?.let(::routineNumericParam),
+                        action = selectedActionInfo ?: DeviceActionInfo(""),
+                        canonicalType = selectedDevice?.type?.canonicalName.orEmpty(),
+                        roomOptions = roomOptions,
                         value = paramValue,
                         onValueChange = { paramValue = it },
-                        textParamLabel = selectedActionInfo?.let {
-                            routineTextParamLabel(selectedDevice, it)
-                        },
                         textValue = paramTextValue,
                         onTextValueChange = { paramTextValue = it },
                     )
@@ -292,6 +298,8 @@ private fun CreateRoutineScreen(
     var selectedActionInfo by remember { mutableStateOf<DeviceActionInfo?>(null) }
     var paramValue by remember { mutableStateOf(0f) }
     var paramTextValue by rememberSaveable { mutableStateOf("") }
+
+    val roomOptions = remember(devices, deviceRoomNames) { routineRoomOptions(devices, deviceRoomNames) }
 
     val currentActions = remember(selectedDevice, deviceActions) {
         selectedDevice?.let { deviceActions[it.type.id] }.orEmpty()
@@ -352,15 +360,19 @@ private fun CreateRoutineScreen(
                         }
                     },
                     onConfirmParameter = {
-                        if (selectedActionInfo?.let { routineTextParamLabel(selectedDevice, it) } != null) {
-                            commitAction(listOf(paramTextValue.trim()))
-                        } else {
-                            commitAction(listOf(paramValue.toInt().toString()))
+                        selectedActionInfo?.let { info ->
+                            commitAction(
+                                routineParamCommit(
+                                    info,
+                                    selectedDevice?.type?.canonicalName.orEmpty(),
+                                    paramValue,
+                                    paramTextValue,
+                                ),
+                            )
                         }
                     },
                     canConfirmParameter = selectedActionInfo?.let { info ->
-                        val textLabel = routineTextParamLabel(selectedDevice, info)
-                        textLabel == null || paramTextValue.isNotBlank()
+                        routineParamCanConfirm(info, selectedDevice?.type?.canonicalName.orEmpty(), paramTextValue)
                     } ?: true,
                     onCreate = {
                         if (canCreate) {
@@ -442,10 +454,11 @@ private fun CreateRoutineScreen(
 
                     CreateRoutineStep.ConfigureParameter -> ConfigureParameterStep(
                         actionName = routineActionLabel(selectedActionInfo?.name.orEmpty()),
-                        param = selectedActionInfo?.let(::routineNumericParam),
+                        action = selectedActionInfo ?: DeviceActionInfo(""),
+                        canonicalType = selectedDevice?.type?.canonicalName.orEmpty(),
+                        roomOptions = roomOptions,
                         value = paramValue,
                         onValueChange = { paramValue = it },
-                        textParamLabel = selectedActionInfo?.let { routineTextParamLabel(selectedDevice, it) },
                         textValue = paramTextValue,
                         onTextValueChange = { paramTextValue = it },
                     )
